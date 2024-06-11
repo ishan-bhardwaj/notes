@@ -1,12 +1,3 @@
-## Maven Commands
-- If maven is not installed in your system, use maven wrapper files i.e. `mvnw`, otherwise use the installed maven commands i.e. `mvn`.
-- Compile and test - `mvnw clean compile test`
-- Packaging - `mvnw package`
-- Run spring boot app - `mvnw spring-boot:run`
-
-> [!CAUTION]
-> Do not use the `src/main/webapp` directory if your application is packaged as a JAR. It only works with WAR packaging. It is silently ignored by most build tools if you generate a JAR.
-
 ## Create Spring Boot Application
 - `@SpringBootApplication` signifies the spring boot app starting point.
 ```
