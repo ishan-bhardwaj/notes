@@ -2,7 +2,9 @@
 - If maven is not installed in your system, use maven wrapper files i.e. `mvnw`, otherwise use the installed maven commands i.e. `mvn`.
 - Compile and test - `mvnw clean compile test`
 - Packaging - `mvnw package`
-- Run spring boot app - `mvnw spring-boot:run`
+- Two options for running the app -
+    1. Use `java -jar myapp.jar`
+    2. Use Spring Boot Maven plugin - `mvnw spring:boot run`
 
 > [!TIP]
 > `Spring Boot Starters` provide a curated list of maven dependencies grouped together which reduces the amount of maven configuration. It contains spring-web, spring-webmvc, hibernate-validator, json, tomcat etc.
@@ -59,6 +61,3 @@
 > Intellij community edition does not support DevTools by default. To make it work, we need to -
 > 1. `Select Preferences > Build, Execution, Deployment > Compiler > Check Build project automatically`
 > 2. `Select Preferences > Advanced Setting > Check Allow auto-make to start...`
-
-
-
