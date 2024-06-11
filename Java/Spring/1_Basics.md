@@ -4,8 +4,8 @@
 - Packaging - `mvnw package`
 - Run spring boot app - `mvnw spring-boot:run`
 
-[!CAUTION]
-Do not use the `src/main/webapp` directory if your application is packaged as a JAR. It only works with WAR packaging. It is silently ignored by most build tools if you generate a JAR.
+> [!CAUTION]
+> Do not use the `src/main/webapp` directory if your application is packaged as a JAR. It only works with WAR packaging. It is silently ignored by most build tools if you generate a JAR.
 
 ## Create Spring Boot Application
 - `@SpringBootApplication` signifies the spring boot app starting point.
