@@ -1,5 +1,5 @@
 # Kotlin
-- Kotlin is a statically types language.
+- Kotlin is a statically typed language
 - Main function - 
 ```
 fun main() {
