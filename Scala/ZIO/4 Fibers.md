@@ -1,11 +1,17 @@
 # Fibers
-- A Fiber is a description of a computation that runs on one of the threads managed by ZIO runtime.
-- Not possible to create fibers manually.
-- `fork` method returns another effect whose return type `Fiber` -
+- A Fiber is a description of an effect being executed on some other thread.
+- ZIO has a thread pool that manages the execution of effects.
+- Creating a fiber is an effectful operation i.e. the fiber will be wrapped in a ZIO -
 ```
 val zio = ZIO.succeed(10)
 val fib: ZIO[Any, Nothing, Fiber[Throwable, Int]] = zio.fork
 ```
+
+> [!TIP]
+> ZIO runtime uses work-stealing thread pool.
+
+> [!TIP]
+> The same fiber can run on multiple JVM threads.
 
 - `join` method on a `Fiber` will return another effect which will block until the `Fiber` is completed -
 ```
@@ -25,6 +31,9 @@ for {
 
 > [!NOTE]
 > `await` return type is `Exit[E, A]`
+
+> [!NOTE]
+> Blocking effects in a fiber leads to descheduling.
 
 - `poll` method is used to peek at the result of the fiber at the current moment without blocking it -
 ```
@@ -60,4 +69,9 @@ for {
 } yield result
 ```
 
+> [!TIP]
+> Semantic blocking - the fibers looks blocked but no JVM thread is actually blocked as they are activey scheduling other fibers for execution.
+
+> [!TIP] 
+> Cooperative scheduling - ZIO runtime never preempts your fiber, the fibers itself yield control of their thread. 
 
