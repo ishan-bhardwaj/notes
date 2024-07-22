@@ -75,3 +75,37 @@ def timeout_v2[R, E, A](zio: ZIO[R, E, A], time: Duration): ZIO[R, E, Option[A]]
         value => ZIO.succeed(Some(value))
     )
 ```
+
+## Blocking Effects
+- ZIO blocking tasks should be delegated to the dedicated blocking thread pool because if we run them on normal threads, they can block the thread entirely causing thread starvation.
+```
+val aBlockingZIO = ZIO.attemptBlocking {
+    println(s"[${Thread.currentThread().getName}] runnning a long computation")
+    Thread.sleep(10000)
+    25
+}
+```
+
+> [!TIP]
+> Blocking code using `attemptBlocking` cannot be interrupted. To apply interruption, we need to use `attemptBlockingInterrupt` method. However, this is based on `Thread.interrupt` java native method call which may result in `InterruptException` and is a heavy operation.
+> So, the best way to implement interruption is by setting a flag/switch that we can turn off from inside of the computation -
+> ```
+> def interruptibleBlockingEffect(canceledFlag: AtomicBoolean): Task[Unit] 
+>   ZIO.attemptBlockingCancelable {
+>       (1 to 100000).foreach {
+>           if (!canceledFlag.get()) { // do computation }
+>       }
+>   } (ZIO.succeed(canceledFlag.set(true)))
+> ```
+> Now, if the `canceledFlag` is set to `true` by some other thread then the entire loop will be interrupted and it will not execute anymore.
+> When any thread receives an interruption signal, the `ZIO.succeed(canceledFlag.set(true))` line will execute, canceling the entire effect.
+
+## Yielding
+- `ZIO.yieldNow` allows the ZIO runtime to take decision of yielding the current thread and start executing the fibers on different threads. But ZIO runtime is smart enough to execute effects on same thread before yielding control.
+```
+(1 to 10000)
+    .map(i => ZIO.succeed(i))
+    .reduce((x, y) => println(x) *> ZIO.yieldNow *> println(y))
+```
+- `ZIO.sleep` is implemented using `ZIO.yieldNow`.
+

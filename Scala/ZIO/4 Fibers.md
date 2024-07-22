@@ -64,6 +64,7 @@ for {
 
 > [!TIP]
 > Semantic blocking - the fibers looks blocked but no JVM thread is actually blocked as they are activey scheduling other fibers for execution.
+> Example - `ZIO.sleep(1.second)` will semantically block the fiber and is interruptible, whereas, `ZIO.succeed(Thread.sleep(1000))` is a blocking thread and uninterruptible.
 
 > [!TIP] 
 > Cooperative scheduling - ZIO runtime never preempts your fiber, the fibers itself yield control of their thread. 
