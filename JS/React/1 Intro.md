@@ -26,6 +26,7 @@ function App() {
 
 export default App;
 ```
+
 - Defining Root component -
 ```
 import ReactDOM from "react-dom/client";
@@ -34,3 +35,19 @@ import App from "./App";
 const entryPoint = document.getElementById("root");
 ReactDOM.createRoot(entryPoint).render(<App />);
 ```
+
+- `{}` is used to inject dynamic expression in JSX -
+```
+function showImage() {
+    return (
+        <img src={filePath}>
+    )
+}
+```
+
+> [!TIP]
+> Rendering images using `<img src=assets/img.png>` is not a good practise as the image can be lost during the project build process.
+> Better way is to import the image - `import reactImg from 'assets/img.png'` 
+> and then use it - `<img src={reactImg}>`
+> This will include an auto-generated path that will also work once you deploy the React app on a server.
+
