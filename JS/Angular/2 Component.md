@@ -61,3 +61,44 @@ export class AppComponent {}
 >
 > `ng g c <component-name>`
 
+### Storing data in a Component
+```
+export class UserComponent {
+    selectedUser = USERS[0];
+}
+```
+here -
+- `selectedUser` is a `public` property. To mark it as `private` so that it can be used only within the class -
+```
+private selectedUser = USERS[0];
+```
+- We can then use the public properties in the html -
+1. Using string interpolation -
+```
+<span>{{ selectedUser.name }}</span>
+```
+We can also use string interpolation to set value to another property -
+```
+<img src="{{ selectedUser.avatar }}" />
+```
+But better way is to use property binding.
+2. Property binding -
+```
+<img [src]="'assets/users/' + selectedUser.avatar" />
+```
+This binds the `src` property of the underlying `<img>` DOM object to the value stored in `selectedUser.avatar`
+
+> [!NOTE]
+> Whilst it might look like you're binding the `src` attribute of the `<img>` tag, you're actually NOT doing that. Instead, property binding really targets the underlying DOM object property (in this case a property that's also called `src`) and binds that.
+> The difference matters if you're trying to set attributes on elements dynamically. Attributes which don't have an equally-named underlying property.
+> For example, when binding `ARIA` attributes, you can't target an underlying DOM object property.
+> Since "Property Binding" wants to target properties (and not attributes), that can be a problem. That's why Angular offers a slight variation of the "Property Binding" syntax that does allow you to bind attributes to dynamic values.
+> It looks like this - 
+> ```
+> <div 
+>  role="progressbar" 
+>  [attr.aria-valuenow]="currentVal" 
+>  [attr.aria-valuemax]="maxVal">
+> </div>
+```
+> By adding `attr` in front of the attribute name you want to bind dynamically, you're "telling" Angular that it shouldn't try to find a property with the specified name but instead bind the respective attribute - in the example above, the `aria-valuenow` and `aria-valuemax` attributes would be bound dynamically.
