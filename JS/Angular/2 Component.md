@@ -15,23 +15,21 @@ import { Component } from '@angular/core';
 export class HeaderComponent {}
 ```
 
-where
+where -
     - `selector` is the name of the component that will be used as an html tag - `<app-header />`
     - `templateUrl` defines the html content and `styleUrl` defines the css content for the component.
     - `standalone` set to true mark the component as "standalone". There are "module"-based components also for which we'll have to set `standalone: false`
 
-> [!TIP]
+> [!NOTE]
 > We can also use `styleUrl` property using which we can define single stylesheet -
 > `styleUrl: './header.component.css'`
-
-> [!NOTE]
-> Similarly, we can define `styles` property to define multiple inline styles.
 
 > [!NOTE]
 > We can also define inline components like -
 > ```
 > template: '<p>Some content</p>'
 > ```
+> Similarly, we can define `styles` property to define multiple inline styles.
 > But this is not recommended.
 
 ### Using the custom component inside another component
