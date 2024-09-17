@@ -73,6 +73,7 @@ here -
 private selectedUser = USERS[0];
 ```
 - We can then use the public properties in the html -
+
 __1. Using string interpolation__ -
 ```
 <span>{{ selectedUser.name }}</span>
