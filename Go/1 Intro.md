@@ -37,13 +37,14 @@ go build -o hello_world hello.go
 go install golang.org/x/tools/cmd/goimports@latest
 ```
 where - 
+
     - The `-l` flag tells goimports to print the files with incorrect formatting to the console
     - The `-w` flag tells goimports to modify the files in-place
     - The `.` specifies the files to be scanned: everything in the current directory and all of its subdirectories
 
 ## The Semicolon Insertion Rule
 - Go requires a semicolon at the end of every statement. However, Go developers never put the semicolons in themselves; the Go compiler does it for them.
-- If the last token before a newline is any of the following, the lexer inserts a semicolon after the token:
+- If the last token before a newline is any of the following, the lexer inserts a semicolon after the token -
     - An identifier (which includes words like int and float64)
     - A basic literal such as a number or string constant
     - One of the tokens: `“break,” “continue,” “fallthrough,” “return,” “++,” “--,” “),” or “}”`
