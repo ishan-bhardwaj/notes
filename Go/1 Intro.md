@@ -36,8 +36,7 @@ go build -o hello_world hello.go
 ```
 go install golang.org/x/tools/cmd/goimports@latest
 ```
-where - 
-
+where
     - The `-l` flag tells goimports to print the files with incorrect formatting to the console
     - The `-w` flag tells goimports to modify the files in-place
     - The `.` specifies the files to be scanned: everything in the current directory and all of its subdirectories
