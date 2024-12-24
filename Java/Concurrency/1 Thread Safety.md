@@ -287,4 +287,52 @@ public class AccountManager {
     - `StampedLock` (with optimistic reading)
     - Versioned data in databases or software frameworks.
 
-    
+> [!NOTE]
+> **Invariants** - These are conditions that must always hold true for a given object. For example, the sum of a set of variables should always equal a specific value. 
+> When dealing with multiple variables that must always follow an invariant, it's crucial to protect them with the same lock to ensure that updates happen atomically.
+
+## Guarding State with Locks
+- _Serializing access_ means that threads take turns accessing the object exclusively, rather than doing so concurrently.
+- A mutatble state is considered "guarded" by a lock when every access (read or write) to that variable occurs with the _same_ lock held.
+- If multiple variables participate in an invariant, they must all be guarded by the _same_ lock to ensure that updates to all of them are done atomically.
+- A common practice is to synchronize all public methods of a class to make it thread-safe, for eg - the `Vector` class uses this approach, but one must be wary of potential problems -
+    - Problems with liveness & performance
+    - Problems with insufficient synchronization on compound actions. For example, this is not thread-safe code, although it is using a thread-safe class -
+    ```
+    if (vector.contains(i)) {
+        vector.add(i);
+    }
+    ```
+- A better alternative might be to synchronize only the critical sections of code or use more sophisticated concurrency mechanisms like ReadWriteLock, or atomic variables.
+
+### **`@GuardedBy`**
+- `@GuardedBy` annotation is a static analysis tool used to document the synchronization strategy for a variable in a multithreaded program.
+- The annotation itself does not enforce any behavior or enforce thread-safety. It simply marks a field and specifies which lock is responsible for protecting that field.
+- Purpose -
+    - **Documentation** - helps developers understand which lock is used to protect a particular variable.
+    - **Tooling** - Some static analysis tools (like _FindBugs_ or _Checker Framework_) can inspect the code and check for concurrency issues by verifying if the synchronization is correctly applied according to the guards defined by _@GuardedBy_.
+- Example using _Checker Framework_ -
+```
+import org.checkerframework.checker.lock.qual.GuardedBy;
+
+public class BankAccount {
+
+    private int balance = 0;
+    @GuardedBy("this")
+    private int transactionCount = 0;
+
+    public synchronized void deposit(int amount) {
+        balance += amount;
+        transactionCount++;  // This is guarded by 'this'
+    }
+
+    public synchronized int getBalance() {
+        return balance;
+    }
+
+    public synchronized int getTransactionCount() {
+        return transactionCount;
+    }
+}
+```
+- _FindBugs_ is a tool that does not require any annotations to work. It operates purely based on static analysis of your compiled bytecode (`.class` files) and doesn't need to be explicitly told about how you want it to check your code through annotations.
