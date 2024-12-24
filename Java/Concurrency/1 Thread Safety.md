@@ -91,6 +91,28 @@ public void increment() {
             }
         }
         ```
+        - To fix this race condition, synchronization can be used to ensure only one thread can initialize the instance at a time -
+        ```
+        public static synchronized SharedResource getInstance() {
+            if (instance == null) {
+                instance = new SharedResource();
+            }
+            return instance;
+        }
+        ```
+        - or with **Double-Checked Locking** -
+        ```
+        public static SharedResource getInstance() {
+            if (instance == null) {                  // First check (no locking)
+                synchronized (SharedResource.class) {
+                    if (instance == null) {          // Second check (with locking)
+                        instance = new SharedResource();
+                    }
+                }
+            }
+            return instance;
+        }
+        ```
         - In the above example -
             - Both _Thread A_ and _Thread B_ enter the `getInstance()` method simultaneously.
             - Since instance is initially `null`, both threads pass the `if (instance == null)` check.
@@ -99,13 +121,117 @@ public void increment() {
     2. Read-Modify-Write (RMW) Race Condition - same as `count++` example described in Atomicity.
 
 ### Data Races vs Race Conditions
+
 - **Data Race** - occurs when two threads access a shared variable -
-        - At least one of the accesses is a write.
-        - The accesses are not properly synchronized.
-        - Example: A thread writes to a field while another thread reads it, without synchronization.
+    - At least one of the accesses is a write.
+    - The accesses are not properly synchronized.
+    - Example: A thread writes to a field while another thread reads it, without synchronization.
 - **Race Condition** - A broader term that includes data races but also encompasses logic errors caused by incorrect assumptions about timing or interleaving of threads.
 
 > [!NOTE]
 > All data races are race conditions, but not all race conditions are data races.
 
 - Example of a Race Condition without a Data Race - Two threads access a thread-safe queue. Thread A observes the queue is not empty and decides to dequeue an item, but before it does, Thread B dequeues it first. The queue is now empty, and Thread A’s action fails.
+
+> [!WARNING] Synchronizing the entire method ensures thread safety but can hurt performance -
+>   - Only one thread can use the method at a time, even if multiple threads are performing non-conflicting operations.
+>   - This can degrade responsiveness and scalability in high-concurrency environments.
+
+## Locking
+
+- Locking is a synchronization mechanism which ensures that only one thread can access a shared resource or critical section of code at a time. 
+- It helps prevent race conditions and ensures thread safety when multiple threads or processes are accessing shared data concurrently.
+- Key features -
+    - **Mutual exclusions** - ensures that only one thread can execute a critical section of code that accesses shared resources at a time.
+    - **Critical section** - section of code that accesses shared data and must be executed by only one thread at a time to avoid conflicts.
+    - **Lock Acquisition ** - a thread requests or acquires a lock before entering the critical section to guarantee exclusive access.
+    - **Lock Release** - once the thread finishes executing the critical section, it releases the lock, allowing other threads to acquire it.
+
+### Types of Locking -
+1. **Intrinsic Locks** or **Monitor Locks**
+- Intrinsic locks are Java's built-in synchronization mechanism. Every object in Java has an associated intrinsic lock (or monitor) that can be used to synchronize access to shared resources.
+- Key features -
+    - One Lock per Object - Each object in Java has a unique intrinsic lock. Threads acquire this lock when they enter a synchronized block or method associated with the object.
+    - Mutual Exclusion - At most, one thread can hold an intrinsic lock at any given time. Other threads trying to acquire the same lock must wait until the lock is released.
+    - Thread Blocking - If a thread tries to acquire a lock that is already held by another thread, it will block until the lock becomes available.
+    - Reentrancy - Intrinsic locks are reentrant, meaning that a thread that already holds the lock can acquire it again without getting blocked. This is useful for methods that call other synchronized methods within the same object.
+    - Automatic Release - The lock is managed by the JVM implicitly and is automatically acquired and released when the thread exits the synchronized enters or block or method, either normally or by throwing an exception.
+
+- Limitations -
+    - Coarse-Grained Locking - Using a single intrinsic lock for large critical sections can reduce concurrency, as only one thread can access the locked resource at a time.
+    - No Timeout or Try-Lock - Intrinsic locks do not support timeout-based acquisition or checking if the lock is available without blocking.
+    - Potential Deadlocks - Improper usage of multiple intrinsic locks (nested `synchronized` blocks) can lead to deadlocks if two or more threads hold locks and wait for each other's locks.
+
+- Examples -
+1. Synchronized Instance method - The lock is the current instance of `Counter` class. Only one thread can execute `increment` or `getCount` at a time for the same object. When you mark a method as `synchronized`, the lock is implicitly associated with the object instance (i.e., `this`) on which the method is being called -
+```
+public class Counter {
+    private int count = 0;
+
+    public synchronized void increment() {
+        count++;
+    }
+
+    public synchronized int getCount() {
+        return count;
+    }
+}
+```
+
+2. Synchronized Static Method - The lock is the Class object (`GlobalCounter.class`). Only one thread can execute a synchronized static method at a time -
+```
+public class GlobalCounter {
+    private static int count = 0;
+
+    public static synchronized void increment() {
+        count++;
+    }
+
+    public static synchronized int getCount() {
+        return count;
+    }
+}
+```
+
+3. Synchronized Block - The `this` object (current instance of `BankAccount`). Only one thread can execute code within the synchronized block at a time -
+```
+public class BankAccount {
+    private int balance = 0;
+
+    public void deposit(int amount) {
+        synchronized (this) {
+            balance += amount;
+        }
+    }
+
+    public int getBalance() {
+        synchronized (this) {
+            return balance;
+        }
+    }
+}
+```
+
+4. Explicit Locking with Another Object - The explicitly defined `lock` object. This approach separates the locking mechanism from the object itself, providing more flexibility -
+```
+public class AccountManager {
+    private final Object lock = new Object();
+    private int balance = 0;
+
+    public void deposit(int amount) {
+        synchronized (lock) {
+            balance += amount;
+        }
+    }
+
+    public int getBalance() {
+        synchronized (lock) {
+            return balance;
+        }
+    }
+}
+```
+
+> [!WARNING]
+> Primitive types such as `int`, `double` cannot be used as locks in Java because they are not objects and do not have a monitor object associated with them.
+
