@@ -148,8 +148,8 @@ public void increment() {
     - **Lock Acquisition** - a thread requests or acquires a lock before entering the critical section to guarantee exclusive access.
     - **Lock Release** - once the thread finishes executing the critical section, it releases the lock, allowing other threads to acquire it.
 
-### Types of Locking -
-1. **Intrinsic Locks** or **Monitor Locks**
+## Types of Locking -
+### 1. **Intrinsic Locks** or **Monitor Locks**
 - Intrinsic locks are Java's built-in synchronization mechanism. Every object in Java has an associated intrinsic lock (or monitor) that can be used to synchronize access to shared resources.
 - Key features -
     - **One Lock per Object** - Each object in Java has a unique intrinsic lock. Threads acquire this lock when they enter a synchronized block or method associated with the object.
@@ -236,3 +236,55 @@ public class AccountManager {
 > [!WARNING]
 > Primitive types such as `int`, `double` cannot be used as locks in Java because they are not objects and do not have a monitor object associated with them.
 
+### 2. **Extrinsic Locks**
+- Extrinsic locks are locks that are not inherently tied to a specific object. They are separate from the objects being locked and can be applied to any shared resource.
+- These are usually implemented using explicit lock objects provided by classes like `java.util.concurrent.locks.ReentrantLock`.
+- These locks allow for more flexible and sophisticated control over thread synchronization.
+- Key features -
+    - **Locking on External Objects** - not tied to the object being worked on (like this or ClassName.class), but instead, it is an explicit lock object that you manage externally from the object itself.
+    - **Fine-grained Lock Control** - let you manually control locking, and even try to acquire the lock without blocking indefinitely, with methods like `tryLock()`.
+    - **Locking Specific Resources** - can use extrinsic locks to synchronize on specific resources independently of the objects being worked on. For example, you could have multiple locks for different resources (e.g., separate locks for account number, transaction data, etc.) rather than synchronizing on the entire object.
+    - **No Deadlocks or Performance Issues** - when used properly, can allow fine-grained control of synchronization, leading to better performance and avoiding issues like deadlocks.
+    
+- Usage -
+    1. **External Lock Object** - create a lock object, typically a ReentrantLock, that is separate from the object you're synchronizing -
+    ```
+    ReentrantLock lock = new ReentrantLock();
+    ```
+
+    2. **Locking a Resource** - acquire the lock explicitly in the code where you need it -
+    ```
+    lock.lock();
+    try {
+        balance += amount;  // Critical section of code where you need synchronization
+    } finally {
+        lock.unlock();      // Ensure the lock is released even if an exception occurs
+    }
+    ```
+
+    3. **Control Over Locking** - With extrinsic locks, you have full control over the locking behavior. For example, you can use `tryLock()` to attempt to acquire the lock without blocking indefinitely, or `lockInterruptibly()` to acquire a lock and be able to interrupt if the thread is waiting for too long -
+    ```
+    if (lock.tryLock()) {
+        try {
+            // Critical section code
+        } finally {
+            lock.unlock();
+        }
+    } else {
+        // Handle the case where the lock is unavailable
+    }
+    ```
+
+- Limitations -
+    - Requires manual lock management (you must ensure the lock is released, typically using a finally block).
+    - Can lead to deadlocks if locks are not managed carefully.
+
+### 3. **Optimistic Locks**
+- Optimistic locking is based on the idea that conflicts between threads will be rare. In this approach, a thread proceeds with its operation assuming no other thread will interfere. 
+- Before committing changes, the thread checks if any other thread has modified the resource, and if a conflict is detected, it retries the operation.
+- Typically involves versioning or timestamps on data, and the thread checks if the data was modified before committing.
+- Example -
+    - `StampedLock` (with optimistic reading)
+    - Versioned data in databases or software frameworks.
+
+    
