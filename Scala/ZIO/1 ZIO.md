@@ -74,6 +74,8 @@ val tupledZIO = meaningOfLife.zip(anotherMOL)
 val combinedZIO = meaningOfLife.zipWith(anotherMOL)(_ * _)
 ```
 
+
+
 ### Some useful operations ###
 - Evaluate two ZIOs in sequence and take value of the LAST one - `zioa *> ziob`
 - Evaluate two ZIOs in sequence and take value of the FIRST one - `zioa <* ziob`
