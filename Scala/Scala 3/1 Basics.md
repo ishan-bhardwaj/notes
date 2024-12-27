@@ -49,11 +49,9 @@ def fun_v2: Int = 45
 ```
 
 > [!TIP]
-> Methods with empty parameter lists (eg, `fun_v1()`) implies that the method performs an action or computation when invoked. When _eta-expanded_, it is converted to a function of type `() => Int`
-
-> Methods without empty parameter lists (eg, `fun_v2()`) are often used for read-only accessors or values that don't require computation, giving them a more "field-like" usage. They cannot be eta-expanded.
-
-> Trying to eta-expand directly causes a compilation error -
+> - Methods with empty parameter lists (eg, `fun_v1()`) implies that the method performs an action or computation when invoked. When _eta-expanded_, it is converted to a function of type `() => Int`
+> - Methods without empty parameter lists (eg, `fun_v2()`) are often used for read-only accessors or values that don't require computation, giving them a more "field-like" usage. They cannot be eta-expanded.
+> - Trying to eta-expand directly causes a compilation error -
 > ```
 > val f2: () => Int = fun_v2 _  // ERROR: No eta-expansion occurs for parameterless methods
 > ```
