@@ -14,8 +14,11 @@ ZIO.succeed(10).onInterruption("Interrupted!")
 ```
 - We can also `fork` the `interrupt` call so that it won't block the calling fiber -
 `ZIO.sleep(1.second) *> fib.interruptFork`
+
 or
+
 `(ZIO.sleep(1.second) *> fib.interrupt).fork`
+
 Note that we don't need to `join` this forked fiber causing a leaked fiber, but its lifecycle will be very short therefore leaking a fiber is fine as it will be cleaned by garbage collector.
 
 > [!WARNING]
@@ -108,4 +111,19 @@ val aBlockingZIO = ZIO.attemptBlocking {
     .reduce((x, y) => println(x) *> ZIO.yieldNow *> println(y))
 ```
 - `ZIO.sleep` is implemented using `ZIO.yieldNow`.
+
+## Manual Interruption
+```
+val intZio = ZIO.succeed("computing...") *> ZIO.interrupt *> ZIO.succeed(42)
+```
+- The ZIO will be interrupted after printing `computing...`.
+
+## Finalizer
+```
+intZio.onInterrupt(ZIO.succeed("Interrupted!"))
+```
+
+- Will print `Interrupted` in case the `intZio` is interrupted.
+
+## Uninterruptible
 
