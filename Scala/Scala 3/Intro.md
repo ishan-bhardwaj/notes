@@ -56,6 +56,9 @@ def fun_v2: Int = 45
 > val f2: () => Int = fun_v2 _  // ERROR: No eta-expansion occurs for parameterless methods
 > ```
 
+> [!TIP]
+> Methods ending with `:` are _right-associative_ for eg - `4 :: list` is same as `list.::(4)`
+
 > [!NOTE]
 > Scala compiler provides **Type Inference** - can infer types based on the return value, eg -
 > ```
