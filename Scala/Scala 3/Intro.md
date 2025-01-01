@@ -127,3 +127,12 @@ f"You total price is: $amount%2.2f"     // 4.20
 ```
 raw"This is a \n newline"
 ```
+
+> [!TIP]
+> When a for comprehension does not end in a yield, it is translated into a series of foreach calls. Eg -
+> ```
+> for {
+>   x <- List(1, 2)
+>   y <- List(x, x * 3)
+> } println((x, y))
+> ```
