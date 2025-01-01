@@ -2,7 +2,7 @@
 
 - `ZStream[R, E, O]` - an effectful stream that requires an environment `R`, may fail with an error `E`, and may succeed with zero or more values of type `O`.
 - A ZIO produces its result all at once whereas a ZStream produces its result _incrementally_.
-- A ZStream is defined in terms of one operator - `process` - which can be evaluated repeatedly to pull more elements from the stream.
+- A `ZStream` is defined in terms of one operator - `process` - which can be evaluated repeatedly to pull more elements from the stream.
 ```
 trait ZStream[-R, +E, +O] {
     def process: ZIO[R with Scope, Option[E], Chunk[O]]
@@ -10,12 +10,12 @@ trait ZStream[-R, +E, +O] {
 ```
 
 - Each time the `process` is evaluated, it will either -
-    - Succeed with a Chunk of new `O` values that have been pulled from the stream,
+    - Succeed with a `Chunk` of new `O` values that have been pulled from the stream,
     - Fail with an error `E`, or
     - Fail with `None` indicating the end of the stream.
 
 > [!TIP]
-> The process is a scoped ZIO so that resources can be safely acquired and released in the stream context.
+> The `process` is a scoped ZIO so that resources can be safely acquired and released in the stream context.
 
 ## Type Parameters
 
@@ -88,13 +88,13 @@ object ZStream {
 }
 ```
 
-- The S type parameter allows us to maintain some internal state when constructing the stream.
+- The `S` type parameter allows us to maintain some internal state when constructing the stream.
 - The way these constructors work is as follows:
-    1. The first time values are pulled from the stream, the function `f` will be applied to the initial state `s`
-    2. If the result is `None`, the stream will end
-    3. If the result is `Some`, the stream will return `A`, and the next time values are pulled, the first step will be repeated with the new `S`.
+    a. The first time values are pulled from the stream, the function `f` will be applied to the initial state `s`
+    b. If the result is `None`, the stream will end
+    c. If the result is `Some`, the stream will return `A`, and the next time values are pulled, the first step will be repeated with the new `S`.
 
-- Using `ZStream#unfold` (and `ZStream#unfoldZIO`) to construct a ZStream from a List where the state we maintain is the remaining list elements -
+- Using `ZStream#unfold` (and `ZStream#unfoldZIO`) to construct a `ZStream` from a `List` where the state we maintain is the remaining list elements -
 ```
 def fromList[A](list: List[A]): ZStream[Any, Nothing, A] =
     ZStream.unfold(list) {
@@ -107,7 +107,7 @@ def fromList[A](list: List[A]): ZStream[Any, Nothing, A] =
 
 ## Running Streams
 
-- Running a `ZStream` involves compiling it down to a single `ZIO` effect that describes running the streaming program all at once and producing a single value. The second step actually runs that ZIO effect.
+- Running a ZStream involves compiling it down to a single ZIO effect that describes running the streaming program all at once and producing a single value. The second step actually runs that ZIO effect.
 
 ### Folding over stream values
 
@@ -120,7 +120,7 @@ def fromList[A](list: List[A]): ZStream[Any, Nothing, A] =
     ```
 
 - **`ZStream#runDrain`** -
-    - `ZStream#runDrain` runs a stream to completion purely for its effects. The `ZStream#runDrain` operator always continues but ignores the values produced by the stream, simply returning an effect that succeeds with the Unit value.
+    - `ZStream#runDrain` runs a stream to completion purely for its effects. The `ZStream#runDrain` operator always continues but ignores the values produced by the stream, simply returning an effect that succeeds with the `Unit` value.
 
     - Usecase - `ZStream#runDrain` operator is useful if your entire logic for this part of your program is described as a stream. For example, we could have a stream that describes getting tweets, performing some filtering and transformation on them, and then writing the results to a database.
 
