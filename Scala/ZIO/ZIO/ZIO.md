@@ -50,88 +50,112 @@ case class MyZIO[-R, E, A](unsafeRun: R => Either[E, A]) {
 
 ## ZIO Effect ##
 
-```
-import zio._
+- `ZIO[R, E, A]` - core data type in the ZIO library (called **_functional effect type_**) and values of this type are called **functional effects** which are kind of _blueprints_ for concurrent workflows.
+- Every ZIO effect is just a description i.e. a blueprint for a concurrent workflow. When we have an effect that describes everything we need to do, we hand it off to the ZIO runtime, which executes the blueprint and produces the result of the program.
 
-val meaningOfLife: ZIO[Any, Nothing, Int] = ZIO.succeed(42)
-val aFailure: ZIO[Any, String, Nothing] = ZIO.fail("Something went wrong")
-val aSuspendedZIO: ZIO[Any, Throwable, Int] = ZIO.suspend(meaningOfLife)
+- `ZIO[-R, +E, +A]` -
+    - `R` is the environment required for the effect to be executed. This could include any dependencies the effect has, for example, access to a database, or an effect might not require any environment, in which case, the type parameter will be `Any`.
+    - `E` is the type of value that the effect can fail with. This could be `Throwable` or `Exception`, but it could also be a domain-specific error type, or an effect might not be able to fail at all, in which case the type parameter will be `Nothing`.
+    - `A` is the type of value that the effect can succeed with. It can be thought of as the return value or output of the effect.
 
-// map & flatMap
-val improvedMOL = meaningOfLife.map(_ * 2)
-val printingMOL = meaningOfLife.flatMap(mol => ZIO.succeed(println(mol)))
+### Running ZIO Applications ###
 
-// for comprehensions
-val smallProgram = for {
-    _ <- ZIO.succeed(println("what's your name"))
-    name <- ZIO.succeed(StdIn.readLine())
-    _ <- ZIO.succeed(println(s"Welcome to ZIO, $name"))
-  } yield ()
+- Manually -
+    ```
+    def main(args: Array[String]): Unit = {
+        val runtime = Runtime.default
+        implicit val trace: Trace = Trace.empty
+        val meaningOfLife = ZIO.succeed(42)
+        Unsafe.unsafeCompat { implicit u =>
+            val mol = runtime.unsafe.run(meaningOfLife)
+            println(mol)
+        }
+    }
+    ```
+    - Runtime involves the thread pool and the mechanism by which ZIOs can be evaluated.
+    - Trace allows you to debug your code regardless of whether your effects run on the main application thread or on some other thread.
 
-// zip, zipWith
-val anotherMOL = ZIO.succeed(100)
-val tupledZIO = meaningOfLife.zip(anotherMOL)
-val combinedZIO = meaningOfLife.zipWith(anotherMOL)(_ * _)
-```
+- Extending `ZIOAppDefault` -
+    ```
+    object Program extends ZIOAppDefault {
+        override def run = zioa.debug
+    }
+    ```
+    - `ZIOAppDefault` provides runtime, trace etc.
+    - There is also a `ZIOApp` trait that allows us to implement the runtime in manual way.
+    - `debug` method prints out the value of evaluated ZIO.
 
+### Useful operations ###
 
+- Constructing ZIO -
+    - `ZIO.succced` - constructs a ZIO with success value
+    - `ZIO.fail` - constructs a ZIO with a failure
+    - `ZIO.attempt` - constructs a ZIO with a value or potential failure
+    - `ZIO.suspend` - constructs a ZIO with _suspended_ value or potential failure
 
-### Some useful operations ###
-- Evaluate two ZIOs in sequence and take value of the LAST one - `zioa *> ziob`
-- Evaluate two ZIOs in sequence and take value of the FIRST one - `zioa <* ziob`
-- Convert the value of a ZIO to something else - `zioa.as(value)`
-- Discard the value of a ZIO to Unit - `zioa.asUnit`
-Note that ZIO flatMaps implement trampolining technique which involves allocating the ZIO instances on the heap instead of on the stack. This means that evaluating the chain of ZIOs is done in a tail recursive fashion behind the scenes by the ZIO runtime.
+> [!TIP]
+> The input parameter in `ZIO.attempt` and `ZIO.fail` is _by-name_ (using the `=> A` syntax), which prevents the
+code from being evaluated eagerly, hence allowing ZIO to create a value that describes execution.
 
-- In `ZIO.suspend`, the error channel is `Throwable` because `ZIO.suspend` is used for effects whose construction itself may fail.
-- In `map` & `flatMap`, the Environment and Error channel stays the same.
+- Tranforming ZIO - 
+    - `ZIO#map` - transforms value 
+    - `ZIO#flatMap` - transforms value into another effect
+    - `ZIO#delay` - transforms one effect into another effect whose execution is delayed into the future
+    - for-comprehension -
+    ```
+    for {
+        _ <- ZIO.succeed(println("Enter name"))
+        name <- ZIO.succeed(StdIn.readLine())
+        _ <- ZIO.succeed(println(s"Welcome to ZIO, $name"))
+    } yield ()
+    ```
+    - `ZIO#as` - converts the value of a ZIO to something else.
+    - `zioa#asUnit` - discards the value of a ZIO to Unit
+
+> [!NOTE]
+> In `map` & `flatMap`, the Environment and Error channel stays the same.
+
+> [!TIP]
+> ZIO flatMaps implement trampolining technique which involves allocating the ZIO instances on the heap instead of on the stack. This means that evaluating the chain of ZIOs is done in a tail recursive fashion behind the scenes by the ZIO runtime.
+
+- Combining ZIO - 
+    - `ZIO#zip` - sequentially combines the results of two effects into a tuple of their results.
+    - `ZIO#zipLeft` or `zioA <* zioB` - sequentially combines two effects, returning the result of the _first_.
+    - `ZIO#zipRight`or `zioA *> zioB` - sequentially combines two effects returning the result of the _second_.
+    - `ZIO#zipWith` - sequentially combines values from both input ZIOs using function provided.
+    - `ZIO.foreach` - returns a single effect that describes performing an effect for each element of a collection in sequence.
+    - `ZIO#collectAll` - returns a single effect that collects the results of a whole collection of effects.
 
 ### ZIO Type Alias ###
-- `UIO[A] = ZIO[Any,Nothing,A]` - no requirements, cannot fail, produces A
+- `UIO[A] = ZIO[Any, Nothing, A]` - no requirements, cannot fail, produces `A`
 ```
 val aUIO: UIO[Int] = ZIO.succeed(99)
 ```
-- `URIO[R,A] = ZIO[R,Nothing,A]` - cannot fail
+
+- `URIO[R, A] = ZIO[R, Nothing, A]` - requires `R`, cannot fail, produces `A`
 ```
 val aURIO: URIO[Int, Int] = ZIO.succeed(67)
 ```
-- `RIO[R,A] = ZIO[R,Throwable, A]` - can fail with a Throwable
+
+- `RIO[R, A] = ZIO[R, Throwable, A]` - requires `R`, can fail with a `Throwable`, produces `A`
 ```
 val anRIO: RIO[Int, Int] = ZIO.succeed(98)
 val aFailedRIO: RIO[Int, Int] = ZIO.fail(new RuntimeException("RIO failed"))
 ```
-- `Task[A] = ZIO[Any, Throwable, A]` - no requirements, can fail with a Throwable, produces A
+
+- `Task[A] = ZIO[Any, Throwable, A]` - no requirements, can fail with a `Throwable`, produces `A`
 ```
 val aSuccessfulTask: Task[Int] = ZIO.succeed(89)
 val aFailedTask: Task[Int] = ZIO.fail(new RuntimeException("Something bad"))
 ```
-- `IO[E,A] = ZIO[Any,E,A]` - no requirements
+
+- `IO[E,A] = ZIO[Any,E,A]` - no requirements, can fail with `E`, produces `A`
 ```
 val aSuccessfulIO: IO[String, Int] = ZIO.succeed(34)
 val aFailedIO: IO[String, Int] = ZIO.fail("Something bad happened")
 ```
-
-### Running ZIO Application from main() ###
-```
-def main(args: Array[String]): Unit = {
-    val runtime = Runtime.default
-    implicit val trace: Trace = Trace.empty
-    val meaningOfLife = ZIO.succeed(42)
-    Unsafe.unsafeCompat { implicit u =>
-        val mol = runtime.unsafe.run(meaningOfLife)
-        println(mol)
-    }
-}
-```
-- Runtime involves the thread pool and the mechanism by which ZIOs can be evaluated.
-- Trace allows you to debug your code regardless of whether your effects run on the main application thread or on some other thread.
-
-### Running ZIO Application in ZIO way ###
-```
-object Program extends ZIOAppDefault {
-    override def run = zioa.debug
-}
-```
-- ZIOAppDefault provides runtime, trace etc.
-- There is also a `ZIOApp` trait that allows us to implement the runtime in manual way.
-- `debug` method prints out the value of evaluated ZIO.
+## Default ZIO services ##
+- `Clock` - Provides functionality related to time and scheduling. If you are accessing the current time or scheduling a computation to occur at some point in the future you are using this.
+- `Console` - Provides functionality related to console input and output.
+- `System` - Provides functionality for getting system and environment variables.
+- `Random` - Provides functionality for generating random values.

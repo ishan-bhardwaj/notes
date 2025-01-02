@@ -7,3 +7,6 @@
 - [Interruptions](Interruptions.md)
 - [Parallelism](Parallelism.md)
 - [Resources](Resources.md)
+
+- Chapters completed -
+1, 25, 26 
