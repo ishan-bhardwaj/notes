@@ -1,3 +1,3 @@
 ## Table of Contents ##
-- [ZIO](ZIO)
+- [ZIO](ZIO/README.md)
 - [ZStream](ZStream)
