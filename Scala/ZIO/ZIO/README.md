@@ -1,7 +1,7 @@
 ## Table of Contents
 
 - [ZIO](ZIO.md)
-- [Error Handling](Error_Handling.md)
+- [Error Handling](ErrorHandling.md)
 - [ZLayers](ZLayers.md)
 - [Fibers](Fibers.md)
 - [Interruptions](Interruptions.md)
