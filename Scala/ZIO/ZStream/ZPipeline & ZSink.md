@@ -70,7 +70,11 @@ stream.transduce(sink).runCollect       // Chunk(Chunk(1, 2, 3), Chunk(4, 5))
 > [!TIP]
 > `ZSink#foldSink` - handle the failure value of a sink in addition to its success value.
 
+## `ZPipeline`
 
+- One of the most useful applications of pipelines is for encoders and decoders. Ihe ZPipeline companion object contains a variety of encoders and decoders for common data formats.
+    - `zio-json` - creates pipelines for encoding or decoding JSON
+    - `zio-schema` - creates pipelines for encoding and decoding into a variety of formats.
 
-
-
+> [!TIP]
+> `ZPipeline.utfDecode` - decodes bytes to strings.
