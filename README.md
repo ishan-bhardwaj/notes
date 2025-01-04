@@ -12,6 +12,7 @@
 - [Scala](Scala)
     - [Scala 3](Scala/Scala3)
     - [Akka](Scala/Akka)
+        - [Akka Typed](Scala/Akka/Akka%20Typed)
     - [Cats](Scala/Cats)
     - [Spark](Scala/Spark)
     - [ZIO](Scala/ZIO/ZIO/README.md)

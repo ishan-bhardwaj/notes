@@ -32,7 +32,7 @@ def demoSimpleActor(): Unit = {
 > [!WARNING]
 > `actorSystem ! 20` will not work in above example. The `simpleActorBehavior` only accepts `String` type.
 
-- `Behaviors.receive` is more general API to create actors. It has two input parameters - `context` of type `ActorContext` and `message` of type `T`. The `context` is created alongside with the actor which has access to variety of APIs, eg - logging -
+- `Behaviors.receive` is more general API to create behaviors. It has two input parameters - `context` of type `ActorContext` and `message` of type `T`. The `context` is created alongside with the actor which has access to variety of APIs, eg - logging -
 ```
 object SimpleActorV2 {
     def apply(): Behavior[String] = Behaviors.receive { (context, message) => 
@@ -47,6 +47,7 @@ object SimpleActorV2 {
 object SimpleActorV3 {
     def apply(): Behavior[String] = Behaviors.setup { context => 
         // actor "private" data and methods, behaviors etc
+        
         // At the end, define the first behavior that the actor will get on the FIRST message
         Behaviors.receiveMessage { (message: String) => 
             println(s"[simple-actor] I have received a message: $message")
