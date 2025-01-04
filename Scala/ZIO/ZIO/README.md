@@ -9,4 +9,4 @@
 - [Resources](Resources.md)
 
 - Chapters completed -
-1, 25, 26 
+1, 25, 26, 27
