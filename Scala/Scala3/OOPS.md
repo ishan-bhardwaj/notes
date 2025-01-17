@@ -319,3 +319,53 @@ object Priority {
 - Accessing all values of enum - `Priority.values`
 - Creating an enum instance from string - `Priority.valueOf("MID")` - returns `Priority.MID`
 
+## Imports
+
+- Import a type from a package - `import java.util.List`
+- Import multiple types from a package - `import java.util.{List, LocalDate}`
+- Import everything from a package -
+    - Scala 2 - `import java.util._`
+    - Scala 3 - `import java.util.*`
+- Importing as an alias - 
+    - Scala 2 - `import java.util.{List => JList}`
+    - Scala 3 - `import java.util.{List as JList}`
+- Import everything except some - `import java.util.{LocalDate as _, *}` - this will import everything from `java.util` package except `LocalDate`
+
+- To define package level memebers, we define them at top-level (before the class declaration i.e. outside of the class). The compiler creates a special object with name same as the package name -
+```
+package com.example 
+
+val PI = 3.14
+
+class Animal
+```
+
+and then we can access `PI` in another class as - 
+```
+import com.example.PI
+```
+
+- Default imports added by the compiler- `scala.*`, `scala.Predef.*`, `java.lang.*` etc.
+
+## Exports
+
+- Suppose, we have a method defined in `Calculator` -
+```
+class Calculator {
+    def add(x: Int, y: Int): Int = x + y
+}
+```
+
+- There is another class that operates on its instances -
+```
+object ComputationService {
+    val calculator = new Calculator
+    
+    export calculator.add
+
+    def compute(a: Int, b: Int): Int =
+        add(a, b)      add is Calculator method, but is used as member of ComputationService
+}
+```
+
+- Now that we have `calculator.add` exported, the `add` method can be treated as member of `ComputationService` class itself - specially useful when we have to repeat `calculator.add` in multiple places.
