@@ -43,3 +43,25 @@ plt.show()
 - Daily returns signifies the price changes on a particular day.
 - The daily return for day `t` can be calculated as - `dr[t] = (price[t] / price[t-1]) - 1`
   ![Daily Returns](assets/daily_returns.png)
+
+```
+def compute_daily_returns(df):
+  daily_returns = df.copy()
+  df[1:] = (df[1:] / df[:-1].values) - 1  # Compute daily returns for row 1 onwards
+  daily_returns.ix[0, :] = 0              # Set daily returns row_0 to 0
+  return daily_returns
+```
+
+- Concise way -
+
+```
+def compute_daily_returns(df):
+  daily_returns = (df / df.shift(1)) - 1
+  daily_returns.ix[0, :] = 0              # Pandas leaves the 0th row full of NaNs
+  return daily_returns
+```
+
+### Cummulative Returns
+
+- Change in price from the beginning till today.
+- For day `t` - `cum_ret[t] = (price[t] / price[0]) - 1`

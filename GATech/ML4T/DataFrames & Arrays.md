@@ -190,3 +190,13 @@ a[indices]
   - `2 * a` - multiply each element by 2
   - `a / 2` - divid each element by 2
   - `a + b` - element-wise sum of arrays
+
+## Incomplete Data
+
+- Two techniques to fill the data -
+
+  ![Incomplete Data](assets/incomplete_data.png)
+
+- `fillna()`
+  - Fill forward missing values - `df.fillna(method='ffill')`
+  - Fill backward missing values - `df.fillna(method='bfill')`
