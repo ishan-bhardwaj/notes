@@ -171,3 +171,148 @@ void main() {
 - Must begin with a letter. 
 - Can consist of any letters, digits, currency symbols, and “punctuation connectors” such as `_` and a few other underscore-like characters such as the wavy low line `﹏`.
 - Letters and digits can be from any alphabet, not just the Latin alphabet, eg - `π` and `élévation` are valid identifiers.
+
+## Constants
+
+- `final` keyword denotes a value that cannot be changed once it has been assigned.
+```
+final int DAYS_PER_WEEK = 7;
+```
+
+- By convention, uppercase letters are used for names of constants.
+- Declare a constant outside a method, using the `static` keyword to be used as - `Calendar.DAYS_PER_WEEK`
+
+> [!TIP]
+> The `System` class declares a constant - `public static final PrintStream out` that you can use anywhere as `System.out`
+
+- We can defer the initialization of a final variable, but it has to be initialized exactly once before it is used for the first time -
+```
+final int DAYS_IN_FEBRUARY;
+if (leapYear) {
+    DAYS_IN_FEBRUARY = 29;
+} else {
+    DAYS_IN_FEBRUARY = 28;
+}
+```
+
+## Operators
+
+- `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `>>>=`, `&=`, `^=`, `|=` operators are right-associative i.e. `i -= j -= k` means `i -= (j -= k)`.
+
+- In `/` operator, if both operands are integer types, it denotes integer division, discarding the remainder, eg - `17 / 5` is `3`, whereas `17.0 / 5` is `3.4`.
+
+- `&` and `|` when applied to boolean values, force evaluation of both operands before combining the results.
+
+> [!TIP]
+> An integer division by zero gives rise to an exception which, if not caught, will terminate your program.
+> A floating-point division by zero yields an infinite value or `NaN`, without causing an exception.
+
+> [!TIP]
+> The `Math` class provides several methods to make integer arithmetic safer. The mathematical operators quietly return wrong results when a computation overflows, eg - `1000000000 * 3` evaluates to `-1294967296` because the largest int value is just over two billion. 
+> If you call `Math.multiplyExact(1000000000, 3)` instead, an exception is generated. You can catch that exception or let the program terminate rather than quietly continue with a wrong result. 
+> There are also methods `addExact`, `subtractExact`, `incrementExact`, `decrementExact`, `negateExact`, all with `int` and `long` parameters.
+
+> [!WARNING]
+> If you worry that a cast can silently throw away important parts of a number, use the `Math.toIntExact` method instead which throws an exception if the number cannot be cast.
+
+- **Conditional operator** - `time < 12 ? "am" : "pm"` - yields the string `"am"` if `time < 12` and the string `"pm"` otherwise.
+
+## `BigInteger` & `BigDecimal`
+
+- The `java.math.BigInteger` class implements arbitrary-precision integer arithmetic, and `java.math.BigDecimal` does the same for floating-point numbers.
+- Convert `long` to `BigInteger` - `BigInteger.valueOf(876543210123456789L)`
+- Convert a string of digits to `BigInteger` - `new BigInteger("9876543210123456789")`
+- Java does not permit the use of operators with objects, so you must use method calls to work with big numbers -
+```
+BigInteger.valueOf(5).multiply(n.add(k)); // r = 5 * (n + k)
+```
+
+- The `parallelMultiply` method yields the same result as `multiply` but can potentially compute the result faster by using multiple processor cores.
+
+- `BigDecimal.valueOf(n, e)` returns a BigDecimal instance with value `n × 10–e`.
+
+- The result of the floating-point subtraction `2.0 - 1.7` is `0.30000000000000004`. The BigDecimal class can compute the result accurately -
+```
+BigDecimal.valueOf(2, 0).subtract(BigDecimal.valueOf(17, 1))    // Exactly equal to 0.3
+```
+
+## Strings
+
+- A string is a sequence of characters. 
+- **Immutable**
+- To concatenate two strings - `+`
+- To combine several strings, separated with a delimiter, use the `join` method -
+```
+String.join(" | ", "Peter", "Paul", "Mary")   // returns "Peter | Paul | Mary"
+```
+
+- It is inefficient to concatenate a large number of strings if all you need is the final result. In that case, use a `StringBuilder` instead -
+```
+var builder = new StringBuilder();
+while (<more_strings>) {
+    builder.append(<next_string>);
+}
+String result = builder.toString();
+```
+
+- To extract all substrings from a string that are separated by a delimiter -
+```
+String names = "Peter, Paul, Mary";
+String[] result = names.split(", ");  // returns an array of three strings ["Peter", "Paul", "Mary"]
+```
+
+> [!TIP]
+> The separator can be any regular expression, eg - `input.split("\\s+")` splits input at white space.
+
+- `"Hello World!".substring(7, 12)` - slices the string from index 0 (inclusive) to 12 (exclusive), therefore returning `World`. Note that `12-7` returns the length of the substring, that's why the ending index is exclusive.
+
+- String equality - `"Hello".equals("Hello")` - returns True.
+
+- The `==` (String object equality) operator can be used for the `null` checks, eg -
+```
+String middleName = null;
+middleName == null          // true
+```
+
+> [!WARNING]
+> Never use the `==` operator to compare strings. The comparison returns true only if `location` and `"World"` are the same object in memory. In the virtual machine, there is only one instance of each literal string, so `"World" == "World"` will be `true`.
+> But if location was computed like - `String location = "Hello World!".substring(7, 12)` - then the result is placed into a separate `String` object, and the comparison `location == "World"` will return `false`.
+
+> [!TIP]
+> When comparing a string against a literal string, it is a good idea to put the literal string first -
+> ```
+> "World".equals(location)
+> ```
+> This test works correctly even when location is null.
+
+- `equalsIgnoreCase` for String equality ignoring the cases.
+
+- `str1.compare(str2)` tells whether `str1` comes before `str2` in dictionary order. It returns -
+  - a negative integer (not necessarily -1) if first comes before second
+  - a positive integer (not necessarily 1) if first comes after second
+  - 0 if they are equal.
+
+> [!TIP]
+> The strings are compared a character at a time, until one of them runs out of characters or a mismatch is found. For eg - when comparing `"word"` and `"world"`, the first three characters match. Since `d` has a Unicode value that is less than that of `l`, `"word"` comes first. 
+> The call `"word".compareTo("world")` returns `-8`, the difference between the Unicode values of `d` and `l`.
+
+> [!TIP]
+> When sorting human-readable strings, use a `Collator` object that knows about language-specific sorting rules -
+> ```
+> Collator.getInstance(Locale.GERMAN).compare("café", "caffeine")
+> ```
+
+## Number to String Conversions
+
+- Integer to String conversion - `Integer.toString(42)` - returns `"42"`.
+- With radix - `Integer.toString(42, 2)` - returns `101010`.
+- String to Integer coversion - `Integer.parseInt("10")` - returns `10`.
+- With radix - `Integer.parseInt("101010", 2)` - returns `42`.
+- For floating-point numbers, use `Double.toString` and `Double.parseDouble`.
+
+> [!NOTE]
+> `CharSequence` is a common supertype of `String`, `StringBuilder`, and other sequences of characters.
+
+
+
+
