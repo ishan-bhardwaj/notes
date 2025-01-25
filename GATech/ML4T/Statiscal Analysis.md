@@ -118,8 +118,7 @@ daily_rf = (value + interest)<sup>1/252</sup> - 1
 > [!TIP]
 > We can drop the subtraction of risk free rate from denominator because it is a constant value and standard deviation will not be changed.
 
-- Sharpe Ratio is an annual measure. So, if we are sampling the frequencies other than annual, we need to add an adjustment factor to it (K) - `Annualised_SR = K * SR`, where -
-K = <span style="font-size: 1.2em;">&radic;</span><span style="text-decoration:overline;">#Samples per year</span>
+- Sharpe Ratio is an annual measure. So, if we are sampling the frequencies other than annual, we need to add an adjustment factor to it (K) - `Annualised_SR = K * SR`, where K = <span style="font-size: 1.2em;">&radic;</span><span style="text-decoration:overline;">#Samples per year</span>
 
 
 Therefore -
