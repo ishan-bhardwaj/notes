@@ -92,7 +92,7 @@ def compute_daily_returns(df):
   - Standard deviation of daily return (`std_daily_ret`)
   - Sharpe ratio (`sharpe_ratio`)
 
-## Sharpe Ration
+## Sharpe Ratio
 
 - Sharpe ratio is a metric to determines the adjusted return given risk (stock volatility).
 - Also considers risk free rate of return i.e. interest rate you get on your money if you include it in a risk free asset.
