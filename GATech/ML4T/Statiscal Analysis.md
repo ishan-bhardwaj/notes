@@ -110,9 +110,7 @@ i.e.
 ![Sharpe Ratio Expanded](assets/sharpe_ratio_expanded.png)
 
 - Shortcut to calculate risk free rate can be calculated _annually_ as -  
-$$
-\text{daily\_rf} = \sqrt[252]{\text{value} + \text{interest}} - 1
-$$
+daily_rf = (value + interest)<sup>1/252</sup> - 1
 
 
 - But we generally consider the risk free rate as 0.
@@ -121,9 +119,8 @@ $$
 > We can drop the subtraction of risk free rate from denominator because it is a constant value and standard deviation will not be changed.
 
 - Sharpe Ratio is an annual measure. So, if we are sampling the frequencies other than annual, we need to add an adjustment factor to it (K) - `Annualised_SR = K * SR`, where -
-$$
-K = \sqrt{\text{\#Samples per year}}
-$$
+K = <span style="font-size: 1.2em;">&radic;</span><span style="text-decoration:overline;">#Samples per year</span>
+
 
 Therefore -
   - Daily K = `sqrt(252)`
