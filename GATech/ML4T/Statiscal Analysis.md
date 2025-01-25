@@ -33,7 +33,7 @@ plt.show()
 
   ```
   def get_bollinger_bands(rm, rstd):
-    upper_band = rm + rstd* 2
+    upper_band = rm + rstd * 2
     lower_band = rm - rstd * 2
     return upper_band, lower_band
   ```
@@ -109,13 +109,22 @@ i.e.
 
 ![Sharpe Ratio Expanded](assets/sharpe_ratio_expanded.png)
 
-- Shortcut to calculate risk free rate can be calculated _annually_ as -  `daily_rf = \(\sqrt[252]{\text{value} + \text{interest}} - 1\)`
+- Shortcut to calculate risk free rate can be calculated _annually_ as -  
+$$
+\text{daily\_rf} = \sqrt[252]{\text{value} + \text{interest}} - 1
+$$
+
+
 - But we generally consider the risk free rate as 0.
 
 > [!TIP]
 > We can drop the subtraction of risk free rate from denominator because it is a constant value and standard deviation will not be changed.
 
-- Sharpe Ratio is an annual measure. So, if we are sampling the frequencies other than annual, we need to add an adjustment factor to it (K) - `Annualised_SR = K * SR`, where `K = \(\sqrt{\text{#Samples per year}}\)`
+- Sharpe Ratio is an annual measure. So, if we are sampling the frequencies other than annual, we need to add an adjustment factor to it (K) - `Annualised_SR = K * SR`, where -
+$$
+K = \sqrt{\text{\#Samples per year}}
+$$
+
 Therefore -
   - Daily K = `sqrt(252)`
   - Weekly K = `sqrt(52)`
