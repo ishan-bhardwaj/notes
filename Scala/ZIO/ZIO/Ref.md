@@ -76,8 +76,8 @@ def make[A](
 ): UIO[FiberRef[A]] = ???
 ```
 
-    - `fork` operation defines how the value of the parent reference from the parent fiber will be modified to create a copy for the new fiber when the child is forked.
-    - `join` specifies how the value of the parent fiber reference will be combined with the value of the child fiber reference when the fiber is joined back.
+- `fork` operation defines how the value of the parent reference from the parent fiber will be modified to create a copy for the new fiber when the child is forked.
+- `join` specifies how the value of the parent fiber reference will be combined with the value of the child fiber reference when the fiber is joined back.
 
 - `FiberRef#locally` sets the `FiberRef` to the specified value, runs the zio effect, and then sets the value of the `FiberRef` back to its original value.
 ```
