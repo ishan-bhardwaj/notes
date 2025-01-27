@@ -75,6 +75,7 @@ def make[A](
     join: (A, A) => A
 ): UIO[FiberRef[A]] = ???
 ```
+
     - `fork` operation defines how the value of the parent reference from the parent fiber will be modified to create a copy for the new fiber when the child is forked.
     - `join` specifies how the value of the parent fiber reference will be combined with the value of the child fiber reference when the fiber is joined back.
 
