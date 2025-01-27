@@ -27,7 +27,7 @@ val fib: UIO[Fiber[Throwable, Int]] = zio.fork
 ```
 
 > [!TIP]
-> As soon as the fiber is created using `ZIO#fork`, it starts executing.
+> As soon as the fiber is created using `ZIO#fork`, it starts executing. `fork` does not even wait for the forked fiber to begin execution before returning to the main thread.
 
 ### `join`
 
@@ -41,12 +41,10 @@ for {
 - When we join a fiber, execution in the current fiber can’t continue until the joined fiber completes execution. But no actual thread will be blocked waiting for that to happen.
 - Instead, internally, the ZIO runtime registers a callback to be invoked when the forked fiber completes execution, and then the current fiber suspends execution.
 - That way, the Executor can go on to execute other fibers and doesn’t waste any resources waiting for the result to be available.
-- Joining a fiber translates the result of that fiber back to the current fiber, so joining a fiber
-that has failed will result in a failure.
+- Joining a fiber translates the result of that fiber back to the current fiber, so joining a fiber that has failed will result in a failure.
 
 ### `await`
-- If we want to wait for the fiber but be able to handle its result, whether it is a success
-or a failure, we can use `await`.
+- If we want to wait for the fiber but be able to handle its result, whether it is a success or a failure, we can use `await`.
 ```
 trait Fiber[+E, +A] {
     def await: UIO[Exit[E, A]]
@@ -144,6 +142,34 @@ trait ZIO[-R, +E, +A] {
     def forkDaemon: URIO[R, Fiber[E, A]]
 }
 ```
+
+> [!TIP]
+> Good rule of thumb is to always `Fiber#join` or `Fiber#interrupt` any fiber you fork.
+
+## Locking Effects
+
+- To run an effect on specific executor use `ZIO#onExecutor` -
+```
+import scala.concurrent.ExecutionContext
+
+trait ZIO[-R, +E, +A] {
+    def onExecutor(executor: => Executor): ZIO[R, E, A]
+}
+```
+
+- If the effect forks other fibers, those fibers will also be locked to the specified Executor unless otherwise specified.
+- Rules when using `onExecutor` -
+    - When an effect is locked to an Executor, all parts of that effect will be locked to that Executor.
+    - Inner scopes take precedence over outer scopes. Eg -
+    ```
+    lazy val effect2 = for {
+        _ <- doSomething.onExecutor(executor2).fork
+        _ <- doSomethingElse
+    } yield ()
+
+    lazy val result2 = effect2.onExecutor(executor1)
+    ```
+    Here, `doSomething` is guaranteed to be executed on `executor2` and `doSomethingElse` is guaranteed to be executed on `executor1`.
 
 ## Racing
 - `race` executes two effects independently on their own fibers and the fiber that completes first will complete the whole effect, whereas the other one will get interrupted automatically.

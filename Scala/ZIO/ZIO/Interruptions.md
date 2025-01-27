@@ -16,7 +16,7 @@ for {
 
 - If the fiber has already completed execution by the time it is interrupted, the returned value will be the result of the fiber. Otherwise, it will be a failure with `Cause.Interrupt`.
 
-- We can define some computation on interruption using finalizers (`onInterruption`) - 
+- We can define some computation on interruption using finalizer (`onInterruption`) - 
 ```
 ZIO.succeed(10).onInterruption("Interrupted!")
 ```
