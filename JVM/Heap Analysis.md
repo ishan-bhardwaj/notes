@@ -85,32 +85,32 @@ jmap -dump:live,file=/path/to/heap_dump.hprof process_id
 ## Out-of-Memory Errors
 
 - The JVM throws an out-of-memory error under these circumstances -
-a. The Java heap itself is out of memory: the application cannot create any additional objects for the given heap size -
+1. The Java heap itself is out of memory: the application cannot create any additional objects for the given heap size -
     - Error message -
     ```
     Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
     ```
     - Either the number of live objects that it is holding onto cannot fit in the heap space configured for it, or the application may have a memory leak: it continues to allocate additional objects without allowing other objects to go out of scope.
 
-b. The JVM is spending too much time performing GC -
+2. The JVM is spending too much time performing GC
     - Error message -
     ```
     Exception in thread "main" java.lang.OutOfMemoryError: GC overhead limit exceeded
     ```
     - This error is thrown when all of the following conditions are met -
-        1. The amount of time spent in full GCs exceeds the value specified by the `-XX:GCTimeLimit=N flag`. The default value is `98` (i.e., if 98% of the time is spent in GC).
-        2. The amount of memory reclaimed by a full GC is less than the value specified by the `-XX:GCHeapFreeLimit=N` flag. The default value is `2`, meaning that if less than 2% of the heap is freed during the full GC, this condition is met.
-        3. The preceding two conditions have held true for five consecutive full GC cycles (that value is not tunable).
-        4. The value of the `-XX:+UseGCOverheadLimit` flag is `true` (which it is by default).
+        - The amount of time spent in full GCs exceeds the value specified by the `-XX:GCTimeLimit=N flag`. The default value is `98` (i.e., if 98% of the time is spent in GC).
+        - The amount of memory reclaimed by a full GC is less than the value specified by the `-XX:GCHeapFreeLimit=N` flag. The default value is `2`, meaning that if less than 2% of the heap is freed during the full GC, this condition is met.
+        - The preceding two conditions have held true for five consecutive full GC cycles (that value is not tunable).
+        - The value of the `-XX:+UseGCOverheadLimit` flag is `true` (which it is by default).
 
 > [!NOTE]
 > As a last-ditch effort to free memory, if the first two conditions hold for four consecutive full GC cycles, then all soft references in the JVM will be freed before the fifth full GC cycle.
 
-c. No native memory is available for the JVM -
+3. No native memory is available for the JVM -
     - occurs for reasons unrelated to the heap.
     - Eg - In a 32-bit JVM, the maximum size of a process is 4 GB. Specifying a very large heap > 4GB will bring the application size dangerously close to that limit.
 
-d. The metaspace is out of memory -
+4. The metaspace is out of memory -
     - occurs because the metaspace native memory is full.
     - Because metaspace has no maximum size by default, this error typically occurs because you’ve chosen to set the maximum size.
     - If the metaspace is full, the error text will appear like this -
