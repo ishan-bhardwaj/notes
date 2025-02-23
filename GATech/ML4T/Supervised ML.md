@@ -16,4 +16,4 @@
 
 - Models are represented using _parameters_, for eg -
     - Linear regression (`y = mx + b`) - the parameters are `m` and `b`
-    - Polynomial regression (`$ y = m_2^2 + m_1^2 + b $`) - the parameters are `m2`, `m1` and `b`
+    - Polynomial regression (`y = m<sub>2</sub><sup>2</sup> + m<sub>1</sub> + b`) - the parameters are `m<sub>2</sub>`, `m<sub>1</sub>` and `b`
