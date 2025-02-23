@@ -53,7 +53,7 @@ plt.show()
 
 ![Building a parameterized model](assets/parameterized_model.png)
 
-- The objective is to find equation of a line (`c₀`, `c₁` coefficients) that best fits the data points. We can consider the distance of each point from the line and can form an equation to minimize, for eg - Σᵢ |eᵢ| or Σᵢ eᵢ²
+- The objective is to find equation of a line (`c₀`, `c₁` coefficients) that best fits the data points. We can consider the distance of each point from the line and can form an equation to minimize, for eg - `Σᵢ |eᵢ|` or `Σᵢ eᵢ²`
 
 
 
