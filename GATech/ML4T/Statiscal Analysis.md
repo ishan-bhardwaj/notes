@@ -135,8 +135,3 @@ Therefore -
     - Daily risk free rate = 2 bps = 0.0002
     - Standard deviation of daily returns = 10 bps = 0.0010
   - Sharpe Ratio = `sqrt(252) * ((10 - 2) / 10) = 12.7`
-
-
-
-
-
