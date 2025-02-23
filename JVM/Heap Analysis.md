@@ -150,5 +150,8 @@ jmap -dump:live,file=/path/to/heap_dump.hprof process_id
 > [!NOTE]
 > When multiple heap dumps are generated (e.g., because multiple full GCs occur), a sequence number is appended to the heap dump filename.
 
+## Ways to use less memory
 
+### **Reducing Object Size**
+- 
 
