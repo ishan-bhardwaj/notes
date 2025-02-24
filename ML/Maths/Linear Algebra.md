@@ -25,28 +25,52 @@
 
 ## Systems of Linear Equations
 
-- Analogy -
-    - A company produces products N<sub>1</sub>, ... , N<sub>n</sub> for which resources R<sub>1</sub>, ... , R<sub>m</sub> are required.
+- A system of linear equations is a set of two or more linear equations involving the same set of variables. The goal is to find the values of the variables that satisfy all the equations simultaneously.
 
-    - a<sub>ij</sub> units of resource R<sub>i</sub> are needed To produce a unit of product N<sub>j</sub>.
+- General form -
 
-    - The objective is to find an optimal production plan, i.e., a plan of how many units x<sub>j</sub> of product N<sub>j</sub> should be produced if a total of b<sub>i</sub> units of resource R<sub>i</sub> are available and (ideally) no resources are left over.
+    a<sub>11</sub>x<sub>1</sub> + a<sub>12</sub>x<sub>2</sub> + ... + a<sub>1m</sub>x<sub>m</sub> = b<sub>1</sub>
 
-    - If we produce x<sub>1</sub>, ... , x<sub>n</sub> units of the corresponding products, we need a total of - a<sub>i1</sub>x<sub>1</sub> + ... + a<sub>in</sub>x<sub>n</sub> many units of resource R<sub>i<sub>
+    a<sub>21</sub>x<sub>1</sub> + a<sub>22</sub>x<sub>2</sub> + ... + a<sub>2m</sub>x<sub>m</sub> = b<sub>2</sub>
 
-    - An optimal production plan (x<sub>1</sub>, ... , x<sub>n</sub>) ∈ ℝ<sup>n</sup>, therefore, has to satisfy the following system of equations -
+    ...
 
-        a<sub>11</sub>x<sub>1</sub> + ... + a<sub>1n</sub>x<sub>n</sub> = b<sub>1</sub>
-    
-        ...
-    
-        a<sub>m1</sub>x<sub>1</sub> + ... + a<sub>mn</sub>x<sub>n</sub> = b<sub>m</sub>
+    a<sub>n1</sub>x<sub>1</sub> + a<sub>n2</sub>x<sub>2</sub> + ... + a<sub>nm</sub>x<sub>m</sub> = b<sub>n</sub>
 
-        where a<sub>ij</sub> ∈ ℝ and b<sub>i</sub> ∈ ℝ (1.1)
+    where -
+    - x<sub>1</sub>, x<sub>2</sub>, ... , x<sub>m</sub> are the unknown variables
+    - a<sub>ij</sub> are the coefficients
+    - b<sub>i</sub> are the constants
 
-- Equation (1.1) is the general form of a _system of linear equations_, and x<sub>1</sub>, ... , x<sub>n</sub> are the _unknowns_ of this system.
+- Types of Solutions -
+    - **Unique Solution** – One set of values satisfies all equations.
+    - **No Solution** – The equations represent parallel lines (inconsistent system).
+    - **Infinite Solutions** – The equations represent the same line or plane (dependent system).
 
-- Every n-tuple (x<sub>1</sub>, ... , x<sub>n</sub>) ∈ ℝ<sup>n</sup> that satisfies (1.1) is a solution of the linear equation system.
+## Matrices
 
+- A system of linear equations can be compactly represented using matrices -
 
-    
+    ![Matrix Representation](assets/linear_eqns.png)
+
+    where -
+    - **Coefficient Matrx _A_** (size _n_ x _m_) -
+
+        ![Coefficient Matrix](assets/coeff_matrix.png)
+
+    - **Variable Matrix _X_** (size _m_ x _1_) -
+
+        ![Variable Matrix](assets/var_matrix.png)
+
+    - **Constant Matrix _B_** (size _n_ x _1_) -
+
+        ![Constant Matrix](assets/const_matrix.png)
+
+- **Matrix Addition** - The sum of two matrices **_A_** ∈ ℝ<sup>_m x n_</sup>, **_B_** ∈ ℝ<sup>_m x n_</sup> is computed by the _element-wise_ sum.
+- **Matrix Multiplication** / **Dot Product** - The multiplication of two matrices **_A_** ∈ ℝ<sup>_m x n_</sup>, **_B_** ∈ ℝ<sup>_m x n_</sup> is computed as **_C_** = **_A_ _B_** ∈ ℝ<sup>_n_ x _k_ </sup> where we multiply the elements of _i_ th row of **_A_** with _j_ th column of **_B_** and sum them up.
+
+> ![NOTE]
+> Matrices can only be multiplied if their “neighboring” dimensions match i.e. _A <sup>n x k</sup>_ . _B <sup>k x m</sup>_ = _A <sup>n x m</sup>_
+> Therefore, matrix multiplication is not commutative - **_A . B_** != **_B . A_**
+
+- ** Identity Matrix** - **_1_**s on the principal diagonal and **_0_**s everywhere else.
