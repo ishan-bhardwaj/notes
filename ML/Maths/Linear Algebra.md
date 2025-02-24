@@ -34,7 +34,7 @@
 
     - If we produce x<sub>1</sub>, ... , x<sub>n</sub> units of the corresponding products, we need a total of - a<sub>i1</sub>x<sub>1</sub> + ... + a<sub>in</sub>x<sub>n</sub> many units of resource R<sub>i<sub>
 
-    - An optimal production plan (x<sub>1</sub>, ... , x<sub>n</sub>) ∈ Rn, therefore, has to satisfy the following system of equations -
+    - An optimal production plan (x<sub>1</sub>, ... , x<sub>n</sub>) ∈ ℝ<sup>n</sup>, therefore, has to satisfy the following system of equations -
 
         a<sub>11</sub>x<sub>1</sub> + ... + a<sub>1n</sub>x<sub>n</sub> = b<sub>1</sub>
     
