@@ -1,6 +1,29 @@
-## Values and Types
+# Scala
 
-- `val` is immutable value and `var` is mutable variable.
+- **Scala** stands for _scalable language_ - can be applied to wide range of tasks such as writing small scripts to building large systems.
+- Scala programs compile to JVM bytecode.
+- Statically-typed language.
+- Blend of object-oriented and functional programming paradigms.
+- Scala is "pure" object-oriented - every value is an object and every operation is a method call.
+- Also in Scala, you can write purely functional code, but the language itself does not enforce it. 
+
+- Key concepts of functional rogramming -
+    - functions are first-class values.
+    - should not have side effects i.e. the program should only depends on its inputs and produces the same output every time for specific inputs without modifying anything outside of its scope.
+
+- **Referential Transparent** - for any given input the method call could be replaced by its result without affecting the program’s semantics.
+
+- **Instructions** vs **Expressions** - Instructions are executed, whereas expressions are evaluated to a value.
+
+- Everything in scala is an expression. Eg -
+```
+val x: Int = if (true) 42 else 56
+```
+
+## Values & Variables
+
+- `val` is immutable value - once initialized, can never be assigned.
+- `var` is mutable variable - can be reassigned through its lifetime.
 - For eg -
 ```
 val x: Int = 42
@@ -11,6 +34,8 @@ x = 45              // compilation error - "Reassignment to val x"
 var y: Int = 42
 y = 45              // works!
 ```
+
+## Data Types
 
 - Common Types -
     - Short - `val aShort: Short = 10` - 2 bytes representation
@@ -26,13 +51,6 @@ y = 45              // works!
 > Scala `String` type is just an alias for Java `String` i.e.
 > ```
 > type String = java.lang.String
-> ```
-
-> [!NOTE]
-> **Instructions** vs **Expressions** - Instructions are executed, whereas expressions are evaluated to a value.
-> Everything in scala is an expression. Eg -
-> ```
-> val x: Int = if (true) 42 else 56
 > ```
 
 ## Functions
@@ -136,3 +154,62 @@ raw"This is a \n newline"
 >   y <- List(x, x * 3)
 > } println((x, y))
 > ```
+
+## Scala Scripts
+
+- Includes a top-level function annotated as `@main`, eg - `greet.scala` -
+```
+@main def myFun() =
+    println("Hello wordl!")
+```
+
+- Running the script - `scala greet.scala`
+
+- Providing command-line arguments -
+```
+@main def myFun(args: String*) =
+    println("Hello " + args(0) + "!")
+```
+
+## Loops
+
+### **while** loop
+
+```
+@main def m(args: String*) =
+    var i = 0
+    while i < args.length do
+        if i != 0 then
+            print(" ")
+        print(args(i))
+        i += 1
+    println()
+```
+
+or,
+
+```
+@main def m(args: String*) = {
+    var i = 0;
+    while (i < args.length) {
+        if (i != 0) {
+            print(" ")
+        }
+        print(args(i))
+        i += 1
+    }
+    println()
+}
+```
+
+### `for` loop
+
+```
+@main def m(args: String*) =
+    for arg <- args do
+        println(arg)
+```
+
+> [!NOTE]
+> `arg` is a _val_. `arg` can’t be reassigned inside the body of the _for_ expression. Instead, for each element of the args array, a new `arg` val will be created and initialized to the element value, and the body of the `for` will be executed.
+
