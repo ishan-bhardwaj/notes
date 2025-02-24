@@ -69,8 +69,29 @@
 - **Matrix Addition** - The sum of two matrices **_A_** ∈ ℝ<sup>_m x n_</sup>, **_B_** ∈ ℝ<sup>_m x n_</sup> is computed by the _element-wise_ sum.
 - **Matrix Multiplication** / **Dot Product** - The multiplication of two matrices **_A_** ∈ ℝ<sup>_m x n_</sup>, **_B_** ∈ ℝ<sup>_m x n_</sup> is computed as **_C_** = **_A_ _B_** ∈ ℝ<sup>_n_ x _k_ </sup> where we multiply the elements of _i_ th row of **_A_** with _j_ th column of **_B_** and sum them up.
 
-> ![NOTE]
+> [!NOTE]
 > Matrices can only be multiplied if their “neighboring” dimensions match i.e. _A <sup>n x k</sup>_ . _B <sup>k x m</sup>_ = _A <sup>n x m</sup>_
-> Therefore, matrix multiplication is not commutative - **_A . B_** != **_B . A_**
+> Therefore, matrix multiplication is not commutative - **_A . B_ ≠ _B . A_**
 
-- ** Identity Matrix** - **_1_**s on the principal diagonal and **_0_**s everywhere else.
+- **Identity Matrix** - **_1_** s on the principal diagonal and **_0_** s everywhere else.
+
+- Properties of dot product -
+    - Associativity - **(_A_ . _B_) . _C_ = _A_ . (_B_ . _C_)**
+    - Distributivity - 
+        - **_A_ . (_B_ + _C_) = _A_ . _B_ + _A_ . _C_**
+        - **(_A_ + _B_) . _C_ = _A_ . _C_ + _B_ . _C_**
+    - Multiplication with Identity Matrix - **_I_ . _A_ = _A_ . _I_ = _A_**
+
+- **Inverse** - For _square_ matrix **_A_** ∈ ℝ<sup>_n x n_</sup>, **_B_** ∈ ℝ<sup>_n x n_</sup> is the inverse of **_A_**, if **_A_ . _B_ = _I_ = _B_ . _A_**. Denoted as **_A_<sup>-1</sup>**
+    - If inverse of a matrix **_A_** exists, the **_A_** is called _regular_ / _invertible_ / _nonsingular_ matrix, otherwise called _noninvertible_ / _singular_.
+    - A matrix inverse is unique.
+    - **_A_ . _A_<sup>-1</sup> = _I_ = _A_<sup>-1</sup> . _A_**
+    - **(_A_ . _B_)<sup>-1</sup> = _B_<sup>-1</sup> . _A_<sup>-1</sup>**
+    - **(_A_ + _B_)<sup>-1</sup> ≠ _A_<sup>-1</sup> + _B_<sup>-1</sup>**
+
+- **Transpose** - For matrix **_A_** ∈ ℝ<sup>_m x n_</sup>, **_B_** ∈ ℝ<sup>_n x m_</sup> is the transpose of **_A_**, if **b<sub>ij</sub> = a<sub>ji</sub>**. Denoted as **_B_ = _A_<sup>T<sup>**
+    - **(_A_<sup>T</sup>)<sup>T</sup> = _A_**
+    - **(_A_ _B_)<sup>T</sup> = _B_<sup>T</sup> _A_<sup>T</sup>**
+    - **(_A_ + _B_)<sup>T</sup> = _A_<sup>T</sup> + _B_<sup>T</sup>**
+
+
