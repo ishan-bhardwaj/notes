@@ -40,3 +40,50 @@
 
 > [!WARNING]
 > For time-oriented datasets, we typically split the data according to time - train model on older data and test on newer data. We should not do the reverse because there are certain look-ahead biases that can occur.
+
+- Closer look at KNN -
+
+![Closer look at KNN](assets/knn_closer_look.png)
+
+- As we move forward w.r.t X, the nearest neighbors changes and we can plot the values.
+- The benefit of KNN is that it does not overfit the data. The downside is we get horizontal lines because of constant predictions for the period when the nearest neighbors remain the same.
+- As we increase k, we are more likely to underfit.
+
+## Root Mean Square (RMS) Error
+
+![RMS Error](assets/RMSError.png)
+
+## Correlation
+
+![Correlation](assets/correlation.png)
+
+- `np.corrcoef()` to find the correlation between two vectors.
+- Correlation value ranges from -1 to +1 -
+    - +1 = high correlation
+    - -1 = inverse correlation
+    - 0 = No correlation
+
+- Points closer to the line - high correlation. If more spread out - low correlation.
+
+- In most cases, as RMS error increases, correlation goes decreases. But, in some rare cases, the correlation may increase. Thus, we really can't be sure.
+
+## Overfitting
+
+![Overfitting](assets/overfitting.png)
+
+## Ensemble Learners
+
+- Ensemble learners reduce the bias of individual learners.
+- **Bootstrap Aggregating (Bagging)** - train each learner on different set of data - can be sampled random with replacement.
+
+![Bagging](assets/bagging.png)
+
+- **Boosting** -
+    - Steps -
+        - Select sample randomly from the training data and train model on it.
+        - Use the training data to test the model.
+        - Some of the points will not be well-predicted.
+        - Create another bag with random sampling - but each instance is weighted according to the error i.e. high-error instances are more likely to get picked.
+
+    - AdaBoost is commonly used model for boosting.
+    - AdaBoost tries to assign more and more specific data points to subsequent learners, trying to model all the difficult examples. Thus, compared to simple bagging, it may result in more overfitting.
