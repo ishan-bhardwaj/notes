@@ -27,3 +27,49 @@
 - Root Mean Square Error (RMSE) is the most common performance measure of a regression model, therefore we need to find the value of $\theta$ that minimizes the RMSE.
 
   $MSE = \frac{1}{n} \sum (y_i - \hat{y}_i)^2$
+
+- Minimizing the cost function using _Normal equation_ -
+
+  $\hat{\theta} = (X^T X)^{-1} X^T y$
+
+  where -
+  - $\hat{\theta}$ is the value of $\theta$ that minimizes the cost function
+  - $X$ is the feature matrix, where each row is a training instance and the first column is typically filled with 1s (for the bias term)
+  - $y$ is the vector of target values from the dataset
+
+- Normal Equation Derivation -
+  - MSE cost function -
+
+    $MSE = \frac{1}{n} \sum (y_i - \hat{y}_i)^2$
+
+  - Writing it in vector form -
+
+    $MSE = \frac{1}{n} (y - \hat{y})^T (y - \hat{y})$
+
+  - Substituting $\hat{y} = X\theta$ -
+    
+    $MSE = \frac{1}{n} (y - X \theta)^T (y - X \theta)$
+
+  - Expanding the equation - 
+
+    $MSE = \frac{1}{n} \left[ y^T y - 2 \theta^T X^T y + \theta^T X^T X \theta \right]$
+
+  - To minimize the MSE, take the derivative of $MSE$ w.r.t. $\theta$ and set it equal to 0 -
+
+    $\frac{\partial}{\partial \theta} \left( \frac{1}{n} \left[ y^T y - 2 \theta^T X^T y + \theta^T X^T X \theta \right] \right)$
+
+  - Since $y^T y$ does not depend on $\theta$, its derivative is zero -
+
+    $\frac{\partial MSE}{\partial \theta} = \frac{1}{n} \left[ -2 X^T y + 2 X^T X \theta \right]$
+
+  - Set the Derivative Equal to 0 -
+
+    $-2 X^T y + 2 X^T X \theta = 0$
+
+  - Simplifing -
+
+    $X^T X \theta = X^T y$
+
+  - Assuming $X^T X \theta$ is invertible, we can solve for $\theta$ and therefore the normal equation is -
+
+    $\hat{\theta} = (X^T X)^{-1} X^T y$
