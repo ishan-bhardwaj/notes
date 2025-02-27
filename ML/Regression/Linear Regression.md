@@ -2,31 +2,34 @@
 
 - Linear Model = Weighted sum of input features + Bias (also called intercept).
 
-  $\hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \dots + \theta_n x_n$
+  $$
+  \hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \dots + \theta_n x_n
+  $$
 
   where -
-  - $\hat{y}$ is predicted value
-  - n is the number of features
-  - x<sub>i</sub> is the i<sup>th</sup> feature
-  - θ<sub>j</sub> is the j<sup>th</sup> model parameter, including the bias tern θ<sub>0</sub> and the feature weights θ<sub>1</sub>, θ<sub>2</sub>, ... , θ<sub>n</sub>
+  - $\hat{y}$ is the predicted value
+  - $n$ is the number of features
+  - $x_i$ is the $i^{th}$ feature
+  - $\theta_j$ is the $j^{th}$ model parameter, including the bias term $\theta_0$ and the feature weights $\theta_1, \theta_2, \dots, \theta_n$
 
 - Vectorized form -
-  
-  $\hat{y} = h_{\theta}(x) = \theta^T X$
+
+  $$
+  \hat{y} = h_{\theta}(x) = \theta^T X
+  $$
 
   where -
-  - h<sub>θ</sub> is the hypothesis function, using the model parameter θ
-  - θ is the model's parameter vector, containing the bias term θ<sub>0</sub> and the feature weights θ<sub>1</sub>, θ<sub>2</sub>, ... , θ<sub>n</sub>
-  - X is the instance’s feature vector, containing x<sub>0</sub> to x<sub>n</sub>, with x<sub>0</sub> always equal to _1_
-  - θ.X is the dot product of the vectors θ and X, which is equal to θ<sub>0</sub>x<sub>0</sub> + θ<sub>1</sub> x<sub>1</sub> + θ<sub>2</sub> x<sub>2</sub> + ... + θ<sub>n</sub> x<sub>n</sub>
-  - Vectors are often represented as column vectors, therefore, we transpose the θ vector
+  - $h_{\theta}$ is the hypothesis function, using the model parameter $\theta$
+  - $\theta$ is the model's parameter vector, containing the bias term $\theta_0$ and the feature weights $\theta_1, \theta_2, \dots, \theta_n$
+  - $X$ is the instance’s feature vector, containing $x_0$ to $x_n$, with $x_0$ always equal to $1$
+  - $\theta \cdot X$ is the dot product of the vectors $\theta$ and $X$, which is equal to $\theta_0 x_0 + \theta_1 x_1 + \theta_2 x_2 + \dots + \theta_n x_n$
+  - Vectors are often represented as column vectors, therefore, we transpose the $\theta$ vector
 
 > [!NOTE]
-> Learning algorithms will often optimize a different loss function during training than the performance measure used to evaluate the final model. We choose the training loss function that is easy to optimize (eg - log loss), and performance metrics which is closer to business (eg - precision/recall). However, a training loss is strongly correlated to the metric.
+> Learning algorithms will often optimize a different loss function during training than the performance measure used to evaluate the final model. We choose the training loss function that is easy to optimize (e.g., log loss), and performance metrics that are closer to business needs (e.g., precision/recall). However, a training loss is strongly correlated to the metric.
 
-- Root Mean Square Error (RMSE) is the most common performance measure of a regression model, therefore we need to find the value of θ that minimizes the RMSE.
+- Root Mean Square Error (RMSE) is the most common performance measure of a regression model, therefore we need to find the value of $\theta$ that minimizes the RMSE.
 
-  $MSE = \frac{1}{n} \sum (y_i - \hat{y}_i)^2$
-
-
-
+  $$
+  MSE = \frac{1}{n} \sum (y_i - \hat{y}_i)^2
+  $$
