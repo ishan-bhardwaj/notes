@@ -2,9 +2,7 @@
 
 - Linear Model = Weighted sum of input features + Bias (also called intercept).
 
-  $$
-  \hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \dots + \theta_n x_n
-  $$
+  $\hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \dots + \theta_n x_n$
 
   where -
   - $\hat{y}$ is the predicted value
@@ -14,9 +12,7 @@
 
 - Vectorized form -
 
-  $$
-  \hat{y} = h_{\theta}(x) = \theta^T X
-  $$
+  $\hat{y} = h_{\theta}(x) = \theta^T X$
 
   where -
   - $h_{\theta}$ is the hypothesis function, using the model parameter $\theta$
@@ -30,6 +26,4 @@
 
 - Root Mean Square Error (RMSE) is the most common performance measure of a regression model, therefore we need to find the value of $\theta$ that minimizes the RMSE.
 
-  $$
-  MSE = \frac{1}{n} \sum (y_i - \hat{y}_i)^2
-  $$
+  $MSE = \frac{1}{n} \sum (y_i - \hat{y}_i)^2$
