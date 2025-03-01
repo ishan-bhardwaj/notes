@@ -107,7 +107,8 @@
   ```
   X_new = np.array([[0], [2]])
   X_new_b = add_dummy_feature(X_new)
-  y_pred = X_new_b @ theta_best
+
+  y_pred = X_new_b @ theta_best       # array([[4.21509616], [9.75532293]])
   ```
 
 - Plotting model's predictions -
@@ -122,3 +123,45 @@
   <img src="assets/linear_regression.png" width="500" height="300" />
 
   
+## Scikit-Learn 
+
+```
+from sklearn.linear_model import LinearRegression
+
+lin_reg = LinearRegression()
+lin_reg.fit(X, y)
+
+lin_reg.intercept_, lin_reg.coef_
+(array([4.21509616]), array([[2.77011339]]))
+
+y_pred = lin_reg.predict(X_new)         # array([[4.21509616], [9.75532293]])
+```
+
+- The `LinearRegression` class is based on the `scipy.linalg.lstsq()` function (“least squares”) which can be called directly -
+```
+theta_best_svd, residuals, rank, s = np.linalg.lstsq(X_b, y, rcond=1e-6)
+theta_best_svd                          # array([[4.21509616], [2.77011339]])
+```
+
+- This function computes $\hat{\theta} = X^+y$, where $X^+$ is the _pseudoinverse_ of X (specifically, the **Moore–Penrose inverse**) which can be computed directly as - 
+```
+np.linalg.pinv(X_b) @ y                 # array([[4.21509616], [2.77011339]])
+```
+
+- The pseudoinverse ($X^+$) itself is computed using **singular value decomposition (SVD)** using `numpy.linalg.svd()` which decomposes the training set matrix $X$ into the matrix multiplication of three matrices - $X^+ = V\sum^+U^T$.
+
+- To compute the $\sum^+$ matrix, the algorithm takes $\sum$ and sets to zero all values smaller than a tiny threshold value, then it replaces all the nonzero values with their inverse, and finally it transposes the resulting matrix.
+
+- Benefits of this approach over normal equation -
+  - more efficient than computing the Normal equation.
+  - handles edge cases nicely, for eg - the Normal equation may not work if the matrix $X^TX$ is not invertible (i.e., singular), such as if m < n or if some features are redundant, but the pseudoinverse is always defined.
+
+## Computational Complexity
+
+- The Normal equation computes the inverse of $X^TX$, which is an $(n + 1) × (n + 1)$ matrix, where `n` is the number of features. The computational complexity of inverting such a matrix is typically about $O(n^{2.4})$ to $O(n^3)$, depending on the implementation.
+- The SVD approach used by Scikit-Learn’s `LinearRegression` class is about $O(n^2)$.
+
+> [!WARNING]
+> Both the Normal equation and the SVD approach get very slow when the number of features grows large (e.g., 100,000). On the positive side, both are linear with regard to the number of instances in the training set (they are $O(m)$), so they handle large training sets efficiently, provided they can fit in memory.
+
+- Once you have trained your linear regression model, predictions are very fast - the computational complexity is linear with regard to both the number of instances you want to make predictions on and the number of features.
