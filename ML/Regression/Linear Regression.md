@@ -73,3 +73,52 @@
   - Assuming $X^T X \theta$ is invertible, we can solve for $\theta$ and therefore the normal equation is -
 
     $\hat{\theta} = (X^T X)^{-1} X^T y$
+
+## Implementation
+
+- Generate some linear-looking data, eg - $y = 4 + 3x_1 + Gaussian noise$
+  ```
+  import numpy as np
+
+  np.random.seed(42)                      # code reproducibility
+  m = 100                                 # number of instances
+  X = 2 * np.random.rand(m, 1)            # training set - column vector
+  y = 4 + 3 * X + np.random.randn(m, 1)   # predictions for training set - column vector
+  ```
+
+- Adding dummy feature -
+  ```
+  from sklearn.preprocessing add_dummy_feature
+
+  X_b = add_dummy_feature(X)              # add x0 = 1 to each instance
+  ```
+
+- Calculating $\hat{\theta} = (X^T X)^{-1} X^T y$ -
+  ```
+  theta_best = np.linalg.inv(X_b.T @ X_b) @ X_b.T @ y
+  ```
+
+> [!TIP]
+> `@` operator performs matrix multiplication ie. if `A` and `B` are NumPy arrays, then `A @ B` is equivalent to `np.matmul(A, B)`.
+
+- `theta_best` will generate values - `array([[4.21509616], [2.77011339]])` i.e. $\theta_0 = 4.215$ and $\theta_1 = 2.770$ instead of $\theta_0 = 4$ and $\theta_1 = 3$ because the noise made it impossible to recover the exact parameters of the original function.
+
+- Making predictions -
+  ```
+  X_new = np.array([[0], [2]])
+  X_new_b = add_dummy_feature(X_new)
+  y_pred = X_new_b @ theta_best
+  ```
+
+- Plotting model's predictions -
+  ```
+  import matplotlib.pyplot as plt
+
+  plt.plot(X_new, y_predict, "r-", label="Predictions")
+  plt.plot(X, y, "b.")
+  plt.show()
+  ```
+
+  <img src="assets/linear_regression.png" width="500" height="300" />
+
+  
