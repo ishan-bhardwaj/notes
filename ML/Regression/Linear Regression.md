@@ -162,6 +162,6 @@ np.linalg.pinv(X_b) @ y                 # array([[4.21509616], [2.77011339]])
 - The SVD approach used by Scikit-Learn’s `LinearRegression` class is about $O(n^2)$.
 
 > [!WARNING]
-> Both the Normal equation and the SVD approach get very slow when the number of features grows large (e.g., 100,000). On the positive side, both are linear with regard to the number of instances in the training set (they are $O(m)$), so they handle large training sets efficiently, provided they can fit in memory.
+> Both the Normal equation and the SVD approach get very slow when the number of features grows large (e.g., 100,000). On the positive side, both are linear with regard to the number of instances in the training set (they are ${O(m)}$), so they handle large training sets efficiently, provided they can fit in memory.
 
 - Once you have trained your linear regression model, predictions are very fast - the computational complexity is linear with regard to both the number of instances you want to make predictions on and the number of features.
