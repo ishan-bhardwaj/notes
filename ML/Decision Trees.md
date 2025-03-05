@@ -73,3 +73,30 @@ Source.from_file("iris_tree.dot")
 - However, the righthand area is impure, so the depth-1 right node splits it at petal width = 1.75 cm (represented by the dashed line).
 - Since max_depth was set to 2, the decision tree stops right there. If you set max_depth to 3, then the two depth-2 nodes would each add another decision boundary (represented by the two vertical dotted lines).
 
+> [!TIP]
+> Decision trees decisions are easy to interpret and such models are often called **white box models**. Whereas, random forests and neural networks are generally considered black box models because it is usually hard to explain in simple terms why the predictions were made, and therefore, such models are called **black box models**.
+
+## Estimating class probabilities
+
+- A decision tree can estimate the probability that an instance belongs to a particular class $k$ -
+    - First it traverses the tree to find the leaf node for this instance.
+    - then returns the ratio of training instances of class $k$ in this node.
+
+- Example - for a flower whose petals are 5 cm long and 1.5 cm wide -
+    - leaf node is the depth-2 left node.
+    - probabilities - $0\%$ for Iris setosa $(0/54)$, $90.7\%$ for Iris versicolor $(49/54)$, and $9.3\%$ for Iris virginica $(5/54)$.
+    - Iris versicolor (class 1) will be the predicted class because it has the highest probability.
+
+```
+tree_clf.predict_proba([[5, 1.5]]).round(3)     # array([[0.   , 0.907, 0.093]])
+tree_clf.predict([[5, 1.5]])                    # array([1])
+```
+
+## The CART Training Algorithm
+
+- Scikit-Learn uses the _Classification and Regression Tree (CART)_ algorithm to train decision trees.
+- Works by splitting the training set into two subsets using a single feature $k$ and a threshold $t_k$ (e.g., $petal\_length ≤ 2.45 cm$)
+- It searches for the pair $(k, t_k)$ that produces the purest subsets, weighted by their size, by minimizing the CART cost function for classification -
+
+    $J(k, t_k) = m_L / m $
+
