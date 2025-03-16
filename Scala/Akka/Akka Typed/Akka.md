@@ -42,7 +42,7 @@ object SimpleActorV2 {
 }
 ```
 
-- Even more general way is to create an actor is using `setup` method -
+- Even more general way is to create an actor is using `setup` method which lets us define actor specific data & methods -
 ```
 object SimpleActorV3 {
     def apply(): Behavior[String] = Behaviors.setup { context => 
@@ -56,3 +56,51 @@ object SimpleActorV3 {
     }
 }
 ```
+
+> [!TIP]
+> Message types must be immutable and serializable. To achieve this -
+> - Use case classes / objects.
+> - Use flat type hierarchy, eg - 
+>   ```
+>   trait PaymentStatus
+>   case object PaymentSucceeded extends PaymentStatus
+>   case object PaymentFailed extends PaymentStatus
+>   ```
+
+## Managing Actor State
+
+- (Bad Practise) Using mutable variables to hold the state -
+```
+object StatefulWordCounter {
+
+    def apply(): Behavior[String] = Behaviors.setup { context =>
+        var total = 0
+
+        Behaviors.receiveMessage { message =>
+            val newCount = message.split(" ").length
+            totalCount += newCount
+            context.log.info(s"Total count: $totalCount")
+            Behaviors.same
+        }
+    }
+
+}
+```
+
+- (Good Practise) Stateless implementation -
+```
+object StatelessWordCounter {
+
+    def apply(): Behavior[String] = countWords(0)
+
+    def active(totalCount: Int): Behavior[String] = Behaviors.receive { (context, message) =>
+        val newCount = message.split(" ").length
+        context.log.info(s"Total count: ${totalCount + newCount}")
+        active(totalCount + newCount)
+    }
+
+}
+```
+
+> [!NOTE]
+> `active(totalCount + newCount)` is NOT a recursive call.
