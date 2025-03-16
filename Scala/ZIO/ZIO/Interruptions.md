@@ -63,7 +63,7 @@ zioA.uninterruptible
     ```
     or
     ```
-    (zio1 *> zio2.interruptible *> zio3).uninterruptible
+    (zio1 *> zio2.interrupt *> zio3).uninterruptible
     ```
 
 - `uninterruptibleMask` can specify which part of the effects can be interruptible. If nothing is specified, all the effects are considered as uninterruptible by default.
