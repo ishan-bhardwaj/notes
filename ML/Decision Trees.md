@@ -98,5 +98,7 @@ tree_clf.predict([[5, 1.5]])                    # array([1])
 - Works by splitting the training set into two subsets using a single feature $k$ and a threshold $t_k$ (e.g., $petal\_length ≤ 2.45 cm$)
 - It searches for the pair $(k, t_k)$ that produces the purest subsets, weighted by their size, by minimizing the CART cost function for classification -
 
-    $J(k, t_k) = m_L / m $
+    $J(k, t_k) = m_L / m * G_L + m_R / m * G_R $
+
+
 
