@@ -213,3 +213,16 @@ or,
 > [!NOTE]
 > `arg` is a _val_. `arg` can’t be reassigned inside the body of the _for_ expression. Instead, for each element of the args array, a new `arg` val will be created and initialized to the element value, and the body of the `for` will be executed.
 
+
+--------------------
+
+- Back ticks (``) notation in pattern matching is used to match the value of variable in pattern match to some other variable with the same name -
+```
+def login(email: String, password: String): Boolean = 
+    db.get(email) match {
+        case Some(`password`) => ???
+        case None => ???
+    }
+```
+
+Here ``Some(`password`)`` in pattern match is same as - `Some(pwd) if password = pwd`
