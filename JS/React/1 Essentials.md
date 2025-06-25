@@ -97,3 +97,91 @@ function UserInfo(props) {
 }
 ```
 
+- Alternative Props Syntax - if the keys (`name`, `age`, `details` etc) are defined in an object then we can use following syntax to auto-inject them as the Component's attributes if the attribute names are matching, for eg -
+**data.js** -
+```
+export USER_INFO = [{
+    'name': 'John',
+    'age': 30,
+    'details': {username: 'John'}
+    'hobbies': [['Cooking', 'Reading']]
+}]
+```
+
+**UserInfo.jsx** -
+
+```
+<UserInfo {...USER_INFO[0]} />
+```
+
+- Similarly, we can apply object destructuring to props in `UserInfo` component with the attribute names matching with the parameter names -
+```
+function UserInfo({description, name}) {
+    return (
+        <p>Hello {name}!</p>
+        <p>{description}</p>
+    )
+}
+```
+
+- You could also pass a single `info` prop to the `UserInfo` component -
+```
+<UserInfo info={USER_INFO[0]} />
+```
+In the CoreConcept component, you would then get that one single prop -
+```
+export default function UserInfo({ info })
+```
+
+- Grouping received props into a single object - You can also pass multiple props to a component and then, in the component function, group them into a single object via JavaScript's "Rest Property" syntax. For eg, if a component is used like this -
+```
+<UserInfo
+  name={USER_INFO[0].name}
+  description={USER_INFO[0].description} />
+```
+
+Then you could group the received props into a single object like this -
+```
+export default function UserInfo({ ...info })
+```
+
+### Default Prop Values
+
+- Default values can be set when using object destructuring -
+```
+export default function Button({ caption, type = "submit" })
+```
+
+- Then we can use the `Button` as either -
+```
+<Button type="submit" caption="My Button" />
+```
+or -
+```
+<Button caption="My Button" />
+```
+
+### `children` prop
+
+- Contains the content present between the custom component opening and closing tags.
+- Added by React by default.
+- Example -
+```
+function TabButton(props) {
+    return <li><button>{props.children}</button></li>
+}
+
+// or
+function TabButton({children}) {
+    return <li><button>{children}</button></li>
+}
+
+<TabButton>Hello World!</TabButton>
+```
+
+Here, `props.children` represents `Hello World!` plain text.
+
+
+### Component Composition
+
+- The content between opening and closing tag of a composition can also contain other components.
