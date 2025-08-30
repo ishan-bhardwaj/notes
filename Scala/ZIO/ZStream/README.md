@@ -2,3 +2,5 @@
 - [ZStream](ZStream.md)
 - [ZPipeline & ZSink](ZPipeline&ZSink.md)
 - [ZChannel](ZChannel.md)
+
+- Chapter 39
