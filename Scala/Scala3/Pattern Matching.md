@@ -11,7 +11,7 @@ value match {
 }
 ```
 
-> [!WARN]
+> [!WARNING]
 > If there is _default_ case in pattern matching or the cases are not exhausitive then it will throw `scala.MatchError` if none of the cases match.
 
 - Decompose values in case classes -
@@ -117,7 +117,7 @@ anInt match {
 }
 ```
 
-> [!WARN]
+> [!WARNING]
 > Pattern match deconstructions and type checks are evaluated at runtime using reflection. And because all the generic types are erased at runtime, the following will print `list of strings` -
 > ```
 > val nums: List[Int] = List(1, 2, 3, 4)
@@ -126,3 +126,6 @@ anInt match {
 >   case ints: List[Int] => "list of ints"
 > }
 > ```
+
+> [!TIP]
+> Generic types are erased in JVM at runtime because generics were added in Java 5 and it has to be fully-backward compatible with earlier versions.
