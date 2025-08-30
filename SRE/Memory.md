@@ -99,3 +99,49 @@
 - Overcommit behavior can be tuned via a kernel parameter.
 - Impact - Consequences depend on how the kernel handles memory pressure.
 
+### Process Swapping
+
+- Process swapping is the movement of entire processes between main memory and the physical swap device or swap file.
+- To swap out a process, all of its private data must be written to the swap device, including the process heap (anonymous data), its open file table, and other metadata that is only needed when the process is active.
+- Data that originated from file systems and has not been modified can be dropped and read from the original locations again when needed.
+- Linux systems do not swap processes at all and rely only on paging.
+
+### File System Cache Usage
+
+- Memory usage rises after boot because the OS caches the filesystem using spare RAM to improve performance. The principle is - _If there is spare main memory, use it for something useful_.
+- This can make free memory appear close to zero, which may worry users, but it’s not an issue since the kernel can quickly release cached memory for applications when needed.
+- While calculating main memory utilization, memory used by the file system cache can be treated as unused, as it is available for reuse by applications.
+
+### Saturation
+
+- If demands for memory exceed the amount of main memory, main memory becomes saturated.
+- The operating system may then free memory by employing paging, process swapping (if supported), and, on Linux, the OOM killer. Any of these activities is an indicator of main memory saturation.
+
+### Allocators
+
+- Virtual memory enables multitasking, but actual memory allocation within a virtual address space is managed by allocators—either in user space or the kernel (e.g., malloc, free).
+- Allocators affect performance - they can speed up memory use through techniques like per-thread caching but may degrade performance if memory becomes fragmented or wasted.
+
+### Shared Memory
+
+- Memory can be shared between processes. This is commonly used for system libraries to save memory by sharing one copy of their read-only instruction text with all processes that use it- this presents difficulties for observability tools that show per-process main memory usage.
+- One technique in use by Linux is to provide an additional measure, the proportional set size (PSS), which includes private memory (not shared) plus shared memory divided by the number of users.
+
+### Working Set Size
+
+- Working set size (WSS) is the amount of main memory a process frequently uses to perform work. 
+- Performance should greatly improve if the WSS can fit into the CPU caches, rather than main memory. 
+- Also, performance will greatly degrade if the WSS exceeds the main memory size, and the application must swap to perform work.
+
+### Word Size
+
+- A processor’s “word size” (like 32-bit or 64-bit) determines how much memory it can directly address.
+    - 32-bit - can handle up to 4 GB of memory in a single program.
+    - 64-bit - can handle way more (practically unlimited for most apps).
+- 32-bit CPUs have a trick called Physical Address Extension (PAE) feature to use more memory, but each program still can’t use more than 4 GB.
+- Part of the address space is reserved for the kernel—e.g., on 32-bit Windows, 2 GB is reserved, leaving 2 GB for applications; Linux or Windows with the `/3GB` option reserves 1 GB.
+- With a 64-bit word size (if the processor supports it) the address space is so much larger that the kernel reservation should not be an issue.
+- Larger word sizes can improve memory performance by allowing instructions to process more data at once, though a small amount of memory may be wasted, in cases where a data type has unused bits at the larger bit width.
+
+## Memory Architecture
+
