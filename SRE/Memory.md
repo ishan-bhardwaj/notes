@@ -148,13 +148,14 @@
 ### Hardware
 
 **Main Memory** -
-    - Dynamic random-access memory (DRAM) - common type of main memory used today.
-    - Volatile memory — its contents are lost when power is lost.
-    - DRAM provides high-density storage, as each bit is implemented using only two logical components - a capacitor and a transistor.
-    - The capacitor requires a periodic refresh to maintain charge.
-    - Enterprise servers - typically 1 GB – 1 TB+ of DRAM.
-    - Cloud instances - usually 512 MB – 256 GB each.
-    - Cloud computing can scale memory by pooling many instances, but this leads to higher coherency cost.
+
+- Dynamic random-access memory (DRAM) - common type of main memory used today.
+- Volatile memory — its contents are lost when power is lost.
+- DRAM provides high-density storage, as each bit is implemented using only two logical components - a capacitor and a transistor.
+- The capacitor requires a periodic refresh to maintain charge.
+- Enterprise servers - typically 1 GB – 1 TB+ of DRAM.
+- Cloud instances - usually 512 MB – 256 GB each.
+- Cloud computing can scale memory by pooling many instances, but this leads to higher coherency cost.
 
 
 
