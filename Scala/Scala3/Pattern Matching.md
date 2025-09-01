@@ -129,3 +129,41 @@ anInt match {
 
 > [!TIP]
 > Generic types are erased in JVM at runtime because generics were added in Java 5 and it has to be fully-backward compatible with earlier versions.
+
+
+### Based on pattern matching
+
+- `catch` in try-catch -
+
+```
+try { ... }
+catch {
+  case e: RuntimeException => ???   
+}
+```
+
+- Generators in for-comprehensions for deconstructions -
+
+```
+val tuples = List((1, 2), (3, 4))
+for {
+  (first, second) <- tuples if first < 3
+} yield second * 10
+```
+
+- Deconstructing structures -
+
+    - On tuples -
+    ```
+    val aTuple = (1, 2, 3)
+    val (a, b, c) = aTuple
+    ```
+
+    - On lists -
+    ```
+    val list = List(1, 2, 3, 4)
+    val head :: tail = list
+    ```
+
+
+
