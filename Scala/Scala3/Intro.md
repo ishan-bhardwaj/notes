@@ -226,3 +226,15 @@ def login(email: String, password: String): Boolean =
 ```
 
 Here ``Some(`password`)`` in pattern match is same as - `Some(pwd) if password = pwd`
+
+- Expressions returning `Unit` -
+    - Modifying a variable -
+    ```
+    var num = 10
+    val modify: Unit = num += 10
+    ```
+
+    - Loops -
+    ```
+    val loop: Unit = while(n < 10) { ... }
+    ```
