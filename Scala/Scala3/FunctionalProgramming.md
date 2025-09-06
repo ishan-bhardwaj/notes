@@ -37,6 +37,9 @@ val func: Int => Int = { (value: Int) =>
 }
 ```
 
+> [!TIP]
+> The arrow symbol (`=>`) is right-associate i.e. `Int => Int => Int` is inferred as `Int => (Int => Int)` and means a function that takes an `Int` and returns a function from `Int` to `Int`.
+
 ## Currying
 
 - Currying functions groups parameters in consecutive function calls -
