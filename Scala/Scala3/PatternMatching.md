@@ -165,5 +165,117 @@ for {
     val head :: tail = list
     ```
 
+### Custom Pattern Matching
 
+- To allow pattern matching on custom types, we need to provide extractor methods i.e. `unapply` or `unapplySeq`.
+- In case classes, the compiler automatically injects extractor methods.
 
+```
+class Person(name: String, age: Int)
+
+object Person {
+    def unapply(person: Person): Option[(String, Int)] =
+        if (person.age < 21) None
+        else Some((person.name, person.age))
+
+    def unapply(age: Int): Option[String] =
+        if (age < 21) "minor"
+        else "valid"
+}
+
+val john - Person("John", 21)
+
+john match {
+    case Person(n, a) => s"Hi, I am $n"
+}
+
+john match {
+    case Person(status) => s"Status is $status"
+}
+```
+
+- In `Person(status)`, `status` is determined by the return value of `Person.unapply`.
+
+### Boolean Patterns
+
+```
+object even {
+    def unapply(arg: Int): Boolean = arg % 2 == 0
+}
+
+object singleDigit {
+    def unapply(arg: Int): Boolean = arg > -10 && arg < 10
+}
+
+100 match {
+    case even() => "an even number"
+    case singleDigit() => "one digit number"
+    case _ => "no special property"
+}
+```
+
+### Infix Patterns
+
+```
+infix case class Or[A, B](a: A, b: B)
+
+val anEither = Or(2, "two")
+
+anEither match {
+    case num Or str => s"$num is writtern as $str"
+}
+```
+
+### Decomposing Sequences
+
+- Implement `unapplySeq` to allow pattern matching with varargs -
+
+```
+abstract class MyList[A] {
+    def head: A = ???
+    def tail: MyList[A] = ???
+}
+
+case class Empty[A]() extends MyList[A]
+case class Cons[A](override val head: A, override val tail: MyList[A]) extends MyList[A]
+
+object MyList {
+    def unapplySeq[A](list: MyList[A]): Option[Seq[A]] =
+        if (list == Empty()) Some(Seq.empty)
+        else unapplySeq(list.tail).map(x => list.head +: x)
+}
+
+val myList: MyList[Int] = Cons(1, Cons(2, Cons(3, Empty())))
+
+myList match {
+    case MyList(1, 2, _*) => "list starting with 1 & 2"
+    else _ => "some other list"
+}
+```
+
+### Custom Return Type for Extractors
+
+- We need to return a type that has `isEmpty` and `get` methods available as return type for `unapply` or `unapplySeq` methods, for eg - `Option`.
+
+- Implementing custom type -
+```
+abstract class Wrapper[T] {
+    def isEmpty: Boolean
+    def get: T
+}
+
+object PersonWrapper {
+    def unapply(person: Person): Wrapper[String] =
+        new Wrapper[String] {
+            override def isEmpty: Boolean = false
+            override def get: String = person.name
+        }
+}
+
+john match {
+    case PersonWrapper(name) => s"My name is $name"
+}
+```
+
+> [!TIP]
+> Compiler uses reflection to find the implementation of `isEmpty` and `get` methods.
