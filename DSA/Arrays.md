@@ -10,7 +10,7 @@ Output: [1,4,1,2,1,4,1,2]
 ```
 
 **Solution 1**
-    ```
+```
 def getConcatenation(nums: List[int]) -> List[int]:
     n = len(nums)
     ans = [None] * (2 * n)                # preallocate
