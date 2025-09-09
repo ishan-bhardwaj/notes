@@ -9,7 +9,7 @@ Input: nums = [1,4,1,2]
 Output: [1,4,1,2,1,4,1,2]
 ```
 
-**Solution 1**
+### Solution 1
 ```
 def getConcatenation(nums: List[int]) -> List[int]:
     n = len(nums)
@@ -23,7 +23,7 @@ def getConcatenation(nums: List[int]) -> List[int]:
     - Time - `O(n)`
     - Space - `O(n)`
 
-**Solution 2**
+### Solution 2
 ```
 def getConcatenation(nums: List[int]) -> List[int]:
     return nums + nums
@@ -49,7 +49,7 @@ Input: nums = [1, 2, 3, 3]
 Output: true
 ```
 
-**Solution 1**
+### Solution 1
 ```
 def containsDuplicate(nums: List[int]) -> bool:
     seen = set()
@@ -64,7 +64,7 @@ def containsDuplicate(nums: List[int]) -> bool:
     - Time - `O(n)`
     - Space - `O(n)`
 
-**Solution 2**
+### Solution 2
 ```
 def containsDuplicate(nums: List[int]) -> bool:
     return len(nums) != len(set(nums))
@@ -76,7 +76,7 @@ def containsDuplicate(nums: List[int]) -> bool:
 
 - Does not allow early exit.
 
-**Solution 3**
+### Solution 3
 - If only constant space is allowed -
 ```
 def containsDuplicate(nums: List[int]) -> bool:
@@ -100,7 +100,7 @@ def containsDuplicate(nums: List[int]) -> bool:
 
 - Supports early exit.
 
-**Solution 4**
+### Solution 4
 - Using bitmask -
 ```
 def containsDuplicate(self, nums: List[int]) -> bool:
