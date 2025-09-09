@@ -131,7 +131,7 @@ persons.map {
 ## Functional Collections
 
 - **`Set`** -
-    - `Set` are functions `(A => Boolean)`, therefore, has an `apply` method that accepts input type `A` and returns `Boolean` - if element is present in the set or not.
+    - `Set` is a function `(A => Boolean)`, therefore, has an `apply` method that accepts input type `A` and returns `Boolean` - if element is present in the set or not.
     - `Set` is a total function i.e. always returns either `true` or `false`.
     - Using set as a function - `aSet` acts like a function accepting `Int` and returning `Boolean` -
     ```
@@ -142,10 +142,11 @@ persons.map {
     ```
 
 - **`Seq`** -
-    - `Seq` are functions `PartialFunction[Int, A]` - `apply` returns an element present at a given index.
+    - `Seq` is a function `PartialFunction[Int, A]` - `apply` returns an element present at a given index.
     - `Seq` is a partial function - throws an error in case of index out-of-bound. 
 
-
+- **`Map`** -
+    - `Map` is a partial function `PartialFunction[K, V]` - `apply` returns the value present at given key.
 
 ## Property Based Set
 
@@ -182,3 +183,45 @@ class PBSet[A](property: A => Boolean) extends (A => Boolean) {
 ```
 class AllInclusiveSet[A]() extends PBSet[A](_ => true)
 ```
+
+## Eta-expansion
+
+- Eta-expansion is a process by which the scala compiler converts a method into a function value.
+```
+def curriedAdder(a: Int)(b: Int): Int = a + b
+
+val add4: Int => Int = curriedAdder(4)
+```
+
+```
+def increment(x: Int): Int = x + 1
+List(1, 2, 3).map(increment)
+```
+
+- With underscores -
+```
+def concatenate(a: String, b: String, c: String): String = a + b + b
+
+val insertName: String => String = concatenate("Hello ", _: String, " How are you?")
+```
+
+> [!TIP]
+> Converting normal function to curried -
+> ```
+> val adder = (a: Int, b: Int): Int = a + b
+> val curriedAdder: Int => Int => Int = adder.curried
+> ```
+
+> [!WARN]
+> Methods vs functions with 0-lambdas
+> ```
+> def fun(f: () => Int) = f() + 1
+>
+> def method: Int = 42
+> def parenMethod(): Int = 42
+>
+> fun(23)                   // will not compile
+> fun(method)               // eta-expansion not possible - will not compile
+> fun(parenMethod)          // eta-expansion possible - compiles fine
+> fun(() => parenMethod())  // compiles
+> ```
