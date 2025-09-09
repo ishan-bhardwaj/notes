@@ -39,3 +39,99 @@ def getConcatenation(nums: List[int]) -> List[int]:
     - Internally, this involves __two__ memory copy loops.
     - Also, during the copy, Python may temporarily use internal buffers, increasing peak memory usage slightly.
 
+
+## Contains Duplicate
+
+- Problem - Given an integer array `nums`, return `true` if any value appears more than once in the array, otherwise return `false`.
+- Example -
+```
+Input: nums = [1, 2, 3, 3]
+Output: true
+```
+
+**Solution 1**
+```
+def containsDuplicate(nums: List[int]) -> bool:
+    seen = set()
+    for num in nums:
+        if num in seen:
+            return True             # early exit
+        seen.add(num)
+    return False
+```
+
+- Complexity -
+    - Time - `O(n)`
+    - Space - `O(n)`
+
+**Solution 2**
+```
+def containsDuplicate(nums: List[int]) -> bool:
+    return len(nums) != len(set(nums))
+```
+
+- Complexity -
+    - Time - `O(n)`
+    - Space - `O(n)`
+
+- Does not allow early exit.
+
+**Solution 3**
+- If only constant space is allowed -
+```
+def containsDuplicate(nums: List[int]) -> bool:
+    nums.sort()                         # in-place sorting
+    for i in range(1, len(nums)):
+        if nums[i] == nums[i-1]:
+            return True
+    return False
+```
+
+- Approach -
+    - Sort the array in-place (`O(n log n)` time, `O(1)` extra space).
+    - Compare adjacent elements -
+        - If any two neighbors are equal → duplicate found → return `True`.
+        - Otherwise → continue scanning.
+        - If no duplicates → return `False`.
+
+- Complexity -
+    - Time - `O(n log n)`
+    - Space - `O(1)`
+
+- Supports early exit.
+
+**Solution 4**
+- Using bitmask -
+```
+def containsDuplicate(self, nums: List[int]) -> bool:
+    bitmask = 0
+    for num in nums:
+        if (bitmask >> num) & 1:
+            return True       # Duplicate found
+        bitmask |= 1 << num   # Mark number as seen
+    return False
+```
+
+- Complexity -
+    - Time - `O(n)`
+    - Space - `O(1)`
+
+- Approach -
+    - bitmask is a single integer where each bit represents whether a number has been seen.
+        - Bit at position `i = 1` → number i has been seen.
+        - Bit at position `i = 0` → number i has not been seen.
+    - For each number `num` in `nums` -
+        - Check `(bitmask >> num) & 1` → if `1` → duplicate found → return `True`.
+        - Otherwise, set the bit → `bitmask |= 1 << num`.
+    - If the loop completes without finding duplicates → return `False`.
+
+- Pros -
+    - Supports early exits.
+    - Constant space — only one integer needed.
+    - Very fast — bit operations are extremely cheap.
+
+- Cons -
+    - Works only for small non-negative integers (e.g., 0–31 for 32-bit integer, 0–63 for 64-bit).
+    - Cannot handle negative numbers without modification.
+    - Cannot handle large numbers directly — would need multiple integers or a bit array.
+
