@@ -135,3 +135,53 @@ def containsDuplicate(self, nums: List[int]) -> bool:
     - Cannot handle negative numbers without modification.
     - Cannot handle large numbers directly — would need multiple integers or a bit array.
 
+## Anagram
+
+- Problem - Given two strings `s` and `t`, return `true` if the two strings are anagrams of each other, otherwise return `false`.
+- An anagram is a string that contains the exact same characters as another string, but the order of the characters can be different.
+- Example -
+```
+Input: s = "racecar", t = "carrace"
+Output: true
+```
+
+### Solution 1
+
+- Using 2 hashmaps -
+```
+def isAnagram(s: str, t: str) -> bool:
+    if len(s) != len(t):
+        return False
+
+    countS, countT = {}, {}
+
+    for i in range(len(s)):
+        countS[s[i]] = 1 + countS.get(s[i], 0)
+        countT[t[i]] = 1 + countT.get(t[i], 0)
+    return countS == countT
+```
+
+- Complexity -
+    - Time - `O(n + m)`, where `n` is length of `s` and `m` is length of `t`
+    - Space - `O(1)`, since we have at most 26 different characters.
+
+### Solution 2
+
+- Using single hashmap -
+```
+def isAnagram(s: str, t: str) -> bool:
+    if len(s) != len(t):
+        return False
+
+    count = {}
+    for i in range(len(s)):
+        count[s[i]] = count.get(s[i], 0) + 1
+        count[t[i]] = count.get(t[i], 0) - 1
+
+    return all(v == 0 for v in count.values())
+```
+
+- Complexity -
+    - Time - `O(n + m)`, where `n` is length of `s` and `m` is length of `t`
+    - Space - `O(1)`, since we have at most 26 different characters.
+
