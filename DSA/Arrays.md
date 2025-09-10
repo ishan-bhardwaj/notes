@@ -1,6 +1,6 @@
 # Arrays
 
-## Array Concatenation
+## Array Concatenation (E)
 
 - Problem - Given an integer array `nums` of length `n`, return a new array of length `2n` formed by concatenating `nums` with itself.
 - Example - 
@@ -40,7 +40,7 @@ def getConcatenation(nums: List[int]) -> List[int]:
     - Also, during the copy, Python may temporarily use internal buffers, increasing peak memory usage slightly.
 
 
-## Contains Duplicate
+## Contains Duplicate (E)
 
 - Problem - Given an integer array `nums`, return `true` if any value appears more than once in the array, otherwise return `false`.
 - Example -
@@ -135,7 +135,7 @@ def containsDuplicate(nums: List[int]) -> bool:
     - Cannot handle negative numbers without modification.
     - Cannot handle large numbers directly — would need multiple integers or a bit array.
 
-## Anagram
+## Anagram (E)
 
 - Problem - Given two strings `s` and `t`, return `true` if the two strings are anagrams of each other, otherwise return `false`.
 - An anagram is a string that contains the exact same characters as another string, but the order of the characters can be different.
@@ -185,7 +185,7 @@ def isAnagram(s: str, t: str) -> bool:
     - Time - `O(n + m)`, where `n` is length of `s` and `m` is length of `t`
     - Space - `O(1)`, since we have at most 26 different characters.
 
-## Two Sum
+## Two Sum (E)
 
 - Problem - Given an array of integers `nums` and an integer `target`, return the indices `i` and `j` such that `nums[i] + nums[j] == target` and `i != j`.
 - Example -
@@ -213,7 +213,7 @@ def twoSum(nums: List[int], target: int) -> List[int]:
     - Time - `O(n)`
     - Space - `O(n)`
 
-## Longest Common Prefix
+## Longest Common Prefix (E)
 
 - Problem - You are given an array of strings `strs`. Return the longest common prefix of all the strings.
 - Example -
@@ -310,5 +310,36 @@ def longestCommonPrefix(strs: List[str]) -> str:
     - Time - `O(S)`, where `S` is total number of characters in all Strings.
     - Space - `O(m log n)`, where `m` is the length of the common prefix at each recursion step (≤ length of shortest string) and `n` is the number of strings.
 
+## Group Anagrams (M)
 
+- Problem - Given an array of strings strs, group all anagrams together into sublists. You may return the output in any order.
+- Example -
+```
+Input: strs = ["act","pots","tops","cat","stop","hat"]
+Output: [["hat"],["act", "cat"],["stop", "pots", "tops"]]
+```
 
+### Solution 1
+```
+def groupAnagrams(strs: List[str]) -> List[List[str]]:
+    groups = {}
+    
+    for s in strs:
+        # Count characters a-z
+        count = [0] * 26
+        for c in s:
+            count[ord(c) - ord('a')] += 1
+        key = tuple(count)
+        
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(s)
+    
+    return list(groups.values())
+```
+
+- Complexity -
+    - Time - `O(n * m)`, where `n` is number of strings in `strs` and `m` is the maximum length of a string.
+    - Space - `O(n * m)`
+        - Dictionary keys - tuple of length `26` for each unique anagram group → `O(n * 26) ≈ O(n)`
+        - Dictionary values - storing all input strings → `O(n * m)`
