@@ -3,9 +3,9 @@
 - Percentage of time a service or infrastructure is accessible and operates normally.
 - Measuring availability -
 
-$
+$$
 A(\%) = \frac{\text{Total Time} - \text{Downtime}}{\text{Total Time}} \times 100
-$
+$$
 
 - Higher A → better availability.
 - We measure availability as a number of nines, eg -
