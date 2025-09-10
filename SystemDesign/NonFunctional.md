@@ -1,10 +1,7 @@
 # Availability
 
 - Percentage of time a service or infrastructure is accessible and operates normally.
-- Measuring availability -
-
-$A(\%) = \frac{Total\ Time - Downtime}{Total\ Time} \times 100$
-
+- Measuring availability - `A(%) = (Total Time - Amount Of Time Service Was Down) / Total Time * 100`
 - Higher A → better availability.
 - We measure availability as a number of nines, eg -
     - 90% (1 nine) - Downtime/Year = 36.5 days
