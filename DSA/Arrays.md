@@ -103,7 +103,7 @@ def containsDuplicate(nums: List[int]) -> bool:
 ### Solution 4
 - Using bitmask -
 ```
-def containsDuplicate(self, nums: List[int]) -> bool:
+def containsDuplicate(nums: List[int]) -> bool:
     bitmask = 0
     for num in nums:
         if (bitmask >> num) & 1:
@@ -188,11 +188,16 @@ def isAnagram(s: str, t: str) -> bool:
 ## Two Sum
 
 - Problem - Given an array of integers `nums` and an integer `target`, return the indices `i` and `j` such that `nums[i] + nums[j] == target` and `i != j`.
+- Example -
+```
+Input: nums = [3,4,5,6], target = 7
+Output: [0,1]
+```
 
 ### Solution
 
 ```
-def twoSum(self, nums: List[int], target: int) -> List[int]:
+def twoSum(nums: List[int], target: int) -> List[int]:
     seen = {}  # value -> index
 
     for i, n in enumerate(nums):
@@ -207,3 +212,103 @@ def twoSum(self, nums: List[int], target: int) -> List[int]:
 - Complexity - 
     - Time - `O(n)`
     - Space - `O(n)`
+
+## Longest Common Prefix
+
+- Problem - You are given an array of strings `strs`. Return the longest common prefix of all the strings.
+- Example -
+```
+Input: strs = ["bat","bag","bank","band"]
+Output: "ba"
+```
+
+### Solution 1
+- Horizontal scanning -
+```
+def longestCommonPrefix(strs: List[str]) -> str:
+    if not strs:
+        return ""
+    
+    prefix = strs[0]
+    for s in strs[1:]:
+        i = 0
+        while i < len(prefix) and i < len(s) and prefix[i] == s[i]:
+            i += 1
+
+        prefix = prefix[:i]
+        if not prefix:
+            break
+
+    return prefix
+```
+
+- Complexity -
+    - Time - `O(S)`, where `S` is total number of characters in all Strings.
+    - Space - `O(m)`, where `m` is length of first string.
+
+### Solution 2
+- Vertical Scanning -
+```
+def longestCommonPrefix(strs: List[str]) -> str:
+    if not strs:
+        return ""
+    
+    first = strs[0]
+    for i in range(len(first)):
+        char = first[i]
+        for s in strs[1:]:
+            if i >= len(s) or s[i] != char:
+                return first[:i]
+    return first
+```
+
+- Complexity -
+    - Time - `O(S)`, where `S` is total number of characters in all Strings.
+    - Space - `O(1)`
+
+### Solution 3
+- Prefix Shrinking -
+```
+def longestCommonPrefix(strs: List[str]) -> str:
+    if not strs:
+        return ""
+    
+    prefix = strs[0]
+    for s in strs[1:]:
+        while not s.startswith(prefix):
+            prefix = prefix[:-1]
+            if not prefix:
+                return ""
+    return prefix
+```
+
+- Complexity -
+    - Time - `O(S)`, where `S` is total number of characters in all Strings.
+    - Space - `O(m)`, where `m` is length of first string.
+
+### Solution 4
+- Divide and Conquer -
+```
+def longestCommonPrefix(strs: List[str]) -> str:
+    if not strs:
+        return ""
+    def lcp(left: int, right: int) -> str:
+        if left == right:
+            return strs[left]
+        mid = (left + right) // 2
+        l = lcp(left, mid)
+        r = lcp(mid + 1, right)
+        i = 0
+        while i < len(l) and i < len(r) and l[i] == r[i]:
+            i += 1
+        return l[:i]
+    
+    return lcp(0, len(strs) - 1)
+```
+
+- Complexity -
+    - Time - `O(S)`, where `S` is total number of characters in all Strings.
+    - Space - `O(m log n)`, where `m` is the length of the common prefix at each recursion step (≤ length of shortest string) and `n` is the number of strings.
+
+
+
