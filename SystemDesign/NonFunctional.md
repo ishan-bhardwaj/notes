@@ -26,7 +26,7 @@
 - Higher MTBF = better reliability.
 - Lower MTTR = quicker recovery.
 
-> [NOTE]
+> [!NOTE]
 > MTTF (Mean Time To Failure): Used for irreparable components (e.g., disk, bulb) instead of MTBF.
 
 - Reliability vs Availability -
