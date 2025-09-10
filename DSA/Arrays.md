@@ -185,3 +185,25 @@ def isAnagram(s: str, t: str) -> bool:
     - Time - `O(n + m)`, where `n` is length of `s` and `m` is length of `t`
     - Space - `O(1)`, since we have at most 26 different characters.
 
+## Two Sum
+
+- Problem - Given an array of integers `nums` and an integer `target`, return the indices `i` and `j` such that `nums[i] + nums[j] == target` and `i != j`.
+
+### Solution
+
+```
+def twoSum(self, nums: List[int], target: int) -> List[int]:
+    seen = {}  # value -> index
+
+    for i, n in enumerate(nums):
+        diff = target - n
+        if diff in seen:
+            return [seen[diff], i]
+        seen[n] = i
+
+    return []
+```
+
+- Complexity - 
+    - Time - `O(n)`
+    - Space - `O(n)`
