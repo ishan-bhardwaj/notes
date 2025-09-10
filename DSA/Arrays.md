@@ -338,6 +338,12 @@ def groupAnagrams(strs: List[str]) -> List[List[str]]:
     return list(groups.values())
 ```
 
+- Explanation -
+    - `ord(c)` gives the ASCII code of character `c` i.e. `a` → `97`, `b` → `98`, `c` → `99`, ... `z` → `122`.
+    - `ord(c) - ord('a')` maps letters `'a'-'z'` → `0-25`.
+    - `count[ord(c) - ord('a')] += 1` - Increments the count of that letter in count.
+    - `count` for "eat" - `[1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0]`
+
 - Complexity -
     - Time - `O(n * m)`, where `n` is number of strings in `strs` and `m` is the maximum length of a string.
     - Space - `O(n * m)`
