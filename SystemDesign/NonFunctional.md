@@ -2,6 +2,7 @@
 
 - Percentage of time a service or infrastructure is accessible and operates normally.
 - Measuring availability -
+
 $$
 A(\%) = \frac{\text{Total Time} - \text{Downtime}}{\text{Total Time}} \times 100
 $$
