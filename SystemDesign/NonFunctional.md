@@ -150,9 +150,9 @@
 
 > [!TIP]
 > Simplified Approximation for BOTECs -
-> - CPU-bound: X time units
-> - Memory-bound: ≈ 10 * X
-> - IO-bound: ≈ 100 * X
+> - CPU-bound = X time units
+> - Memory-bound ≈ 10 * X
+> - IO-bound ≈ 100 * X
 
 ## Server Requests per Second (RPS) Estimation
 
