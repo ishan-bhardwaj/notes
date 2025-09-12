@@ -93,3 +93,81 @@
         - Types of Checkpointing -
             - Consistent State - All processes have a coherent view of system state.
             - Inconsistent State - Checkpoints across processes are not aligned - results in discrepancies in recovery
+
+## Back-of-the-Envelope Calculations (BOTECs)
+
+- Quick, approximate, simplified calculations to estimate feasibility or validate assumptions.
+- BOTECs help ignore detailed nitty-gritty at the design level and focus on -
+    - Feasibility of computational resources.
+    - Estimating requests per second (RPS), concurrent connections, and storage needs.
+- Use Cases -
+    - Number of concurrent TCP connections a server can support.
+    - RPS a server (web, DB, cache) can handle.
+    - Storage requirements of the service.
+
+### Types of Data Center Servers -
+- General types -
+    - Web Servers -
+        - First point of contact after load balancers.
+        - Handle API calls and static content.
+        - Require medium CPU, low memory and storage.
+        - Example - Facebook web server - 32 GB RAM, 500 GB storage.
+    - Application Servers -
+        - Run core application and business logic.
+        - Provide dynamic content.
+        - Require high CPU and medium memory & storage.
+        - Example - Facebook app server - 256 GB RAM, up to 6.5 TB storage (HDD + flash).
+    - Storage Servers -
+        - Handle large volumes of structured (SQL) and unstructured (NoSQL) data.
+        - Types of storage - Blob storage (videos), temporary queue (processing uploads), Bigtable (thumbnails), RDBMS (metadata).
+        Example - Facebook storage servers - up to 120 TB each; total storage in exabytes.
+- Typical Modern Server Specs -
+    - Processor	- Intel Xeon (Sapphire Rapids 8488C)
+    - Cores	- 64
+    - RAM - 256 GB
+    - Cache (L3) - 112.5 MB
+    - Storage Capacity - 16 TB
+- Typical Throughput (Queries per Second, QPS) -
+    - MySQL	- 1,000
+    - Key-value store - 10,000
+    - Cache server - 100,000 – 1,000,000
+
+### Request Types
+
+- **CPU-bound Requests**
+    - Bottlenecked by the processor.
+    - Example - Compressing 1 KB of data using snzip.
+    - Time example: ~3 μs per operation.
+    - Fastest among request types.
+- **Memory-bound Requests**
+    - Bottlenecked by the memory subsystem.
+    Example - Reading 1 MB sequentially from RAM.
+    - Time example: ~9 μs per operation (≈3× slower than CPU-bound).
+- **IO-bound Requests**
+    - Bottlenecked by IO subsystems (disk or network).
+    - Example - Reading 1 MB sequentially from disk.
+    - Time example: ~200 μs per operation (≈66× slower than CPU-bound).
+
+> [!TIP]
+> Simplified Approximation for BOTECs -
+> - CPU-bound: X time units
+> - Memory-bound: ≈ 10 * X
+> - IO-bound: ≈ 100 * X
+
+## Server Requests per Second (RPS) Estimation
+
+- Estimate how many requests a typical server can handle per second.
+- Real requests touch multiple nodes; we simplify for back-of-the-envelope calculations (BOTECs).
+- CPU Time per Request - 
+    - `CPU time per program = Instructions per program * CPI * CPU time per clock cycle`
+    - where -
+        - Instructions per program → Number of instructions in a request (~3.5 million assumed).
+        - CPI (Clock cycles per instruction) → Assumed 1 for simplicity.
+        - CPU time per clock cycle → `1 / CPU frequency`
+- Example Calculation -
+    - CPU frequency - `3.5 GHz = 3.5 * 10^9 cycles/sec`
+    - CPU time per clock cycle will become - `2.857 * 10^-10 sec`
+    - CPU time per request - `3.5 * 10^6 * 1 * 2.857 * 10^-10 = 0.001 sec`
+- Requests per Second (RPS) -
+    - Single-core CPU - `RPS = 1 / 0.001 = 1000 req/sec`
+    - 64-core CPU - `64 * 1000 = 64,000 requests/sec`
