@@ -349,3 +349,71 @@ def groupAnagrams(strs: List[str]) -> List[List[str]]:
     - Space - `O(n * m)`
         - Dictionary keys - tuple of length `26` for each unique anagram group → `O(n * 26) ≈ O(n)`
         - Dictionary values - storing all input strings → `O(n * m)`
+
+## Remove Element
+
+- Problem - You are given an integer array `nums` and an integer `val`. Your task is to remove all occurrences of val from `nums` "in-place". After removing all occurrences of `val`, return the number of remaining elements, say `k`, such that the first `k` elements of `nums` do not contain `val`.
+- Note - The order of the elements which are not equal to val does not matter.
+- Example -
+```
+Input: nums = [1,1,2,3,4], val = 1
+Output: [2,3,4]
+```
+
+### Solution
+```
+def removeElement(self, nums: list[int], val: int) -> int:
+    k = 0
+    for x in nums:
+        if x != val:
+            nums[k] = x
+            k += 1
+    return k
+```
+
+- Complexity -
+    - Time - `O(n)`
+    - Space - `O(1)`
+
+## Majority Element
+
+- Problem - Given an array nums of size n, return the majority element.
+- Example - 
+```
+Input: nums = [5,5,1,1,1,5,5]
+Output: 5
+```
+
+### Solution 1
+```
+def majorityElement(self, nums: list[int]) -> int:
+    freq = {}
+    for x in nums:
+        freq[x] = freq.get(x, 0) + 1
+    max_elem = max(freq, key=freq.get)
+    return max_elem
+```
+
+- Complexity -
+    - Time - `O(n)`
+    - Space - `O(n)`
+
+### Solution 2 - Boyer-Moore Voting Algorithm
+
+> [!WARNING]
+> Only works when majority element has greater than `n/2` occurrences.
+
+```
+def majorityElement(self, nums):
+    res = count = 0
+    for num in nums:
+        if count == 0:
+            res = num
+        count += (1 if num == res else -1)
+    return res
+```
+
+- Complexity -
+    - Time - `O(n)`
+    - Space - `O(1)`
+
