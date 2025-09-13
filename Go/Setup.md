@@ -39,6 +39,3 @@ import (
     - By default, builds the binaries for current OS, but to cross-compile for others (for eg - linux) - `GOOS=linux go build`
 
 - Cleanup the binaries - `go clean`
-
-> [!WARNING]
-> Unused variables & methods are compilation-errors in Go.
