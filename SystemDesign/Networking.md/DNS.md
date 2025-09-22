@@ -109,3 +109,18 @@
 - Caching can serve outdated (stale) records.
 - TTL (Time-To-Live) - Each record has an expiration time to limit staleness.
 
+## Tools
+
+### `nslookup`
+
+- `nslookup www.google.com`
+- Non-authoritative answer - provided by cached resolvers (not Google’s authoritative servers).
+- Often responses are cached at ISP, university, or office servers.
+- Same IP list may appear in different order → DNS enables load balancing.
+
+### `dig`
+
+- `dig www.google.com`
+- Shows query time (e.g., 4 ms).
+- Shows TTL (e.g., 300 seconds = 5 minutes).
+- TTL indicates how long the resolver will keep the mapping cached.
