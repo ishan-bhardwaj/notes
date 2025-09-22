@@ -417,3 +417,244 @@ def majorityElement(self, nums):
     - Time - `O(n)`
     - Space - `O(1)`
 
+## Design HashSet
+
+- Problem - Design a HashSet without using any built-in hash table libraries. Implement `MyHashSet` class -
+    - `void add(key)` - Inserts the value key into the HashSet.
+    - `bool contains(key)` - Returns whether the value key exists in the HashSet or not.
+    - `void remove(key)` - Removes the value key in the HashSet. If key does not exist in the HashSet, do nothing.
+
+### Solution 1 - Boolean Array
+
+- Only works if we have finite elements, say 1 million.
+
+```
+class MyHashSet:
+
+    def __init__(self):
+        self.data = [False] * 1000001
+
+    def add(self, key: int) -> None:
+        self.data[key] = True
+
+    def remove(self, key: int) -> None:
+        self.data[key] = False
+
+    def contains(self, key: int) -> bool:
+        return self.data[key]
+```
+
+- Complexity -
+    - Time - `O(1)`
+    - Space - `O(1000000)`
+
+### Solution 2 - Linked List
+
+```
+class ListNode:
+    def __init__(self, key: int, next=None):
+        self.key = key
+        self.next = next
+
+class MyHashSet:
+    def __init__(self, initial_capacity: int = 16, load_factor: float = 0.75):
+        self.capacity = initial_capacity
+        self.size = 0
+        self.load_factor = load_factor
+        self.buckets = [None] * self.capacity
+
+    def _hash(self, key: int) -> int:
+        return key % self.capacity
+
+    def _resize(self):
+        old_buckets = self.buckets
+        self.capacity *= 2
+        self.buckets = [None] * self.capacity
+        self.size = 0
+
+        for head in old_buckets:
+            cur = head
+            while cur:
+                self.add(cur.key)
+                cur = cur.next
+
+    def add(self, key: int) -> None:
+        if self.contains(key):
+            return
+
+        if self.size + 1 > self.capacity * self.load_factor:
+            self._resize()
+
+        idx = self._hash(key)
+        new_node = ListNode(key, next=self.buckets[idx])
+        self.buckets[idx] = new_node
+        self.size += 1
+
+    def remove(self, key: int) -> None:
+        idx = self._hash(key)
+        cur = self.buckets[idx]
+        prev = None
+        while cur:
+            if cur.key == key:
+                if prev:
+                    prev.next = cur.next
+                else:
+                    self.buckets[idx] = cur.next
+                self.size -= 1
+                return
+            prev, cur = cur, cur.next
+
+    def contains(self, key: int) -> bool:
+        idx = self._hash(key)
+        cur = self.buckets[idx]
+        while cur:
+            if cur.key == key:
+                return True
+            cur = cur.next
+        return False
+```
+
+- Complexity -
+    - Let -
+        - `n` is number of elements in the hash set
+        - `m` is number of buckets (capacity)
+        - Load factor `α` is `n / m`
+    - Add Operation -
+        - Compute hash - `O(1)`
+        - Check contains (traverse chain) - `O(α)` on average
+        - Insert at head of chain - `O(1)`
+        - Average case - `O(1)` because `α ≤ load_factor` (usually `0.75`).
+        - Worst case - `O(n)` if all keys collide in the same bucket.
+        - Amortized - `O(1)` even with resizing because resizing doubles capacity and spreads keys.
+    - Remove Operation -
+        - Compute hash - `O(1)`
+        - Traverse chain to find key - `O(α)` on average
+        - Remove node - `O(1)`
+        - Average case - `O(1)`
+        - Worst case - `O(n)` if all keys collide
+    - Contains Operation -
+        - Compute hash - `O(1)`
+        - Traverse chain - `O(α)` on average
+        - Average case - `O(1)`
+        - Worst case - `O(n)` if all keys collide
+    - Resizing -
+        - Occurs when `size > capacity * load_factor`
+        - Copies all elements - `O(n)`
+        - Amortized cost per insertion - `O(1)`
+        - So all operations are `O(1)` average/amortized, `O(n)` worst case.
+    - Space Complexity -
+        - Buckets array - `O(m)`, `m` = capacity
+        - Nodes - `O(n)` for actual keys
+        - Total space - `O(n + m)`
+        - Since `m` grows proportionally with `n` during resizing, effectively `O(n)`
+    
+## Design HashMap
+
+- Problem - Design a HashMap without using any built-in hash table libraries. Implement the MyHashMap class -
+    - `MyHashMap()` initializes the object with an empty map.
+    - `void put(int key, int value)` inserts a `(key, value)` pair into the HashMap. If the key already exists in the map, update the corresponding value.
+    - `int get(int key)` returns the value to which the specified key is mapped, or `-1` if this map contains no mapping for the key.
+    - `void remove(key)` removes the key and its corresponding value if the map contains the mapping for the key.
+
+### Solution 1 - Array
+
+- Works only when keys have bounded range.
+
+```
+class MyHashMap:
+
+    def __init__(self):
+        self.map = [-1] * 1000001
+
+    def put(self, key: int, value: int) -> None:
+        self.map[key] = value
+
+    def get(self, key: int) -> int:
+        return self.map[key]
+
+    def remove(self, key: int) -> None:
+        self.map[key] = -1
+```
+
+- Complexity -
+    - Time - `O(1)` for each function call.
+    - Space - `O(1000000)` since the key is in the range `[0, 1000000]`
+
+### Solution 2 - Linked List
+
+```
+class ListNode:
+    def __init__(self, key = -1, val = -1, next = None):
+        self.key = key
+        self.val = val
+        self.next = next
+
+class MyHashMap:
+
+    def __init__(self):
+        self.map = [ListNode() for _ in range(1000)]
+
+    def hash(self, key: int) -> int:
+        return key % len(self.map)
+
+    def put(self, key: int, value: int) -> None:
+        cur = self.map[self.hash(key)]
+        while cur.next:
+            if cur.next.key == key:
+                cur.next.val = value
+                return
+            cur = cur.next
+        cur.next = ListNode(key, value)
+
+    def get(self, key: int) -> int:
+        cur = self.map[self.hash(key)].next
+        while cur:
+            if cur.key == key:
+                return cur.val
+            cur = cur.next
+        return -1
+
+    def remove(self, key: int) -> None:
+        cur = self.map[self.hash(key)]
+        while cur.next:
+            if cur.next.key == key:
+                cur.next = cur.next.next
+                return
+            cur = cur.next
+```
+
+- Complexity -
+    - Let - 
+        - `n` is the number of keys.
+        - `k` is the size of the map (1000).
+        - `m` is the number of unique keys.
+    - Time - `O(n/k)` for each function call.
+    - Space - `O(k + m)`
+
+### Quick Sort
+
+- QuickSort is a divide-and-conquer sorting algorithm.
+- Approach -
+    - Pick a pivot element from the array - can pick first, last, middle, or random element. Random pivot better average-case performance.
+    - Partition the array into two parts -
+        - Elements less than the pivot go to the left.
+        - Elements greater than the pivot go to the right.
+    - Recursively sort the left and right subarrays.
+    - Combine results — because each pivot ends up in its final sorted position, no merging is needed.
+
+```
+
+```
+
+- Complexity -
+    - Best / Average Time - `O(n logn)`
+    - Worst Time - `O(n^2)` - pivot always largest or smallest
+    - Space - `O(logn)` for recursion stack
+
+> [!TIP]
+> worst-case is rare if pivot is chosen randomly.
+
+- Pros -
+    - In-place sorting - doesn’t need extra arrays (unlike merge sort).
+    - Cache-friendly - works well on large arrays.
+    - Very fast in practice; widely used in standard libraries.
