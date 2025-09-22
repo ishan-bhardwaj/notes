@@ -102,3 +102,15 @@ stripIndent() // removes common leading whitespace
     - `indent()` always adds a line break at end (if missing).
     - `stripIndent()` does not add line break.
 
+- Empty & Blank Strings -
+```
+isEmpty()  // length == 0
+isBlank()  // empty or only whitespace
+```
+
+- Overriding Object Methods -
+    - `toString()` → customize object representation.
+    - `equals(Object)` → check logical equality.
+hashCode() → must be consistent with equals.
+
+If a.equals(b) == true, then a.hashCode() == b.hashCode().

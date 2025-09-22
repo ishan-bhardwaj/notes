@@ -643,7 +643,28 @@ class MyHashMap:
     - Combine results — because each pivot ends up in its final sorted position, no merging is needed.
 
 ```
+def quicksort(arr, low=0, high=None):
+    if high is None:
+        high = len(arr) - 1
 
+    if low < high:
+        pi = partition(arr, low, high)
+        quicksort(arr, low, pi - 1)
+        quicksort(arr, pi + 1, high)
+
+
+def partition(arr, low, high):
+    pivot = arr[high]  # Choose the last element as pivot
+    i = low - 1        # Index of smaller element
+
+    for j in range(low, high):
+        if arr[j] <= pivot:
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+
+    # Place pivot in the correct position
+    arr[i + 1], arr[high] = arr[high], arr[i + 1]
+    return i + 1
 ```
 
 - Complexity -
