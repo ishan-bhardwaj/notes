@@ -88,8 +88,11 @@ SELECT
     SUM(salary) AS total_score
 FROM employee
 GROUP BY country, department
-HAVING total_score > 500
+HAVING SUM(salary) > 500
 ```
+
+> [!NOTE]
+> Most SQL dialects don’t allow aliases (like `total_salary`) in the `HAVING` clause — you must use the aggregate function itself.
 
 - To filter the data before aggregation, we use `WHERE` -
 ```
@@ -102,9 +105,6 @@ WHERE department = 'IT'
 GROUP BY country, department
 HAVING SUM(salary) > 500
 ```
-
-> [!NOTE]
-> Most SQL dialects don’t allow aliases (like `total_salary`) in the `HAVING` clause — you must use the aggregate function itself.
 
 - Order of execution - `FROM` > `WHERE` > `GROUP BY` > `HAVING` > `SELECT`
 
