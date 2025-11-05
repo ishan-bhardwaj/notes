@@ -94,3 +94,108 @@ val df = records.toDF("first_name", "last_name", "id", "year_of_birth")
 - Transformations describe how new DFs are obtained e.g. `select`, `withColumn` etc.
 - Actions actually start executing Spark code e.g. `count()` etc.
 
+## Data Sources
+
+### JSON
+
+- Reading json -
+```
+spark.read
+    .format("json")
+    .option("inferSchema", "true")
+    .option("mode", "failFast")
+    .load("json_path")
+```
+
+or simply, 
+```
+spark.read
+    .option("inferSchema", "true")
+    .option("mode", "failFast")
+    .json("json_path")
+```
+
+- `mode` available - `permissive` (default), `dropMalformed`, `failFast`
+
+- Using `Map` instead of `.option` -
+```
+val options = Map(
+    "inferSchema" -> "true",
+    "mode" -> "failFast"
+    "path" -> "file_path"
+)
+
+spark.read
+    .format("json")
+    .options(options)
+    .load()
+```
+
+- Writing json -
+```
+df.write
+    .format("json")
+    .mode(SaveMode.Overwrite)
+    .save("file_path")
+```
+
+- Save modes -
+    - `SaveMode.Overwrite` or `"overwrite"`
+    - `SaveMode.Append` or `"append"`
+    - `SaveMode.Ignore` or `"ignore"`
+    - `SaveMode.ErrorIfExists` or `"errorIfExists"`
+
+- JSON flags -
+    - `option("dateFormat", "YYYY-MM-dd")` - used with provided schema. Spark puts `null` if it fails to parse.
+    - `option("allowSingleQuotes", "true")` - allows single quotes in JSON.
+    - `option("compression", "uncompressed")` - specifies compression mechanism. Possible values -
+        - `uncompressed` (default)
+        - `bzip2`
+        - `lz4`
+        - `gzip`
+        - `snappy`
+        - `deflate`
+
+### CSV
+
+- Reading csv -
+```
+spark.read
+    .format("csv")
+    .option("header", "true")
+    .option("sep", ",")         // delimiter
+    .option("null", "")         // parse empty strings as null
+    .load("file_path")
+```
+
+### Parquet
+
+- Default storage format for dataframes.
+- Reading parquet files -
+```
+df.write
+    .mode(SaveMode.Overwrite)
+    .parquet("file_path")
+```
+
+### Text files
+
+- Reading text files -
+```
+spark.read.text("file_path")
+```
+
+### Postgres
+
+- Reading from postgres db -
+```
+spark.read
+    .format("jdbc")
+    .option("driver", "org.postgresql.Driver")
+    .option("url", "jdbc:postgresql://localhost:5432/<db_name>")
+    .option("user", "<username>")
+    .option("password", "<password>")
+    .option("dbtable", "<table_name>")
+    .load()
+```
+
