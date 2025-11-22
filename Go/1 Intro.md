@@ -1,9 +1,13 @@
 # Golang
 
 - Create a directory and intialize it as go module -
-    - Using VS code - `Search` > Type `Go - Initialize go.mod` > Enter module name
+    - Using VS code - `Search` > Type `Go - Initialize go.mod` > Enter module name OR using cmd - `go mod init`
     - This will create a `go.mod` file inside the directory.
     - The `go.mod` file declares your module’s import path and depedencies & their versions.
+
+> [!TIP]
+> Run `go.get` to download dependencies in an existing project.
+
 
 ## Hello World
 
@@ -39,3 +43,35 @@ import (
     - By default, builds the binaries for current OS, but to cross-compile for others (for eg - linux) - `GOOS=linux go build`
 
 - Cleanup the binaries - `go clean`
+
+## User Input
+
+```
+import "fmt"
+
+var a int
+
+fmt.Print("Enter value: ")
+fmt.Scan(&a)
+```
+
+## Files
+
+- Writing to a file -
+```
+import "os"
+
+text := "120.25"
+os.WriteFile("example.txt", []byte(text), 0644)     // 0644 is file permissions
+```
+
+- Reading from a file -
+```
+import (
+    "os"
+    "strconv"
+)
+
+data, _ := os.ReadFile("example.txt")
+parsed, _ := strconv.ParseFloat(data, 64)      // 64 is bit-size i.e. float64
+```

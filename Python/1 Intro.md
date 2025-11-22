@@ -104,3 +104,26 @@ bool([])            # False
 bool([1, 2, 3, 4])  # True
 ```
 
+## Lists
+
+- Creating a list - `ints = ["John", "Doe", "Bob"]`
+- Accessing elements - `ints[1]` - returns `Doe`
+- Length - `len(ints)` - returns `4`
+- Adding element at the end - `ints.append("Mary")`
+- Removing an element - `ints.remove("Doe")`
+
+## Tuples
+
+- Tuples are immutable.
+- Creating a tuple - `tuple = ("John", "Doe")`
+- Adding an element - `tuple = tuple + ("Bob,")` - creates a new tuple and assigns it to same variable, however the tuple itself doesn't change.
+
+> [!NOTE]
+> In `x = "John"`, `x` is a `string`. But in `x = "John,"`, `x` becomes a tuple.
+
+## Sets
+
+- Creating a set - `set = {"John", "Doe"}`
+- Adding an element - `set.add("Bob")`
+- Removing an element - `set.remove("John")`
+
