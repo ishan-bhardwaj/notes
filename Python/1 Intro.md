@@ -104,26 +104,59 @@ bool([])            # False
 bool([1, 2, 3, 4])  # True
 ```
 
-## Lists
+## If-else
 
-- Creating a list - `ints = ["John", "Doe", "Bob"]`
-- Accessing elements - `ints[1]` - returns `Doe`
-- Length - `len(ints)` - returns `4`
-- Adding element at the end - `ints.append("Mary")`
-- Removing an element - `ints.remove("Doe")`
+```
+if <condition1>:
+    <...>
+elif <condition2>:
+    <...>
+else:
+    <...>
+```
 
-## Tuples
+## Loops
 
-- Tuples are immutable.
-- Creating a tuple - `tuple = ("John", "Doe")`
-- Adding an element - `tuple = tuple + ("Bob,")` - creates a new tuple and assigns it to same variable, however the tuple itself doesn't change.
+### While loops
 
-> [!NOTE]
-> In `x = "John"`, `x` is a `string`. But in `x = "John,"`, `x` becomes a tuple.
+```
+while <condition>:
+    <...>
+```
 
-## Sets
+### for loops
 
-- Creating a set - `set = {"John", "Doe"}`
-- Adding an element - `set.add("Bob")`
-- Removing an element - `set.remove("John")`
+- Iterating collections -
+```
+l = [1, 2, 3, 4]
 
+for i in l:
+    <...>
+```
+
+> [!TIP]
+> Use underscore (`_`) if the variables are unused, eg - `for _ in l`
+
+- Iterating collections by index - 
+```
+for i in range(len(l)):
+    <...>
+```
+
+- Iterating dictionaries -
+    - Iterating keys - `for k in my_dict`
+    - Iterating values - `for v in my_dict.values()`
+    - Iterating both - `for k, v in my_dict.items()`
+
+> [!TIP]
+> Use `break` to break out of the loop and `continue` to skip to the next iteration.
+
+- `else` keyword with loops -
+    - Applicable on both `for` and `while` loops -
+    - Runs the block of code when loop iterates over all the elements without encountering a `break` or an error -
+    ```
+    for i in my_dict:
+        <...>
+    else:
+        <...>
+    ```

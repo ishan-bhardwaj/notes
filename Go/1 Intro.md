@@ -55,6 +55,9 @@ fmt.Print("Enter value: ")
 fmt.Scan(&a)
 ```
 
+> [!TIP]
+> Use `fmt.Scanln` to assume new line as input. `fmt.Scan` function doesn't and waits for the user input if after return key is pressed.
+
 ## Files
 
 - Writing to a file -
