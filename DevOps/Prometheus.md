@@ -14,14 +14,11 @@
         - HTTP response times
         - Number of errors
     - The data collected can be aggregated over time and graphed using visualization tools to identify trends over time.
-    - Contain 4 pieces of information -
-    ```
-    node_filesystem_avail_bytes{fstype="vfat", mountpoint="/home"} 5000 4:30AM 12/1/24
-    ```
-    a. Metric name (`node_filesystem_avail_bytes`)
-    b. Metric value (`5000`) - latest value of the metric
-    c. Timestamp (`4:30AM 12/1/24`) - timestamp at which the metric was collected
-    d. Dimensions (`{fstype="vfat", mountpoint="/home"}`) - additional informations
+    - Contain 4 pieces of information - `node_filesystem_avail_bytes{fstype="vfat", mountpoint="/home"} 5000 4:30AM 12/1/24` -
+        - Metric name (`node_filesystem_avail_bytes`)
+        - Metric value (`5000`) - latest value of the metric
+        - Timestamp (`4:30AM 12/1/24`) - timestamp at which the metric was collected
+        - Dimensions (`{fstype="vfat", mountpoint="/home"}`) - additional informations
 
 3. Traces - 
     - Allow you to follow operations as they traverse through various systems & services.
