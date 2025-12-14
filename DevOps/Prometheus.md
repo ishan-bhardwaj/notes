@@ -40,7 +40,7 @@
         - Saturation
         - Throughput
         - Availability
-- **Service Level Object (SLO)** -
+- **Service Level Objective (SLO)** -
     - target value or range for an SLI.
     - Example - if SLI is latency then SLO can be latency < 100ms
     - Main purpose is to quantify reliability of a product to a customer.
@@ -60,11 +60,11 @@
     - **HTTP Server** - accepts PromQl queries that retrieves the stored data from the database.
     - **Exporters** - mini processes running on the target that collects metrics and expose them in a format prometheus expects. Note that prometheus _pulls_ the data from target.
     - **Pushgateway** - used for short-lived jobs where prometheus will not have enough time to pull the data, the target can _push_ the data to the gateway and then prometheus can pull the data from the gateway like any other target.
-    - **Service Discovery** - prometheus excepts hard-coded list of targets and for this we need a config file. For dynamic environments, service discovery provides the updated list of targets to prometheus.
+    - **Service Discovery** - prometheus expects hard-coded list of targets and for this we need a config file. For dynamic environments, service discovery provides the updated list of targets to prometheus.
     - **Alert Manager** - responsible for alerting. When alert is triggered, prometheus pushes the alert to AlertManager.
     - **Prometheus UI** / **Grafana** - accepts PromQl queries and displays the data.
 
-- Prometheus has several native exporters like - Node exporters (Linux servers), Windows, MySQL, Apache, HAProxy
+- Prometheus has several native exporters like - Node exporters (Linux servers), Windows, MySQL, Apache, HAProxy etc.
 
 ### Benefits of Pull-based system
 - Easier to tell if a target is down. In a push-based system, we don't know if the target is down or has been decommissioned.
@@ -89,7 +89,7 @@
 
 - To start prometheus as a background service that can automatically start on system reboot - `systemctl start prometheus`. Steps -
     - Create prometheus user - `sudo useradd --no-create-home -shell /bin/false prometheus`
-        - `--no-create-home` implies that user can't actually login as this user is only used for starting up prometheus.
+        - `--no-create-home` implies that user can't login, as this user is only used for starting up prometheus.
     - Create required directories -
         - `sudo mkdir /etc/prometheus` - to store yaml config
         - `sudo mkdir /var/lib/prometheus` - to store the time-series data

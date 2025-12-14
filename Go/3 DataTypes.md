@@ -100,7 +100,7 @@ var isAwesome = true
         - Default type for integer literals.
         - On 32-bit CPUs → behaves like `int32`.
         - On most 64-bit CPUs → behaves like `int64`.
-        - Because `int` isn’t consistent across platforms, assigning, comparing, or performing mathematical operations between `int` and `int32` or int`64 without an explicit type conversion is a compile-time error.
+        - Because `int` isn’t consistent across platforms, assigning, comparing, or performing mathematical operations between `int` and `int32` or `int64` without an explicit type conversion is a compile-time error.
     - `uint` -
         - Unsigned integer.
         - Follows the same platform-dependent rules as `int` but values are always ≥ 0.
@@ -211,6 +211,9 @@ multi-line
 string
 `
 ```
+
+> [!TIP]
+> A string is stored in 2 words where the first word stores the pointer to the actual string in memory, and the second word stores the length of the string.
 
 ## Runes
 
