@@ -104,3 +104,44 @@ manifest file.
 
 > [!TIP]
 > Manifest files and manifest lists are stored in Avro format.
+
+### Metadata Files
+
+- Track manifest lists.
+- Metadata files store metadata about an Iceberg table at a certain point in time - includes information about the table’s schema, partition information, snapshots, and which snapshot is the current one.
+- Each time a change is made to an Iceberg table, a new metadata file is created and is registered as the latest version of the metadata file atomically via the catalog.
+- Metadata le schema -
+
+| Always Present? | Field Name              | Data Type             | Description                                                                                                                                                              |
+| --------------- | ----------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Yes             | `format-version`        | integer               | Version number for the table format. Currently `1` or `2`. Implementations must throw an exception if the table’s version is higher than supported. Default is `2`.      |
+| Yes             | `table-uuid`            | string                | UUID identifying the table, generated at table creation. Implementations must throw an exception if the UUID does not match the expected UUID after refreshing metadata. |
+| Yes             | `location`              | string                | Table’s base location used by writers to store data files, manifest files, and metadata files.                                                                           |
+| Yes             | `last-sequence-number`  | 64-bit signed integer | Highest assigned sequence number for the table. A monotonically increasing value tracking snapshot order.                                                                |
+| Yes             | `last-updated-ms`       | 64-bit signed integer | Timestamp (milliseconds since Unix epoch) when the table was last updated. Updated just before writing each metadata file.                                               |
+| Yes             | `last-column-id`        | integer               | Highest assigned column ID in the table. Ensures new columns receive unused IDs during schema evolution.                                                                 |
+| Yes             | `schemas`               | array                 | List of schemas, stored as objects with `schema-id`.                                                                                                                     |
+| Yes             | `current-schema-id`     | integer               | ID of the table’s current schema.                                                                                                                                        |
+| Yes             | `partition-specs`       | array                 | List of partition specs, stored as full partition spec objects.                                                                                                          |
+| Yes             | `default-spec-id`       | integer               | ID of the default partition spec writers should use.                                                                                                                     |
+| Yes             | `last-partition-id`     | integer               | Highest assigned partition field ID across all partition specs, ensuring new partition fields receive unused IDs.                                                        |
+| No              | `properties`            | map<string, string>   | Table properties controlling read/write behavior (e.g., `commit.retry.num-retries`). Not intended for arbitrary metadata.                                                |
+| No              | `current-snapshot-id`   | 64-bit signed integer | ID of the current table snapshot. Must match the current ID of the `main` branch in `refs`.                                                                              |
+| No              | `snapshots`             | array                 | List of valid snapshots whose data files exist in the filesystem. Data files must not be deleted until the last referencing snapshot is garbage collected.               |
+| No              | `snapshot-log`          | array                 | List of timestamp and snapshot ID pairs tracking changes to the current snapshot. Entries before expired snapshots should be removed.                                    |
+| No              | `metadata-log`          | array                 | List of timestamp and metadata file location pairs tracking previous metadata files. Tables may retain a fixed-size recent history.                                      |
+| Yes             | `sort-orders`           | array                 | List of sort orders, stored as full sort order objects.                                                                                                                  |
+| Yes             | `default-sort-order-id` | integer               | Default sort order ID for writers. Not used during reads, as reads rely on specs stored in manifest files.                                                               |
+| No              | `refs`                  | map                   | Map of snapshot references. Keys are reference names; values are snapshot reference objects. A `main` branch always exists pointing to `current-snapshot-id`.            |
+| No              | `statistics`            | array                 | Optional list of table statistics.                                                                                                                                       |
+
+### Pun Files
+
+- A puffin file stores statistics and indexes about the data in the table that improve the performance of an even broader range of queries than the statistics stored in the datafiles and metadata files.
+- Such query example - how many unique people placed an order with you in the past 30 days - we can prune out only the data for the last 30 days, but we would still have to read every order in those 30 days and do aggregations in the engine.
+- The file contains sets of arbitrary byte sequences called blobs, along with the associated metadata required to analyze the blobs.
+
+> [!NOTE]
+> While this structure enables statistics and index structures of any type (e.g., bloom filters), currently the only type supported is the Theta sketch from the Apache DataSketches library.
+
+- Valuable when the use case allows for an approximation, eg - approximate number of distinct values of a column for a given set of rows.
