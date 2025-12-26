@@ -135,7 +135,7 @@ manifest file.
 | No              | `refs`                  | map                   | Map of snapshot references. Keys are reference names; values are snapshot reference objects. A `main` branch always exists pointing to `current-snapshot-id`.            |
 | No              | `statistics`            | array                 | Optional list of table statistics.                                                                                                                                       |
 
-### Pun Files
+### Puffin Files
 
 - A puffin file stores statistics and indexes about the data in the table that improve the performance of an even broader range of queries than the statistics stored in the datafiles and metadata files.
 - Such query example - how many unique people placed an order with you in the past 30 days - we can prune out only the data for the last 30 days, but we would still have to read every order in those 30 days and do aggregations in the engine.
