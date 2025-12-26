@@ -145,3 +145,33 @@ manifest file.
 > While this structure enables statistics and index structures of any type (e.g., bloom filters), currently the only type supported is the Theta sketch from the Apache DataSketches library.
 
 - Valuable when the use case allows for an approximation, eg - approximate number of distinct values of a column for a given set of rows.
+
+## The Catalog
+
+- The central place where you go to find the current location of the current metadata pointer is the Iceberg catalog.
+- The primary requirement for an Iceberg catalog is that it must support atomic operations for updating the current metadata pointer.
+- Within the catalog, there is a reference or pointer for each table to that table’s current metadata file.
+- There are many different backends that can serve as an Iceberg catalog. However, different catalogs store the current metadata pointer differently. Examples -
+    - Amazon S3 as the catalog - a file called version-hint.text in the table’s metadata folder whose contents is the version number of the current metadata file.
+    - Hive Metastore as the catalog - the table entry in the Hive Metastore has a table property called location that stores the location of the current metadata file.
+    - Nessie as the catalog - the table entry in Nessie has a table property called metadataLocation that stores the location of the current metadata file for the table.
+
+> [!NOTE]
+> Anytime you use a distributed filesystem (or something that looks like one) to store the current metadata pointer, the catalog used is actually called the hadoop catalog.
+
+- Example query to get the details about the current state of the table, most notably the current
+metadata file location with AWS Glue Catalog -
+```
+SELECT *
+FROM <catalog_name>.<db_name>.<table_name>.metadata_log_entries
+ORDER BY timestamp DESC
+LIMIT 1
+```
+
+| Timestamp               | Metadata File                                                                                                                             | Latest Snapshot ID | Latest Schema ID | Latest Sequence Number |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ---------------- | ---------------------- |
+| 2023-03-21 22:55:31.868 | `s3://<endpoint>/<bucket_name>/<db_name>.db/<table_name>/metadata/00002-509f0747-4dc4-4965-b354-ce5fb747c2f5.metadata.json` | 8619686881304977663                  | 0                | 2                      |
+
+
+- So, we can retrieve the metadata file at the path `s3://<endpoint>/<bucket_name>/<db_name>.db/<table_name>/metadata/00002-509f0747-4dc4-4965-b354-ce5fb747c2f5.metadata.json`.
+
