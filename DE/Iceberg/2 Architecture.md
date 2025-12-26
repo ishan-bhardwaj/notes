@@ -74,6 +74,7 @@
 - A manifest list contains an array of structs, with each struct keeping track of a single
 manifest file.
 - Schema of an Iceberg manifest file -
+
 | Always Present? | Field Name             | Data Type            | Description                                                                                                                      |
 | --------------- | ---------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | Yes             | `manifest_path`        | string               | Location of the manifest file                                                                                                    |
@@ -93,6 +94,7 @@ manifest file.
 | No              | `key_metadata`         | binary               | Implementation-specific key metadata for encryption                                                                              |
 
 - Schema of field_summary -
+
 | Always Present? | Field Name      | Data Type | Description                                                                                                                 |
 | --------------- | --------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Yes             | `contains_null` | boolean   | Whether the manifest contains at least one partition with a null value for the field                                        |
