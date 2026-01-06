@@ -1,0 +1,174 @@
+# Atomicity
+
+## 2-Phase Commit (2PC)
+
+- 2PC is a protocol to achieve atomicity in distributed transactions.
+- Sending a message to nodes is not enough in distributed systems due to unreliable networks.
+- 2PC adds another round of messages to check results and reach agreement.
+- Roles in 2PC -
+  - Coordinator - coordinates the different phases of the protocol.
+  - Participants - nodes that execute the transaction.
+  - One participant can also be the coordinator.
+- Phases of 2PC -
+  - Voting phase -
+    - Coordinator sends the transaction to all participants.
+    - Participants execute the transaction up to the commit point.
+    - Operations can be executed before the voting phase.
+    - Participants respond with a vote: Yes if successful, No if there is an error.
+    - 2PC can be combined with 2-phase locking to prevent vote changes by participants.
+  - Commit phase -
+    - Coordinator collects votes from all participants.
+    - If all votes are Yes, coordinator instructs participants to commit.
+    - If at least one vote is No, coordinator instructs participants to abort.
+    - Participants send acknowledgment after committing or aborting.
+    - Unanimous Yes ensures atomicity across all nodes.
+    - Coordinator and participants use write-ahead-logs to recover in case of failures.
+    - Coordinator uses timeouts to detect participant failures.
+    - Participants do not timeout waiting for coordinator messages to avoid inconsistent conclusions.
+- Handling failures -
+  - Participant fails in voting phase -
+    - Coordinator times out and assumes a No vote.
+    - Transaction is aborted.
+  - Participant fails in commit phase -
+    - Participant voted but crashes before commit.
+    - Upon recovery, participant contacts coordinator to get transaction result.
+    - Atomicity is maintained.
+    - Participants should do minimal work in commit phase, e.g., write all data during voting phase and flip a bit to finalize.
+  - Network failures -
+    - Treated like node failures due to timeouts.
+- Blocking nature of 2PC -
+  - Coordinator failure can block participants after sending prepared messages.
+  - Participants wait for coordinator recovery to commit or abort.
+  - Coordinator disk failure can require manual intervention.
+- Usage of 2PC -
+  - Widely used despite blocking nature.
+  - XA specification defines participants as resources and coordinator as transaction manager.
+- Conclusion -
+  - 2PC ensures safety by maintaining atomicity.
+  - 2PC does not guarantee liveness since progress can be blocked by coordinator failure.
+
+## 3-Phase Commit (3PC)
+
+- 3PC addresses the main bottleneck of 2PC, which is coordinator failures leading to blocked participants.
+- In 2PC, participants cannot safely take the lead because they do not know the state of other participants.
+- Coordinator failure during the commit phase can leave participants unable to decide without waiting for the failed participant or coordinator to recover.
+- Tackling 2PC with 3PC -
+  - Split the first round (voting phase) into 2 sub-rounds.
+  - Coordinator first communicates the vote results to participants and waits for acknowledgment.
+  - Then, coordinator sends commit or abort instructions.
+  - Participants can complete the protocol independently if the coordinator fails.
+  - This improves availability and reduces the coordinator as a single point of failure.
+- Benefit of 3PC -
+  - Participants can commit if they receive a prepare-to-commit message, knowing all participants voted Yes.
+  - Participants can abort if they do not receive a prepare-to-commit message, knowing no participant has committed.
+  - Coordinator failures do not block progress.
+  - Overall availability increases.
+- Cost of 3PC -
+  - Correctness can be compromised in certain failure scenarios.
+  - Network partitions are a key vulnerability.
+- Network partition failure example -
+  - Coordinator sends prepare-to-commit to some participants and then fails.
+  - Participants that received the prepare-to-commit may commit.
+  - Participants that did not receive the prepare-to-commit abort.
+  - When the network partition heals, the system can be left in an inconsistent state.
+  - Atomicity of the transaction is violated.
+- Conclusion -
+  - 3PC ensures liveness, meaning the protocol always makes progress.
+  - 3PC sacrifices safety, as atomicity can be violated under certain failures.
+
+## Quorum-Based Commit Protocol
+
+- Quorum-based commit protocol addresses the main issue of 3PC: network partitions that can lead to inconsistent states.
+- In 3PC, participants might take the lead during a partition without full knowledge, potentially causing a split-brain scenario.
+- Coping with network partitions -
+  - Use a quorum to ensure safety.
+  - Define a commit quorum (`VC`) and an abort quorum (`VA`).
+  - A node can commit only if a commit quorum is formed.
+  - A node can abort only if an abort quorum is formed.
+  - Values of `VA` and `VC` must satisfy: `VA + VC > V`, where `V` is the total number of participants.
+  - This ensures that two conflicting decisions cannot be made on separate sides of a partition.
+- Sub-protocols in quorum-based commit protocol -
+  - Commit protocol - for starting a new transaction.
+  - Termination protocol - for handling network partitions.
+  - Merge protocol - for recovering after a network partition.
+- Commit protocol -
+  - Similar to 3PC.
+  - Coordinator waits for `VC` acknowledgments at the end of phase 3 to commit.
+  - If a network partition prevents the coordinator from completing the transaction, participants follow the termination protocol.
+- Termination protocol -
+  - A surrogate coordinator is elected from the participants.
+  - The coordinator queries participants for their transaction status.
+  - If at least one participant has committed or aborted, the coordinator enforces the same decision.
+  - If participants are in prepare-to-commit state and at least VC participants are waiting, the coordinator sends prepare-to-commit messages.
+  - If no participant is in prepare-to-commit and at least VA participants are waiting, the coordinator sends prepare-to-abort messages.
+  - Waits for acknowledgments and completes the transaction similar to the commit protocol.
+- Merge protocol -
+  - Leader election occurs among leaders of the partitions being merged.
+  - Executes the termination protocol to reconcile the transaction state across partitions.
+- Example -
+  - System with `V=3` participants.
+  - Quorum sizes - `VA=2`, `VC=2`
+    - During a network partition:
+    - Left partition cannot form commit quorum.
+    - Right partition can form abort quorum and aborts the transaction.
+  - When the partition heals, the merge protocol ensures consistency by aborting the transaction on the left side as well.
+  - Quorum sizes can be tuned to bias toward commit or abort in the presence of partitions.
+- Conclusion -
+  - Quorum-based commit protocol ensures safety (atomicity).
+  - Liveness is not guaranteed in extreme scenarios (e.g., continuous small partitions).
+  - More resilient than 2PC and 3PC.
+  - Can make progress in most common failure scenarios.
+
+## Long-Lived Transactions and Sagas
+
+- Achieving full isolation between transactions is expensive -
+
+  - Systems must hold locks for long durations or abort transactions to maintain safety.
+  - Long transactions increase the impact of these mechanisms on throughput.
+
+- **Long-Lived Transactions (LLT)** -
+
+  - Transactions with a duration of hours or days.
+  - Can occur due to -
+    - Processing large datasets.
+    - Requiring human input.
+    - Interacting with slow third-party systems.
+  - Examples -
+    - Batch jobs generating large reports.
+    - Insurance claims requiring multi-stage approvals.
+    - E-commerce orders spanning multiple days.
+  - Running LLTs using traditional concurrency mechanisms is inefficient because resources must be held for long periods.
+
+- **Sagas** -
+  - A saga is a sequence of transactions `T1`, `T2`, …, `TN`.
+  - Transactions can interleave with other transactions.
+  - Guarantees atomicity: either all transactions succeed, or none do.
+  - Each transaction `Ti` has a compensating transaction `Ci` executed if rollback is needed.
+  - Benefits of Sagas -
+    - Useful in distributed systems where traditional distributed transactions are expensive or unavailable.
+    - Sagas provide atomicity while improving availability and performance.
+    - Systems remain loosely coupled and resilient.
+  - Example Scenario - E-commerce Order -
+    - Steps - credit card authorization, inventory check, item shipping, invoice creation.
+    - Using a distributed transaction: failure of one component (e.g., payment system) could halt the whole process.
+    - Using a saga - model each step as a transaction with a compensating transaction -
+      - Example - debiting a bank account has a refund as the compensating transaction.
+      - If a step fails, previously executed transactions are rolled back via compensating transactions.
+  - Isolation Considerations in Sagas -
+    - Some scenarios require isolation to prevent interference between concurrent transactions.
+    - Example - two orders `A` and `B` for the same product -
+      - `A` reserves the last item.
+      - `B` fails due to zero inventory.
+      - `A` later fails due to insufficient funds.
+      - Compensating transactions return the reserved item.
+    - Outcome - order `B` was rejected unnecessarily.
+  - Providing Isolation at the Application Layer -
+    - Semantic locks - signal that data is in process and should not be accessed. Locks are released by the final transaction.
+    - Commutative updates - updates that yield the same result regardless of execution order.
+    - Re-ordering the saga structure -
+      - Introduce a pivot transaction that separates critical transactions from others.
+      - Transactions after the pivot cannot be rolled back, ensuring serious operations (like increasing account balance) remain safe.
+  - Trade-offs -
+    - Techniques to provide isolation in sagas introduce complexity.
+    - Developers must consider all possible failure scenarios.
+    - Choosing between saga transactions and datastore-provided transactions requires weighing performance, availability, and complexity.

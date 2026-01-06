@@ -11,8 +11,13 @@ class Student:
 
 
 # Instantiation
-john = Student('John', [10, 20, 30, 40])    
+s1 = Student('John', [10, 20, 30, 40])
+s1.name                   # 'John'
+s1.grade                  # [10, 20, 30, 40]
+s1.average()
 ```
 
+- In `s1.average()`, python will automatically pass the object reference `s1` to `self` parameter in the method i.e. converted to - `Student.average(s1)`.
+
 > [!TIP]
-> Functions that start and end with double underscores are called dunder functions. 
+> Functions that start and end with double underscores are called dunder functions.

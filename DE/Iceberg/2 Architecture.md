@@ -1,20 +1,21 @@
 # Iceberg Architecture
 
 - Iceberg maintains a tree of metadata that -
-    - tracks a table’s partitioning, sorting, schema over time etc.
-    - an engine can use to plan queries at a fraction of the time.
+
+  - tracks a table’s partitioning, sorting, schema over time etc.
+  - an engine can use to plan queries at a fraction of the time.
 
 - Metadata tree consists of four components of metadata of the table -
-    - **Manifest file** -
-        - A list of datafiles, containing each datafile’s location/path and key metadata about those datafiles.
-        - Allows creating more efficient execution plans.
-    - **Manifest list** -
-        - Files that define a single snapshot of the table as a list of manifest files along with stats on those manifests.
-        - Allows creating more efficient execution plans.
-    - **Metadata file** -
-        - Files that define a table’s structure, including its schema, partitioning scheme, and a listing of snapshots.
-    - **Catalog** -
-        - Contains a mapping of table name to location of the table’s most recent metadata file. - - Several tools, including a Hive Metastore, can be used as a catalog.
+  - **Manifest file** -
+    - A list of datafiles, containing each datafile’s location/path and key metadata about those datafiles.
+    - Allows creating more efficient execution plans.
+  - **Manifest list** -
+    - Files that define a single snapshot of the table as a list of manifest files along with stats on those manifests.
+    - Allows creating more efficient execution plans.
+  - **Metadata file** -
+    - Files that define a table’s structure, including its schema, partitioning scheme, and a listing of snapshots.
+  - **Catalog** -
+    - Contains a mapping of table name to location of the table’s most recent metadata file. - - Several tools, including a Hive Metastore, can be used as a catalog.
 
 ## The Data Layer
 
@@ -26,26 +27,26 @@
 
 - Stores the data itself.
 - Iceberg provides the flexibility to choose different formats depending on what is best suited for a given workload, eg -
-    - Parquet - for large-scale online analytical processing (OLAP) analytics.
-    - Avro - for low-latency streaming analytics tables.
-- Parquet is the most common - 
-    - columnar structure lays the foundation for performance features such as the ability for a single file to be split multiple ways for increased parallelism, statistics for each of these split points, and increased compression, which provides lower storage volume and higher read throughput.
-    - Parquet file has a set of rows that are broken down so that all the rows’ values for a given column are stored together.
-    - All the rows’ values for a given column are further broken down into subsets of the rows’ values for this column, which are called pages.
-    - Each of these levels can be read independently by engines and tools, and therefore each can be read in parallel by a given engine or tool.
-    - Also, Parquet stores statistics (e.g., minimum and maximum values for a given column for a given row group) that enable engines and tools to decide whether it needs to read all the data or whether it can prune row groups that don’t fit the query.
+  - Parquet - for large-scale online analytical processing (OLAP) analytics.
+  - Avro - for low-latency streaming analytics tables.
+- Parquet is the most common -
+  - columnar structure lays the foundation for performance features such as the ability for a single file to be split multiple ways for increased parallelism, statistics for each of these split points, and increased compression, which provides lower storage volume and higher read throughput.
+  - Parquet file has a set of rows that are broken down so that all the rows’ values for a given column are stored together.
+  - All the rows’ values for a given column are further broken down into subsets of the rows’ values for this column, which are called pages.
+  - Each of these levels can be read independently by engines and tools, and therefore each can be read in parallel by a given engine or tool.
+  - Also, Parquet stores statistics (e.g., minimum and maximum values for a given column for a given row group) that enable engines and tools to decide whether it needs to read all the data or whether it can prune row groups that don’t fit the query.
 
 ### Delete Files
 
 - Track which records in the dataset have been deleted.
 - Data lake storage is treated as immutable, so we can’t update rows in a file in place. Instead, we need to write a new file.
-- The new file - 
-    - can be a copy of the old file with the changes reflected in a new copy of it (called copy-on-write [COW])
-    - or, it only has the changes written, which engines reading the data then coalesce (called merge-on-read [MOR]).
+- The new file -
+  - can be a copy of the old file with the changes reflected in a new copy of it (called copy-on-write [COW])
+  - or, it only has the changes written, which engines reading the data then coalesce (called merge-on-read [MOR]).
 - Delete files enable the MOR strategy for performing updates and deletes to Iceberg tables.
 - Two types of delete files -
-    - Positional delete files - identify the row to be deleted by its exact position in the dataset.
-    - Equality delete files - identify the row to be deleted by the values of one or more fields of the row. Note that in contrast to positional delete files, there is no reference to where these rows are located within the table.
+  - Positional delete files - identify the row to be deleted by its exact position in the dataset.
+  - Equality delete files - identify the row to be deleted by the values of one or more fields of the row. Note that in contrast to positional delete files, there is no reference to where these rows are located within the table.
 
 > [!NOTE]
 > Situation - an equality delete file deletes a record via column values, and then in a subsequent commit, a record is added back to the dataset that matches the delete file’s column values.
@@ -72,7 +73,7 @@
 - A manifest list is a snapshot of an Iceberg table at a given point in time.
 - For the table at that point in time, it contains a list of all the manifest files, including the location, the partitions it belongs to, and the upper and lower bounds for partition columns for the datafiles it tracks.
 - A manifest list contains an array of structs, with each struct keeping track of a single
-manifest file.
+  manifest file.
 - Schema of an Iceberg manifest file -
 
 | Always Present? | Field Name             | Data Type            | Description                                                                                                                      |
@@ -152,15 +153,16 @@ manifest file.
 - The primary requirement for an Iceberg catalog is that it must support atomic operations for updating the current metadata pointer.
 - Within the catalog, there is a reference or pointer for each table to that table’s current metadata file.
 - There are many different backends that can serve as an Iceberg catalog. However, different catalogs store the current metadata pointer differently. Examples -
-    - Amazon S3 as the catalog - a file called version-hint.text in the table’s metadata folder whose contents is the version number of the current metadata file.
-    - Hive Metastore as the catalog - the table entry in the Hive Metastore has a table property called location that stores the location of the current metadata file.
-    - Nessie as the catalog - the table entry in Nessie has a table property called metadataLocation that stores the location of the current metadata file for the table.
+  - Amazon S3 as the catalog - a file called version-hint.text in the table’s metadata folder whose contents is the version number of the current metadata file.
+  - Hive Metastore as the catalog - the table entry in the Hive Metastore has a table property called location that stores the location of the current metadata file.
+  - Nessie as the catalog - the table entry in Nessie has a table property called metadataLocation that stores the location of the current metadata file for the table.
 
 > [!NOTE]
 > Anytime you use a distributed filesystem (or something that looks like one) to store the current metadata pointer, the catalog used is actually called the hadoop catalog.
 
 - Example query to get the details about the current state of the table, most notably the current
-metadata file location with AWS Glue Catalog -
+  metadata file location with AWS Glue Catalog -
+
 ```
 SELECT *
 FROM <catalog_name>.<db_name>.<table_name>.metadata_log_entries
@@ -168,10 +170,8 @@ ORDER BY timestamp DESC
 LIMIT 1
 ```
 
-| Timestamp               | Metadata File                                                                                                                             | Latest Snapshot ID | Latest Schema ID | Latest Sequence Number |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ---------------- | ---------------------- |
-| 2023-03-21 22:55:31.868 | `s3://<endpoint>/<bucket_name>/<db_name>.db/<table_name>/metadata/00002-509f0747-4dc4-4965-b354-ce5fb747c2f5.metadata.json` | 8619686881304977663                  | 0                | 2                      |
-
+| Timestamp               | Metadata File                                                                                                               | Latest Snapshot ID  | Latest Schema ID | Latest Sequence Number |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------- | ---------------- | ---------------------- |
+| 2023-03-21 22:55:31.868 | `s3://<endpoint>/<bucket_name>/<db_name>.db/<table_name>/metadata/00002-509f0747-4dc4-4965-b354-ce5fb747c2f5.metadata.json` | 8619686881304977663 | 0                | 2                      |
 
 - So, we can retrieve the metadata file at the path `s3://<endpoint>/<bucket_name>/<db_name>.db/<table_name>/metadata/00002-509f0747-4dc4-4965-b354-ce5fb747c2f5.metadata.json`.
-
