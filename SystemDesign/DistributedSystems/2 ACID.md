@@ -160,7 +160,7 @@
     - Coordinator sends pre-commit to some participants, not others, then fails.
     - Some commit (saw pre-commit), others abort (didn’t).
     - Atomicity is violated; system ends up inconsistent.
-    - 3PC assumes partial synchrony; under real-world partitions it can break atomicity.
+  - 3PC assumes partial synchrony; under real-world partitions it can break atomicity.
 
 > [!WARNING]
 > 3PC improves liveness but sacrifices safety under certain failures.
