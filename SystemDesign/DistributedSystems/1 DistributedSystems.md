@@ -92,7 +92,7 @@
     - φ-accrual detectors (gradual suspicion score).
 
 > [!NOTE]
-> Perfect failure detection impossible in asynchronous systems.
+> Perfect failure detection is impossible in asynchronous systems.
 
 ## Message Delivery Semantics
 
@@ -158,38 +158,3 @@
   - _CQRS_ - read/write separation.
   - _Event sourcing_ - log-based state reconstruction.
   - _Stateful stream processing_ - partitioned local state with checkpointing.
-
-## ACID Transactions
-
-- ACID Transactions - Set of properties that guarantee expected behavior of database transactions during errors or failures.
-
-- **Atomicity (A)** -
-  - Either all sub-operations succeed or none.
-  - Mechanisms -
-    - Local DB - _Write-ahead log (WAL)_
-    - Distributed - _Two-Phase Commit (2PC), Paxos Commit_
-  - Challenges -
-    - Coordinator failure can block.
-    - Network partition invalidates global atomic commit.
-  - Alternatives -
-    - _Saga pattern_ for long-running distributed workflows.
-    - _Outbox pattern_ for cross-service message consistency.
-- **Consistency (C)** -
-
-  - Transaction only transitions database from one valid state to another.
-  - Maintains application-specific invariants (e.g., foreign key constraints).
-  - Note - this is different from distributed systems consistency (CAP theorem).
-
-- **Isolation (I)** -
-
-  - Concurrent transactions appear as if executed one at a time.
-  - Prevents interference and anomalies between transactions.
-  - Techniques - _MVCC, locks, optimistic concurrency, snapshot isolation_.
-  - Distributed complication -
-    - Replica lag can expose stale reads.
-    - Sharded systems require distributed concurrency control.
-
-- Durability (D) -
-  - Ensures committed data persists across failures.
-  - Local - _WAL, fsync before commit_
-  - Distributed - _quorum writes, synchronous replication_

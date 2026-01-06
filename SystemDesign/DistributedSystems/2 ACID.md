@@ -1,6 +1,73 @@
-# Atomicity
+# ACID Transactions
 
-## 2-Phase Commit (2PC)
+- **ACID** - Atomicity, Consistency, Isolation, Durability: guarantees that transactions behave predictably under failures and concurrency.
+- **Distributed** - a single logical transaction spans multiple shards/services and still must satisfy ACID end-to-end, not just within one DB node.
+
+## Atomicity
+
+- All sub-operations succeed or none - system never ends up “half-committed”.
+
+- **Local mechanism** -
+  - _Write-Ahead Log (WAL)_ -
+    - Log changes first, then applied.
+    - On crash - either rollback or redo from the log.
+
+- **Distributed mechanism** -
+  - _2PC (Two-Phase Commit), 3PC variants_.
+  - _Paxos/Raft-based commit_ inside systems like Spanner/Cockroach (consensus-based atomic commit).
+
+- **Challenges** -
+  - Coordinator failure in 2PC → blocking - participants cannot decide alone safely
+  - Network partitions → may prevent forming a global decision while keeping safety.
+
+- **Workarounds** -
+  - _Saga pattern_ -
+    - For long-running distributed workflows.
+    - Break into sequence of local transactions plus compensations.
+    - Favors availability and eventual consistency.
+  - _Outbox pattern_ -
+    - For cross-service message consistency.
+    - DB transaction writes business data + “outbox record”.
+    - A reliable worker publishes messages, ensuring DB + messages are atomic locally.
+
+## Consistency
+
+- Each committed transaction transitions the system from one valid state to another, preserving invariants (schema + business rules).
+- Examples - foreign keys, uniqueness, non-negative balances, “total debits = total credits” etc.
+
+> [!TIP]
+> ACID consistency ≠ CAP/replication consistency -
+> ACID - “no constraints violated”.
+> CAP/linearizability- “how operations are ordered and observed across replicas”.
+
+## Isolation
+
+- Concurrent transactions appear as if executed one at a time.
+- Avoids interference and anomalies between transactions.
+
+- **Techniques** -
+  - _2PL (locks)_ - acquire locks, hold until commit, prevent conflicting concurrent writes.
+  - _MVCC_ - multiple versions; readers see a snapshot; writers create new versions.
+  - _Optimistic CC_ - transactions run without locks, validated at commit.
+  - _Snapshot isolation_ - readers see a consistent snapshot; a common practical compromise.
+
+- **Distributed complications** -
+  - Replica lag - followers can return stale data; must choose which operations can read from followers.
+  - Sharding - transactions span partitions; need distributed CC (locks/timestamps across shards).
+  - Multi-region - higher latency, more clock skew.
+
+## Durability
+  - Once a transaction is acknowledged as committed, its effects must survive crashes.
+  - **Local** - 
+    - _WAL + fsync before commit_ → after crash, replay log to restore committed state.
+  - **Distributed** - 
+    - Quorum writes - commit only after a majority of replicas persist the log entry.
+    - Synchronous replication - leader waits for replicas before ACK.
+    - Checkpoints + log replay to rebuild state across nodes.
+
+## Atomicity
+
+### 2-Phase Commit (2PC)
 
 - 2PC is a protocol to achieve atomicity in distributed transactions.
 - Sending a message to nodes is not enough in distributed systems due to unreliable networks.
@@ -47,7 +114,7 @@
   - 2PC ensures safety by maintaining atomicity.
   - 2PC does not guarantee liveness since progress can be blocked by coordinator failure.
 
-## 3-Phase Commit (3PC)
+### 3-Phase Commit (3PC)
 
 - 3PC addresses the main bottleneck of 2PC, which is coordinator failures leading to blocked participants.
 - In 2PC, participants cannot safely take the lead because they do not know the state of other participants.
@@ -76,7 +143,7 @@
   - 3PC ensures liveness, meaning the protocol always makes progress.
   - 3PC sacrifices safety, as atomicity can be violated under certain failures.
 
-## Quorum-Based Commit Protocol
+### Quorum-Based Commit Protocol
 
 - Quorum-based commit protocol addresses the main issue of 3PC: network partitions that can lead to inconsistent states.
 - In 3PC, participants might take the lead during a partition without full knowledge, potentially causing a split-brain scenario.
@@ -119,7 +186,7 @@
   - More resilient than 2PC and 3PC.
   - Can make progress in most common failure scenarios.
 
-## Long-Lived Transactions and Sagas
+### Long-Lived Transactions and Sagas
 
 - Achieving full isolation between transactions is expensive -
 
