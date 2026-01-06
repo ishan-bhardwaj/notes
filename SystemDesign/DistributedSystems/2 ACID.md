@@ -39,8 +39,8 @@
 
 > [!TIP]
 > ACID consistency ≠ CAP/replication consistency -
-> ACID - “no constraints violated”.
-> CAP/linearizability- “how operations are ordered and observed across replicas”.
+>   - ACID - “no constraints violated”.
+>   - CAP/linearizability- “how operations are ordered and observed across replicas”.
 
 ## Isolation
 
