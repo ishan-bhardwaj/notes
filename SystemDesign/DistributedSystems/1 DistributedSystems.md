@@ -1,145 +1,195 @@
 # Distributed Systems
 
-- A distributed system is a system whose components are located on different networked computers, which communicate and coordinate their actions by passing messages to one another.
+- A **distributed system** consists of multiple independent computers (nodes) connected over a network that coordinate by passing messages.
+- **Goal** - act as a single coherent system despite network delays, failures, and concurrency.
 
-- Categories -
+- **Core challenges** -
 
-  - Synchronous system -
+  - No global clock - difficult to order events.
+  - Partial failures - some components fail while others continue.
+  - Independent execution - no centralized control.
 
-    - A synchronous distributed system is one in which upper bounds exist on message transmission delay, process execution time, and clock drift, allowing algorithms to reason using time.
-    - A distributed system is synchronous if all of the following are guaranteed -
-      - Bounded message delay - Every message sent is delivered within a known, fixed maximum time ≤ Δ.
-      - Bounded process execution time - Each process executes steps within a known time bound ≤ Φ.
-      - Perfectly synchronized clocks - All nodes have clocks that are synchronized with negligible drift (or exact global time).
-    - Because of these guarantees, time itself can be used as a correctness tool.
-    - In a synchronous system -
-      - The system progresses in rounds.
-      - Each round consists of -
-        - Send messages
-        - Deliver all messages
-        - Perform computation
-      - No message from round `r` arrives in round `r+2`.
+## System Models
 
-  - Asynchronous system -
-    - An asynchronous distributed system is a model where no timing guarantees exist at all.
-    - A distributed system is asynchronous if -
-      - No bound on message delay -
-        - Messages can take arbitrarily long to arrive.
-        - They may be delayed indefinitely (but not lost, in theory).
-      - No bound on process execution time -
-        - A process can pause for any amount of time (GC, OS scheduling, crashes).
-      - No clock synchronization -
-        - Clocks may drift arbitrarily.
-        - There is no global notion of time.
-      - In short - time is meaningless for correctness.
+- Distributed systems can only make progress under certain assumptions about timing and communication.
+- Two key models define those assumptions - _Synchronous_ & _Asynchronous_.
 
-## Types of Failures
+- **Synchronous system** -
 
-- Fail-stop -
-  - A node halts permanently.
-  - Other nodes can reliably detect that it has failed (e.g., explicit failure signal).
-- Crash -
-  - A node halts, but silently.
-  - Other nodes may not be able to detect this state. They can only assume its failure when they are unable to communicate with it.
-- Omission -
-  - A node fails to send or receive messages.
+  - Upper bounds exist for all critical operations -
+    - Message delay `≤ Δ`
+    - Process execution `≤ Φ`
+    - Clock drift negligible (or global time available)
+  - Enables algorithms to use _timeouts_ and _rounds_ deterministically -
+
+    - Each round = send → deliver all → compute
+    - Messages from round `r` can’t arrive in round `r+2`.
+
+- **Asynchronous system** -
+  - No time bounds at all -
+    - Message may be arbitrarily delayed.
+    - Processes can pause unpredictably.
+    - No global time or synchronized clocks.
+  - Therefore, time cannot be used for correctness reasoning.
+  - Most internet-scale systems are _asynchronous_ in practice, though they often approximate synchrony using practical SLAs and timeouts.
+
+## Failure Models
+
+- **Fail-stop** -
+
+  - Node halts permanently.
+  - Failure is detectable by others (e.g., explicit signal).
+  - Simplified model - rarely perfect but good approximation.
+
+- **Crash (Crash-Stop / Crash-Recovery)** -
+
+  - Node halts silently (no direct signal).
+  - Others only detect failure through missing responses.
+  - Crash-recovery variant allows restart with persistent state.
+  - Basis for most consensus protocols (Raft, Paxos).
+
+- **Omission Failures** -
+
+  - Node intermittently fails to send or receive messages.
+  - Possible causes - transient network partitions, queue overflow, misuse of I/O.
+  - Harder to detect than crash-stop - often leads to inconsistent replicas.
   - Types -
     - Send omission - node does not send a message.
     - Receive omission - node does not process an incoming message.
-- Byzantine -
-  - A node behaves arbitrarily.
-  - A node may -
-    - Send incorrect or conflicting messages
-    - Lie
-    - Violate the protocol
-    - Act maliciously
 
-## Multiple Deliveries of a Message
+- **Temporal Failures** -
 
-- Problem -
+  - Node produces correct results but too late to be useful.
+  - Possible causes - poor algorithms, bad design, clock synchronization issues etc.
 
-  - Distributed nodes communicate via messages.
-  - Networks are unreliable → messages may get lost.
-  - To cope, nodes retry sending messages, which may lead to duplicate deliveries.
-  - Risk - Duplicate messages can cause serious side effects (e.g., double charging in a bank transaction).
-
-- Approaches to Handle Duplicates -
-  - Idempotent Operations -
-    - Definition - An operation that can be applied multiple times without changing the result beyond the first application.
-    - Example (Idempotent) - Adding a value to a set (re-adding has no effect if already present).
-    - Example (Non-idempotent) - Incrementing a counter (repeating increases the count each time).
-    - Pros - Guarantees correctness even if a message is processed multiple times.
-    - Cons - Imposes tight constraints; not all operations can be made idempotent.
-  - De-duplication -
-    - Definition - Each message has a unique identifier. Recipient tracks processed IDs and ignores duplicates.
-    - Requirement - Both sender and receiver must support the mechanism.
-
-| Semantics         | Meaning                        | Implementation                                              |
-| ----------------- | ------------------------------ | ----------------------------------------------------------- |
-| **At-most-once**  | Message delivered ≤ 1 time     | Send once; ignore retries                                   |
-| **At-least-once** | Message delivered ≥ 1 time     | Retry until acknowledged                                    |
-| **Exactly-once**  | Message processed exactly once | Hard in practice; requires idempotent ops or de-duplication |
-
-## Detecting Failures
-
-- Timeouts -
-
-  - Impose an artificial upper bound on response times.
-  - If a node does not respond within the timeout, it is considered failed.
-  - Trade-offs -
-    - Small timeout -
-      - Pros - Quickly detects crashed nodes.
-      - Cons - May mistakenly mark slow nodes as failed.
-    - Large timeout -
-      - Pros - Fewer false positives for slow nodes.
-      - Cons - Slower detection of crashed nodes, wasting time waiting.
-
-- Failure Detector -
-  - Component of a node that identifies which nodes have failed.
-  - Properties of Failure Detectors -
-    - Completeness - Fraction of actual crashed nodes correctly detected.
-    - Accuracy - Fraction of non-faulty nodes incorrectly suspected as failed.
-
-> [!NOTE]
-> Perfect failure detection is impossible in asynchronous systems.
-
-## Types of Systems
-
-- Stateless Systems -
-
-  - Maintains no state of past interactions.
-  - Performs actions purely based on current inputs.
-  - Inputs can be -
-    - Direct inputs - included in the request.
-    - Indirect inputs - received from other systems to fulfill the request.
-  - Examples -
-    - Service receives numbers and returns the maximum.
-    - Service calculates product price using current price and discounts from other services.
-
-- Stateful Systems -
-  - Maintains and mutates state over time.
-  - Results depend on stored state.
-  - Examples -
-    - System storing employee ages and returning the maximum age.
+- **Byzantine Failures** -
+  - Node behaves arbitrarily or maliciously, for instance, sends conflicting messages, violates protocol.
+  - Requires _BFT protocols_ - tolerates up to `f` faults with `3f+1` replicas.
+  - Used in blockchain, multi-organization coordination.
 
 > [!TIP]
-> Often wise to separate stateless components (business logic) and stateful components (data handling).
+> Choosing the right fault model guides your algorithm and recovery design.
+
+## Failure Detection
+
+- **Timeouts** -
+
+  - Simple, heuristic-based detection - if node doesn’t respond within threshold → suspect failure.
+  - Trade-offs depend on timeout length -
+    - Short → quicker detection, more false positives.
+    - Long → stable detection, slower reaction.
+  - Strategies -
+    - _Adaptive timeouts_ based on observed latency.
+    - _Exponential backoff + jitter_ to avoid bursts.
+
+- **Failure Detectors** -
+  - Abstract component providing “suspect/failure” info.
+  - Properties -
+    - _Completeness_ - Detects all actual failures eventually.
+    - _Accuracy_ - Avoids falsely suspecting correct nodes.
+  - Practical implementations -
+    - Gossip-based (SWIM).
+    - φ-accrual detectors (gradual suspicion score).
+
+> [!NOTE]
+> Perfect failure detection impossible in asynchronous systems.
+
+## Message Delivery Semantics
+
+- Once you can detect or suspect failures, message correctness becomes the next concern.
+
+- Issues -
+
+  - Drop messages.
+  - Delayed messages.
+  - Deliver messages out of order.
+  - Deliver duplicate messages - retrying for reliability adds risk of duplicated processing.
+
+- Handling duplicates -
+  - **Idempotent Operations** -
+    - Operation can be applied multiple times with same final effect.
+    - Examples
+      - Idempotent - adding a value to a set - re-adding has no effect if already present.
+      - Non-idempotent - incrementing a counter - repeating increases the count each time.
+    - Pros - Guarantees correctness even if a message is processed multiple times.
+    - Cons - not all operations can be made idempotent.
+  - **De-duplication** -
+    - Messages labeled with unique IDs.
+    - Receivers track processed IDs and skip repeats.
+    - Requires -
+      - Shared ID scheme.
+      - Bounded storage (TTL cleanup).
+      - Trade-off between memory and correctness.
+
+### Delivery Guarantees
+
+| Semantics     | Meaning                         | Implementation                                               | Example Use cases                    |
+| ------------- | ------------------------------- | ------------------------------------------------------------ | ------------------------------------ |
+| At-most-once  | ≤1 delivery, possible loss      | Send once - ignore retries                                   | Logs, metrics                        |
+| At-least-once | ≥1 delivery, duplicates allowed | Retry until acknowledged                                     | Kafka, SQS                           |
+| Exactly-once  | Processed once end-to-end       | Hard in practice - requires idempotent ops or de-duplication | Financial systems, payment pipelines |
+
+## Stateless vs Stateful Components
+
+- **Stateless Systems** -
+
+  - No memory of past operations.
+  - Output depends only on current request (and possibly external lookups).
+  - Advantages -
+    - Horizontal scalability.
+    - Easy deployment, no data migration.
+    - Simple failure recovery.
+  - Examples - API gateways, load balancers, compute microservices.
+
+- **Stateful Systems** -
+  - Persist internal or external state across requests.
+  - Need careful guarantees around consistency, replication, recovery.
+  - Examples - databases, caches, stream processors, consensus nodes.
+  - Complications -
+    - Failover and replication lag.
+    - Sharding and rebalancing.
+
+### Design Strategy
+
+- Separate -
+  - Stateless layers (logic → scalable).
+  - Stateful layers (storage → durable, consistent).
+- Patterns -
+  - _CQRS_ - read/write separation.
+  - _Event sourcing_ - log-based state reconstruction.
+  - _Stateful stream processing_ - partitioned local state with checkpointing.
 
 ## ACID Transactions
 
 - ACID Transactions - Set of properties that guarantee expected behavior of database transactions during errors or failures.
-- Atomicity (A) -
-  - Transaction with multiple operations is treated as a single unit.
-  - Either all operations execute or none execute.
-  - In distributed systems, operation executes on all nodes or none.
-- Consistency (C) -
+
+- **Atomicity (A)** -
+  - Either all sub-operations succeed or none.
+  - Mechanisms -
+    - Local DB - _Write-ahead log (WAL)_
+    - Distributed - _Two-Phase Commit (2PC), Paxos Commit_
+  - Challenges -
+    - Coordinator failure can block.
+    - Network partition invalidates global atomic commit.
+  - Alternatives -
+    - _Saga pattern_ for long-running distributed workflows.
+    - _Outbox pattern_ for cross-service message consistency.
+- **Consistency (C)** -
+
   - Transaction only transitions database from one valid state to another.
   - Maintains application-specific invariants (e.g., foreign key constraints).
   - Note - this is different from distributed systems consistency (CAP theorem).
-- Isolation (I) -
+
+- **Isolation (I)** -
+
   - Concurrent transactions appear as if executed one at a time.
   - Prevents interference and anomalies between transactions.
+  - Techniques - _MVCC, locks, optimistic concurrency, snapshot isolation_.
+  - Distributed complication -
+    - Replica lag can expose stale reads.
+    - Sharded systems require distributed concurrency control.
+
 - Durability (D) -
-  - Committed transactions remain committed even in case of failure.
-  - In single-node systems - recorded in non-volatile storage.
-  - In distributed systems - durably stored in multiple nodes for recovery after failures.
+  - Ensures committed data persists across failures.
+  - Local - _WAL, fsync before commit_
+  - Distributed - _quorum writes, synchronous replication_
