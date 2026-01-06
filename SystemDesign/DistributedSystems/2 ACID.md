@@ -1,6 +1,8 @@
 # ACID Transactions
 
-- **ACID** - Atomicity, Consistency, Isolation, Durability: guarantees that transactions behave predictably under failures and concurrency.
+- **ACID** - 
+  - Atomicity, Consistency, Isolation, Durability.
+  - Guarantees that transactions behave predictably under failures and concurrency.
 - **Distributed** - a single logical transaction spans multiple shards/services and still must satisfy ACID end-to-end, not just within one DB node.
 
 ## Atomicity
