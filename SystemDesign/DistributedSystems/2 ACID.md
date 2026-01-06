@@ -136,34 +136,37 @@
   - Disk failure of coordinator may require manual recovery, because its log is the authoritative record of the global decision.
 
 
-### 3-Phase Commit (3PC)
+## 3-Phase Commit (3PC)
 
-- 3PC addresses the main bottleneck of 2PC, which is coordinator failures leading to blocked participants.
-- In 2PC, participants cannot safely take the lead because they do not know the state of other participants.
-- Coordinator failure during the commit phase can leave participants unable to decide without waiting for the failed participant or coordinator to recover.
-- Tackling 2PC with 3PC -
-  - Split the first round (voting phase) into 2 sub-rounds.
-  - Coordinator first communicates the vote results to participants and waits for acknowledgment.
-  - Then, coordinator sends commit or abort instructions.
-  - Participants can complete the protocol independently if the coordinator fails.
-  - This improves availability and reduces the coordinator as a single point of failure.
-- Benefit of 3PC -
-  - Participants can commit if they receive a prepare-to-commit message, knowing all participants voted Yes.
-  - Participants can abort if they do not receive a prepare-to-commit message, knowing no participant has committed.
-  - Coordinator failures do not block progress.
-  - Overall availability increases.
-- Cost of 3PC -
-  - Correctness can be compromised in certain failure scenarios.
-  - Network partitions are a key vulnerability.
-- Network partition failure example -
-  - Coordinator sends prepare-to-commit to some participants and then fails.
-  - Participants that received the prepare-to-commit may commit.
-  - Participants that did not receive the prepare-to-commit abort.
-  - When the network partition heals, the system can be left in an inconsistent state.
-  - Atomicity of the transaction is violated.
-- Conclusion -
-  - 3PC ensures liveness, meaning the protocol always makes progress.
-  - 3PC sacrifices safety, as atomicity can be violated under certain failures.
+- Problem with 2PC - Coordinator failure can leave participants in “prepared” state with no way to decide, causing indefinite blocking.
+- Key idea of 3PC - Split 2PC’s prepare into two sub-phases so participants can infer safe decisions in more cases.
+
+- Phases -
+  - **CanCommit?** - coordinator asks if participants could commit.
+  - **PreCommit** - if all are willing, coordinator sends “prepare-to-commit” and waits for ACKs.
+  - **Commit** - coordinator sends final commit.
+
+- **Effect** -
+  - If participants reach pre-commit, they know all others are also ready to commit.
+  - If coordinator fails after pre-commit, participants can independently decide to commit.
+  - If they never receive pre-commit, they can safely abort.
+
+- **Benefits** - 
+  - Non-blocking under some failure patterns where 2PC blocks.
+  - Better liveness.
+
+- **Drawbacks** - safety under partitions -
+  - Network partition example -
+    - Coordinator sends pre-commit to some participants, not others, then fails.
+    - Some commit (saw pre-commit), others abort (didn’t).
+    - Atomicity is violated; system ends up inconsistent.
+    - 3PC assumes partial synchrony; under real-world partitions it can break atomicity.
+
+> [!WARNING]
+> 3PC improves liveness but sacrifices safety under certain failures.
+
+> [!NOTE]
+> Rarely used in practice; instead, real systems move to quorum/consensus-based commit.
 
 ### Quorum-Based Commit Protocol
 
