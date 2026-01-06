@@ -67,54 +67,74 @@
     - Synchronous replication - leader waits for replicas before ACK.
     - Checkpoints + log replay to rebuild state across nodes.
 
-## Atomicity
+## 2-Phase Commit (2PC)
 
-### 2-Phase Commit (2PC)
+- Achieve distributed atomicity - either every participant commits or all abort, despite unreliable networks.
+- Roles -
+  - **Coordinator** - Drives the protocol, knows all participants, logs global decisions.
+  - **Participants** - Own local data, can prepare/commit/abort, log local decisions.
 
-- 2PC is a protocol to achieve atomicity in distributed transactions.
-- Sending a message to nodes is not enough in distributed systems due to unreliable networks.
-- 2PC adds another round of messages to check results and reach agreement.
-- Roles in 2PC -
-  - Coordinator - coordinates the different phases of the protocol.
-  - Participants - nodes that execute the transaction.
-  - One participant can also be the coordinator.
-- Phases of 2PC -
-  - Voting phase -
-    - Coordinator sends the transaction to all participants.
-    - Participants execute the transaction up to the commit point.
-    - Operations can be executed before the voting phase.
-    - Participants respond with a vote: Yes if successful, No if there is an error.
-    - 2PC can be combined with 2-phase locking to prevent vote changes by participants.
-  - Commit phase -
-    - Coordinator collects votes from all participants.
-    - If all votes are Yes, coordinator instructs participants to commit.
-    - If at least one vote is No, coordinator instructs participants to abort.
-    - Participants send acknowledgment after committing or aborting.
-    - Unanimous Yes ensures atomicity across all nodes.
-    - Coordinator and participants use write-ahead-logs to recover in case of failures.
-    - Coordinator uses timeouts to detect participant failures.
-    - Participants do not timeout waiting for coordinator messages to avoid inconsistent conclusions.
-- Handling failures -
-  - Participant fails in voting phase -
-    - Coordinator times out and assumes a No vote.
-    - Transaction is aborted.
-  - Participant fails in commit phase -
-    - Participant voted but crashes before commit.
-    - Upon recovery, participant contacts coordinator to get transaction result.
-    - Atomicity is maintained.
-    - Participants should do minimal work in commit phase, e.g., write all data during voting phase and flip a bit to finalize.
-  - Network failures -
-    - Treated like node failures due to timeouts.
-- Blocking nature of 2PC -
-  - Coordinator failure can block participants after sending prepared messages.
-  - Participants wait for coordinator recovery to commit or abort.
-  - Coordinator disk failure can require manual intervention.
-- Usage of 2PC -
-  - Widely used despite blocking nature.
-  - XA specification defines participants as resources and coordinator as transaction manager.
-- Conclusion -
-  - 2PC ensures safety by maintaining atomicity.
-  - 2PC does not guarantee liveness since progress can be blocked by coordinator failure.
+> [!NOTE]
+> One participant can also act as coordinator in small systems.
+
+- Key idea -
+  - One round to ask “can you commit?” & one round to broadcast “commit/abort”.
+  - Local WAL at each node ensures crash recovery of prepared/committed state.
+
+- **Blocking nature** -
+  - Once participants are prepared (`YES`), they cannot unilaterally change their mind without risking inconsistent outcomes.
+  - If the coordinator is down or lost, prepared participants must wait indefinitely → 2PC is blocking.
+
+- **Safety vs liveness** -
+  - Safety - 2PC guarantees atomicity (no split-brain commit/abort) as long as logs are durable.
+  - Liveness - not guaranteed; the system can stall if the coordinator or network is in a bad state.
+
+- **Usage** -
+  - Widely used in -
+    - XA transactions (resource managers + transaction manager).
+    - Some JDBC/JTA stacks, RDBMS integration.
+  - For internet-scale microservices, cross-service 2PC is usually avoided due to latency, coupling, and blocking behavior.
+
+### 2PC Phases
+
+- Phase 1 - **Voting (Prepare)** -
+  - Coordinator sends transaction or `PREPARE(Tx)` to participants.
+  - Participants -
+    - Execute operations up to _commit point_ (evaluate constraints, acquire locks, write tentative changes to WAL).
+    - Write `prepared(Tx)` to disk, guaranteeing they can commit later even after a crash.
+    - Respond -
+      - `YES` if ready to commit.
+      - `NO` on error or constraint violation.
+  - Can combine with 2PL so that once prepared, participants hold locks until commit/abort.
+
+- Phase 2 - **Commit / Abort** -
+  - Coordinator collects votes -
+    - If all `YES` - logs `global-commit(Tx)`, sends `COMMIT` to all.
+    - If any `NO` or timeout - logs `global-abort(Tx)`, sends `ABORT`.
+  - Participants -
+    - On `COMMIT` - Flip state from prepared → committed (ideally minimal work, e.g., flip a bit), make changes visible, release locks.
+    - On `ABORT` - Rollback tentative state, release locks.
+    - Send ACKs to coordinator.
+
+### Failure Handling in 2PC
+
+- Participant fails during voting -
+  - Coordinator times out → assumes `NO` → aborts transaction.
+  - Safe - no participant has committed.
+
+- Participant fails after `YES`, before commit -
+  - After recovery, participant sees `prepared(Tx)` in WAL but no final decision.
+  - It must contact coordinator and block until it gets commit/abort.
+  - Atomicity preserved - it never guesses on its own.
+
+- Network failures -
+  - Treated like node failures - coordinator uses timeouts; participants don’t infer decisions just from silence.
+
+- Coordinator failure -
+  - Before logging decision - Prepared participants block; they cannot safely choose commit/abort.
+  - After logging decision, before sending to all - On recovery, coordinator replays log and re-sends decision.
+  - Disk failure of coordinator may require manual recovery, because its log is the authoritative record of the global decision.
+
 
 ### 3-Phase Commit (3PC)
 
