@@ -172,7 +172,7 @@
 
 - Use _voting_ + _overlapping quorums_ to decide commit/abort in a way that preserves atomicity even under failures and partitions.
 - Roles -
-  - **Participants** - 
+  - **Participants / Sites** - 
     - Each node that executes part of a distributed transaction is assigned some number of votes $V_i$.
     - Total votes - $V = ∑_i V_i$
   - **Quorums for commit/abort** -
@@ -330,54 +330,88 @@
 
 ## Long-Lived Transactions and Sagas
 
-- Achieving full isolation between transactions is expensive -
+- A long-lived transaction spans multiple short database transactions and often external or human steps, but is conceptually one business operation.
 
-  - Systems must hold locks for long durations or abort transactions to maintain safety.
-  - Long transactions increase the impact of these mechanisms on throughput.
+- Problems with LLTs -
+  - Hold locks or keep MVCC state for the entire transaction lifetime.
+  - Block or abort other concurrent work to maintain safety.
 
-- **Long-Lived Transactions (LLT)** -
+- Examples -
+  - Insurance claim approval with multiple steps and people.
+  - Loan or KYC processes spanning days.
+  - Waiting for airline/payment/3rd-party confirmations.
+  - Big report generation or data migrations that conceptually are one “job” but touch many rows and systems.
 
-  - Transactions with a duration of hours or days.
-  - Can occur due to -
-    - Processing large datasets.
-    - Requiring human input.
-    - Interacting with slow third-party systems.
-  - Examples -
-    - Batch jobs generating large reports.
-    - Insurance claims requiring multi-stage approvals.
-    - E-commerce orders spanning multiple days.
-  - Running LLTs using traditional concurrency mechanisms is inefficient because resources must be held for long periods.
+- Key requirement - business-level atomicity (either the whole business operation succeeds or we roll back its effects).
 
-- **Sagas** -
-  - A saga is a sequence of transactions `T1`, `T2`, …, `TN`.
-  - Transactions can interleave with other transactions.
-  - Guarantees atomicity: either all transactions succeed, or none do.
-  - Each transaction `Ti` has a compensating transaction `Ci` executed if rollback is needed.
-  - Benefits of Sagas -
-    - Useful in distributed systems where traditional distributed transactions are expensive or unavailable.
-    - Sagas provide atomicity while improving availability and performance.
-    - Systems remain loosely coupled and resilient.
-  - Example Scenario - E-commerce Order -
-    - Steps - credit card authorization, inventory check, item shipping, invoice creation.
-    - Using a distributed transaction: failure of one component (e.g., payment system) could halt the whole process.
-    - Using a saga - model each step as a transaction with a compensating transaction -
-      - Example - debiting a bank account has a refund as the compensating transaction.
-      - If a step fails, previously executed transactions are rolled back via compensating transactions.
-  - Isolation Considerations in Sagas -
-    - Some scenarios require isolation to prevent interference between concurrent transactions.
-    - Example - two orders `A` and `B` for the same product -
-      - `A` reserves the last item.
-      - `B` fails due to zero inventory.
-      - `A` later fails due to insufficient funds.
-      - Compensating transactions return the reserved item.
-    - Outcome - order `B` was rejected unnecessarily.
-  - Providing Isolation at the Application Layer -
-    - Semantic locks - signal that data is in process and should not be accessed. Locks are released by the final transaction.
-    - Commutative updates - updates that yield the same result regardless of execution order.
-    - Re-ordering the saga structure -
-      - Introduce a pivot transaction that separates critical transactions from others.
-      - Transactions after the pivot cannot be rolled back, ensuring serious operations (like increasing account balance) remain safe.
-  - Trade-offs -
-    - Techniques to provide isolation in sagas introduce complexity.
-    - Developers must consider all possible failure scenarios.
-    - Choosing between saga transactions and datastore-provided transactions requires weighing performance, availability, and complexity.
+- LLTs push you toward optimistic, version-based, or compensation-based approaches rather than long-held locks.
+
+### Sagas
+
+- A saga is a long-lived transaction modeled as a sequence of local ACID transactions - $T_1, T_2, ... , T_N$.
+- Each $T_i$ has a compensating transaction $C_i$ that semantically undoes its effect when rollback is needed.
+
+- **Execution model** -
+  - Forward path -
+    - Execute $T_1$, commit locally.
+    - If success → trigger $T_2$, commit locally.
+    - Continue until $T_N$.
+  - Failure -
+    - If some $T_k$ fails, execute $C_{k-1}, C_{k-2}, ... , C_1$
+  - Each $T_i$ is a normal short transaction; no long-held locks across the entire saga.
+
+- **Atomicity semantics** -
+  - Not “all-or-nothing at any moment” like a single ACID transaction.
+  - Instead -
+    - Eventually either -
+      - All forward steps succeed, or
+      - All completed steps are compensated so that the final system state is business-equivalent to “nothing happened”.
+
+- Use cases -
+  - Distributed microservices where cross-service 2PC is too slow/coupled.
+  - Long-running workflows with external calls and human steps.
+  - Systems that can tolerate temporary anomalies but must guarantee eventual consistency and business correctness.
+​
+- **Saga orchestration styles** -
+  - **Choreography (event-driven)** -
+    - Each service listens for events and publishes new events when its step completes.
+    - There is no central orchestrator; the saga flow emerges from event subscriptions.
+    - Pros -
+      - No single coordinator bottleneck or SPOF.
+      - Works naturally with event buses.
+    - Cons -  
+      - Harder to understand/debug flows; logic is spread across services.
+      - Complex to change ordering or add steps.
+
+  - **Orchestration (central controller)** -
+    - A dedicated saga orchestrator service calls each participant and triggers compensations when needed.
+    - Orchestrator maintains saga state (current step, retry counts, timeouts).
+    - Pros -
+      - Clear, explicit control flow; easier to reason about.
+      - Central place to implement retries, backoff, and monitoring.
+    - Cons -
+      - Orchestrator becomes another critical component; must be made highly available.
+      - Still needs idempotent participants + durable saga state.
+
+- **Anomalies with Saga** -
+  - Because sagas interleave and each step is a committed local transaction, full ACID isolation does not hold globally.
+  - Example -
+    - Two sagas try to buy the last item -
+      - Saga `A` reserves inventory and commits $T_1$.
+      - Saga `B` sees no stock and fails.
+      - Later `A` fails at payment and runs $C_1$ to release inventory.
+    - Outcome -
+      - `B` was rejected even though, `A` did not complete.
+      - A serial ACID transaction ordering might have allowed `B` to succeed.
+
+  - Mitigation techniques -
+    - **Semantic locks** -
+      - Mark entities as “in progress” (e.g., pending order) so others treat them as unavailable or handle differently.
+      - Locks implemented at application level, not DB-level 2PL.
+    - **Commutative updates** -
+      - Design operations so they commute (e.g., increment counters with CRDT-like semantics), reducing harmful effects of reordering.
+    - **Pivot / irreversibility point** -
+      - Identify a “point of no return” in the saga (e.g., charging money).
+      - Steps after pivot have no compensations; steps before pivot are compensatable.
+      - Reduces risk around critical operations like debits/credits.
+      
