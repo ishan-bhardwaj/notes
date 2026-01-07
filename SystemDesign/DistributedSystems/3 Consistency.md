@@ -11,6 +11,7 @@
 ## Eventual Consistency
 
 - If no new writes happen, all replicas will eventually converge to the same value.
+
 ​- In the meantime, different replicas may return different values for the same key.
 
 - **Properties** -
@@ -73,6 +74,7 @@
 ## Sequential Consistency
 
 - All operations appear to execute in some global sequence that is consistent with each individual client’s program order.
+
 ​- It does not require that this order matches real-time order.
 
 - **Example** -
@@ -84,7 +86,7 @@
         - But `A1` must appear before `A2` everywhere (respect `A`’s program order).
 
 - **Properties** -
-    - Stronger than _causal/even eventual_ - there is a total order that all processes agree on.
+    - Stronger than _causal/eventual_ - there is a total order that all processes agree on.
     - Weaker than _linearizability_ - the chosen order may violate real-time constraints (a later operation may appear before an earlier one if they are not causally linked).
 ​
 - **Implementation** -
@@ -113,7 +115,7 @@
     - Respect real-time - if `op1` finishes before `op2` starts, every node must see `op1` before `op2`.
 ​
 - **Properties** -
-    - Appears like a single, correct copy of the data:
+    - Appears like a single, correct copy of the data -
         - If a write returns success, all subsequent reads (from any node) see that write or a later one.
     - Compositional - if each object is linearizable, the entire system behaves in an intuitive way.
 
