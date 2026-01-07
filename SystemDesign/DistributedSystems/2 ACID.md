@@ -168,50 +168,167 @@
 > [!NOTE]
 > Rarely used in practice; instead, real systems move to quorum/consensus-based commit.
 
-### Quorum-Based Commit Protocol
+## Quorum-Baesd Commit Protocol
 
-- Quorum-based commit protocol addresses the main issue of 3PC: network partitions that can lead to inconsistent states.
-- In 3PC, participants might take the lead during a partition without full knowledge, potentially causing a split-brain scenario.
-- Coping with network partitions -
-  - Use a quorum to ensure safety.
-  - Define a commit quorum (`VC`) and an abort quorum (`VA`).
-  - A node can commit only if a commit quorum is formed.
-  - A node can abort only if an abort quorum is formed.
-  - Values of `VA` and `VC` must satisfy: `VA + VC > V`, where `V` is the total number of participants.
-  - This ensures that two conflicting decisions cannot be made on separate sides of a partition.
-- Sub-protocols in quorum-based commit protocol -
-  - Commit protocol - for starting a new transaction.
-  - Termination protocol - for handling network partitions.
-  - Merge protocol - for recovering after a network partition.
-- Commit protocol -
-  - Similar to 3PC.
-  - Coordinator waits for `VC` acknowledgments at the end of phase 3 to commit.
-  - If a network partition prevents the coordinator from completing the transaction, participants follow the termination protocol.
-- Termination protocol -
-  - A surrogate coordinator is elected from the participants.
-  - The coordinator queries participants for their transaction status.
-  - If at least one participant has committed or aborted, the coordinator enforces the same decision.
-  - If participants are in prepare-to-commit state and at least VC participants are waiting, the coordinator sends prepare-to-commit messages.
-  - If no participant is in prepare-to-commit and at least VA participants are waiting, the coordinator sends prepare-to-abort messages.
-  - Waits for acknowledgments and completes the transaction similar to the commit protocol.
-- Merge protocol -
-  - Leader election occurs among leaders of the partitions being merged.
-  - Executes the termination protocol to reconcile the transaction state across partitions.
-- Example -
-  - System with `V=3` participants.
-  - Quorum sizes - `VA=2`, `VC=2`
-    - During a network partition:
-    - Left partition cannot form commit quorum.
-    - Right partition can form abort quorum and aborts the transaction.
-  - When the partition heals, the merge protocol ensures consistency by aborting the transaction on the left side as well.
-  - Quorum sizes can be tuned to bias toward commit or abort in the presence of partitions.
-- Conclusion -
-  - Quorum-based commit protocol ensures safety (atomicity).
-  - Liveness is not guaranteed in extreme scenarios (e.g., continuous small partitions).
-  - More resilient than 2PC and 3PC.
-  - Can make progress in most common failure scenarios.
+- Use _voting_ + _overlapping quorums_ to decide commit/abort in a way that preserves atomicity even under failures and partitions.
+- Roles -
+  - **Participants** - 
+    - Each node that executes part of a distributed transaction is assigned some number of votes $V_i$.
+    - Total votes - $V = ∑_i V_i$
+  - **Quorums for commit/abort** -
+    - Commit quorum $V_c$ - minimum votes required to safely decide _commit_.
+    - Abort quorum $V_a$ - minimum votes required to safely decide _abort_.
 
-### Long-Lived Transactions and Sagas
+- **Key safety rule** -
+  - $V_a + V_c > V$
+  - Ensures a _commit_ quorum and an _abort_ quorum can never be _disjoint_ i.e. any two quorums overlap in at least one site.
+
+- **Intuition** -
+  - A transaction can only commit if enough sites agree (commit quorum).
+  - It can only abort if enough sites agree (abort quorum).
+  - Because quorums overlap, you cannot have one partition commit while another aborts the same transaction.
+
+- **Benefits over 2PC/3PC** -
+  - Moves the decision authority from a single coordinator to quorum agreements.
+  - Even if the original coordinator fails or the network partitions, any node with enough information and quorum support can drive termination.
+  - Preserve atomicity (safety) while reducing blocking probability and handling partitions more gracefully than 2PC/3PC.
+
+### Commit and abort rules
+
+- Given total votes $V$, commit quorum $V_c$, abort quorum $V_a$, and rule $V_a + V_c > V$ -
+  - **Before commit** -
+    - A transaction must collect at least $V_c$ votes from sites that are compatible with committing (prepared/ready/commit states).
+    - Those votes represent the subset of the system that has agreed to commit.
+
+  - **Before abort** -
+    - A transaction must collect at least $V_a$ votes from sites that are compatible with aborting (not prepared, explicitly aborting, or waiting).
+​
+  - **Safety property** -
+    - Because any commit quorum and abort quorum overlap, it is impossible for one partition to gather a full commit quorum while another gathers a full abort quorum for the same transaction.
+    - Therefore, commit and abort decisions cannot diverge across the system.
+
+  - **Liveness (high-level)** -
+    - As long as there is a partition with enough votes to form one of the quorums (commit or abort), that partition can make forward progress and terminate the transaction.
+    - Very small or fragmented partitions without sufficient votes will block, but they also cannot contradict decisions made by larger partitions.
+
+### Normal commit protocol (no failures)
+
+- Concrete behavior is similar to a multi-phase commit (often 3PC-like), but with quorum thresholds -
+  - **Execution / can-commit** -
+    - Transaction’s sub-operations run at each site.
+    - Sites decide if they could commit based on local checks.
+
+  - **Prepare / pre-commit phase** -
+    - Coordinator sends a _prepare_ or _pre-commit_ message.
+    - Sites that can commit move to a prepared / pre-commit state and log that state durably.
+    - They send acknowledgments (votes) back to the coordinator.
+
+  - **Commit decision** -
+    - Coordinator counts votes -
+      - If it gathers at least $V_c$ votes from sites in pre-commit/ready-to-commit state - 
+        - It can safely decide commit and broadcast that decision.
+      - If it cannot reach $V_c$, but can reach $V_a$ consistent with abort -
+        - It can decide abort and broadcast that decision.
+​    - Sites apply the decision and release resources.
+
+> [!TIP]
+> The coordinator does not need every site; only quorum thresholds matter for safety, unlike 2PC where any single non-responding prepared participant can block.
+​
+### Termination protocols
+
+- **Trigger** -
+  - Original coordinator is unreachable or suspected failed.
+  - Some sites are stuck in prepared/waiting states and want to complete the transaction.
+
+- **Surrogate coordinator election** -
+  - One of the sites (e.g., any that notices the stall) is elected as a surrogate coordinator.
+
+- **State collection** -
+  - Surrogate queries other sites for their local state for this transaction -
+    - States typically include - _initial, waiting, prepared/pre-commit, committing, committed, aborting, aborted._
+​
+- **Decision rules (simplified)** -
+  - If any site reports committed - Surrogate adopts commit as final decision and orders others to commit.
+  - Else if any site reports aborted - Surrogate adopts abort as final decision and orders others to abort.
+  - Else if a set of sites in prepared/pre-commit state collectively holds at least $V_c$ votes - Surrogate decides commit and sends commit to all.
+  - Else if a set of sites in non-prepared / waiting states collectively holds at least $V_a$ votes - Surrogate decides abort and sends abort to all.
+  - Else - There is not enough information/votes to decide safely → those sites must block until more information or connectivity is available.
+
+### Merge protocols
+
+- **Scenario** -
+  - Network partitions have produced multiple groups of sites with partial states.
+  - After the partition heals, these groups must reconcile to a single decision.
+
+- **Process** -
+  - Each partition selects a representative (local leader).
+  - Leaders exchange their transaction views and run logic equivalent to the termination protocol -
+    - If any partition has already committed/aborted → global decision is that outcome.
+    - Otherwise, leaders check whether combined votes across partitions can form a commit or abort quorum, using the same quorum rules.
+  - Final decision is propagated to all sites so state converges.
+
+- **Result** - despite partitions and arbitrary failure interleavings, the system converges to one decision per transaction, thanks to quorum overlap.
+​
+
+### Example with 3 sites
+
+- Assume 3 participants with one vote each - $V = 3$, commit quorum $V_c = 2$, abort quorum $V_a = 2$.
+​ - Safety condition - $V_a + V_c = 4 > V = 3$
+​
+- **Case - network partition** -
+  - Partition A - sites S1, S2 (2 votes).
+  - Partition B - site S3 (1 vote).
+  - Partition B (1 vote) - Cannot reach $V_c = 2$ or $V_a = 2$ → cannot commit or abort; must block.
+  - Partition A (2 votes) -
+    - Can form commit or abort quorum (depending on local states).
+    - If A decides abort (has $V_a = 2$) → global abort is safe, because no other partition can form a commit quorum disjointly.
+
+- After partition heals, merge protocol communicates A’s abort decision to S3; S3 aborts too, keeping atomicity -
+  - No execution path allows one side to commit with quorum 2 while the other side simultaneously aborts with quorum 2, because those quorums would overlap.
+
+### Relationship to quorum-based replication and consensus
+
+- **Quorum-based replication** -
+  - Similar math - define read quorum $V_r$, and write quorum $V_w$ such that -
+    - $V_r + V_w > V$ and $V_w > V / 2$
+  - Ensures - 
+    - Reads intersect writes → see at least one up-to-date replica.
+    - Writes intersect writes → no conflicting concurrent writes.
+  
+- **Quorum-based commit vs replication** -
+  - Commit protocol uses commit/abort quorums for decision; replication uses read/write quorums for data visibility.
+  - Both rely on overlapping quorums to enforce one-copy serializability: the system behaves as if there is a single copy of data despite replication.
+
+- **Consensus** -
+  - Quorum-based commit can be seen as a transaction-level application of consensus ideas -
+    - The commit/abort decision is a value that must be agreed on by a majority/quorum.
+  - Modern systems often rephrase this as “run consensus (Paxos/Raft) on the commit record”, which is conceptually similar.
+
+### Properties and trade-offs
+
+- **Safety (atomicity)** -
+  - Achieved by overlapping commit and abort quorums $V_a + V_c > V$.
+  - Guarantees no split-brain commit vs abort decisions.
+
+- **Liveness** - 
+  - Better than 2PC - Large partitions that can form a quorum can make progress without the original coordinator.
+  - But still can block in extreme scenarios -
+    - Very small partitions.
+    - Constantly changing failures/partitions.
+
+- **Complexity** -
+  - More complex than vanilla 2PC -
+    - Weighted voting.
+    - Termination and merge protocols.
+    - State tracking across partitions.
+  - Conceptually close to using a consensus algorithm directly.
+
+- **Tuning bias** -
+  - Choice of $V_c$ and $V_a$ can bias toward commit or abort under partial failures - 
+    - Larger $V_c$, smaller $V_a$ → easier to abort than commit.
+    - Symmetric quorums → neutral behavior.
+
+## Long-Lived Transactions and Sagas
 
 - Achieving full isolation between transactions is expensive -
 
