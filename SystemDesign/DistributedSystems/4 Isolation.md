@@ -46,7 +46,7 @@
   - Implementation -
     - Two-Phase Locking (2PL) with predicate locks.
     - Serializable Snapshot Isolation (SSI) on top of MVCC.
-    - In distributed systems: distributed locking or timestamp ordering + validation across shards.
+    - In distributed systems - distributed locking or timestamp ordering + validation across shards.
   - Trade-offs -
     - Strongest guarantees; safest default for correctness.
     - Highest contention; more blocking or aborts under high concurrency.
@@ -99,7 +99,7 @@
       - Diagnostic queries.
       - Non-critical analytics where slightly “nonsense” data is acceptable for performance.
 
-### Mapping anomalies to isolation levels
+### Anomalies prevention by isolation levels
 
 | Level              | Dirty Write | Dirty Read | Non-Repeatable | Phantom | Lost Update | Read Skew | Write Skew  |
 | ------------------ | ----------- | ---------- | -------------- | ------- | ----------- | --------- | ----------- |
