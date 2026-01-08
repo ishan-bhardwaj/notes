@@ -95,6 +95,7 @@ https://www.google.com/maps
     ```
 
 - **Status Codes** -
+
 | Range   | Meaning       | Examples                       |
 | ------- | ------------- | ------------------------------ |
 | 100-199 | Informational | 100 Continue                   |
@@ -104,6 +105,7 @@ https://www.google.com/maps
 | 500-599 | Server Error  | 500 Internal Server Error      |
 
 - **HTTP Methods** -
+
 | Method  | Purpose                 | Safe | Idempotent | Example                   |
 | ------- | ----------------------- | ---- | ---------- | ------------------------- |
 | GET     | Read resource           | ✅    | ✅          | curl https://example.com  |
@@ -116,6 +118,7 @@ https://www.google.com/maps
 | CONNECT | Tunnel (proxy)          | ❌    | ❌          | HTTPS via proxy           |
 
 - **Essential Headers** -
+
 | Header            | Direction | Purpose                       |
 | ----------------- | --------- | ----------------------------- |
 | Accept            | Request   | Content types client accepts  |
