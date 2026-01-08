@@ -13,6 +13,7 @@
   - **Code-on-Demand** (Optional) - Servers send executable code (scripts/applets) to extend client functionality, improving performance but reducing visibility and introducing security risks.
 ​
 - REST APIs map CRUD operations directly to HTTP methods for predictable behavior -
+
 | CRUD             | HTTP Method | Purpose                                         | Idempotent?      |
 | ---------------- | ----------- | ----------------------------------------------- | ---------------- |
 | Create           | POST        | Creates new resource (e.g., POST /users)        | No educative+1​  |
