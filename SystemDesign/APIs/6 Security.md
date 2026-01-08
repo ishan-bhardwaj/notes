@@ -7,6 +7,7 @@
   - Data Exposure - Man-in-the-middle intercepts unencrypted transit data.
 
 - **Common API Attacks** -
+
 | Attack                     | Description                                       | Impact                    | Attacker Motivation                                      |
 | -------------------------- | ------------------------------------------------- | ------------------------- | -------------------------------------------------------- |
 | Code injection             | Executes injected code to alter API functionality | System-wide compromise    | Denial of service, data theft, financial loss educative​ |
@@ -16,6 +17,7 @@
 | Buffer overflow            | Overloads memory with excessive input             | System corruption         | Execution path changes, info exposure educative​         |
 
 - **CIA Triad Fundamentals** -
+
 | Principle       | Goal                   | Protection                            |
 | --------------- | ---------------------- | ------------------------------------- |
 | Confidentiality | Authorized access only | Encryption (TLS), Authenticationkmcd​ |
@@ -23,6 +25,7 @@
 | Availability    | Reliable uptime        | Rate limiting, DDoS mitigationkmcd​   |
 
 - **STRIDE Threat Model** -
+
 | Threat                 | Description              | Countermeasure                                  |
 | ---------------------- | ------------------------ | ----------------------------------------------- |
 | Spoofing               | Identity impersonation   | Authentication tokens                           |
@@ -141,6 +144,7 @@
   - Trusted origins vulnerable to XSS enable CORS abuse.
   - Missing server-side checks bypass CORS entirely.
 ​
+
 - **Prevention Best Practices** -
   - Validate origins against explicit allowlist; reject null/empty origins.
   - Avoid wildcards; use specific domains only.
@@ -148,7 +152,7 @@
   - Combine with server-side authentication and input validation.
   - For credentials, never use wildcard origins.
 ​
-​## Authentication vs Authorization
+## Authentication vs Authorization
 
 - Authentication verifies a user's identity, while authorization determines their access permissions. 
 - **Core Concepts** -
@@ -168,7 +172,7 @@
   - Compact tokens in header.payload.signature format, Base64-encoded and signed. 
   - Payload holds claims (e.g., user ID, expiry); stateless verification without database lookups.
 
-​### Comparison
+### Comparison
 
 | Aspect          | Advantages                        | Disadvantages                                                                                 |
 | --------------- | --------------------------------- | --------------------------------------------------------------------------------------------- |
