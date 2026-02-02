@@ -180,3 +180,98 @@
 | API Keys | Simple; multiple per account; revocable; isolates breaches | No user auth; interception risk; needs extra auth for permissions​ |
 | JWT    | Scalable; self-contained authZ; temporary access | Overhead parsing/signing; revocation tricky; crypto knowledge needed​ |
 
+## OAuth
+
+- OAuth 2.0 provides a standardized framework for token-based authorization, allowing secure delegated access to user resources without sharing credentials. 
+- Developed in 2010 building on OAuth 1.0 from 2007, it addresses limitations of basic protocols like API keys and JWTs by enabling safe token exchange.
+
+- OAuth involves four core actors coordinating secure access -
+  - Resource Owner (end-user) owns protected data.
+  - Resource Server (API) hosts it.
+  - Client (app like Spotify) requests access.
+  - Authorization Server issues tokens after user consent.
+
+- OAuth supports multiple grant types (flows) tailored to scenarios -
+
+| Flow               | User Permission | Access User Data | Refreshable | Best For                                                                              |
+| ------------------ | --------------- | ---------------- | ----------- | ------------------------------------------------------------------------------------- |
+| Authorization Code | Yes             | Yes              | Yes         | Server-side web appsauth0​                                                            |
+| Auth Code + PKCE   | Yes             | Yes              | Yes         | SPAs/mobile (prevents code interception via code_verifier/challenge)developer.okta+1​ |
+| Client Credentials | No              | No               | No          | Machine-to-machine, public resourceseducative​                                        |
+| Implicit           | Yes             | Yes              | No          | Legacy browsers (deprecated due to token exposure in redirects)stackoverflow+1​       |
+
+- **Authorization Code Flow** -
+  - Client redirects user to Authorization Server with client_id, redirect_uri, scope; user consents, gets code; client exchanges code for access token via backend POST (secure from interception). 
+  - Resource Server validates token signature for data access.
+​
+- **PKCE Extension** -
+  - Enhances code flow for public clients.
+  - Client generates code_verifier, derives code_challenge (SHA256 hash), sends challenge initially; later sends verifier—server matches hashes to prove legitimacy, blocking attacker code swaps.
+​
+- **Client Credentials Flow** -
+  - Client authenticates directly with Authorization Server using its credentials (no user involved), receives token for its own resources like public APIs.
+​
+- **Implicit Flow Risks** -
+  - Directly returns access token in redirect URI (no code exchange), exposing it in browser history/URL—avoid; use PKCE instead.
+
+## Authentication and Authorization Frameworks: OpenID and SAML
+
+- OpenID Connect (OIDC) and SAML provide authentication frameworks that complement OAuth 2.0's authorization capabilities by verifying user identity. 
+- OIDC extends OAuth with ID tokens for SSO across apps, while SAML uses XML assertions for enterprise SSO with both authn and authz.
+
+- **Core Differences** -
+  - OAuth 2.0 authorizes resource access via tokens but lacks user identity verification—like a movie ticket without owner details. 
+  - OIDC adds authentication atop OAuth flows, delivering ID tokens with user claims (sub, name, email). 
+  - SAML independently handles both via XML-based trust between Identity Providers (IdP) and Service Providers (SP).
+
+- **OpenID Connect Process** -
+  - OIDC follows OAuth flows (typically Authorization Code + PKCE) but requests scope=openid to get an ID token alongside access tokens. 
+  - Client redirects user to Authorization Server; after consent, server returns ID token (JWT) to redirect_uri. 
+  - Client validates signature, nonce, expiry, then uses claims for session and access token for APIs.
+    - ID Token vs Access Toke -: ID tokens authenticate identity (user-facing, contains claims); access tokens authorize API calls (opaque or JWT, resource-specific).
+​
+| Aspect | Advantages                                               | Disadvantages                                                       |
+| ------ | -------------------------------------------------------- | ------------------------------------------------------------------- |
+| OIDC   | JSON/RESTful; mobile/SPA-friendly; SSO; pairs with OAuth | Relies on OAuth; phishing risks; less enterprise adoptioneducative​ |
+
+- **SAML 2.0 Process** -
+  - SAML establishes trust between IdP and SP. 
+  - User accesses SP, gets redirected to IdP for authn; IdP issues SAML assertion (XML with authn statement, attributes, signature). 
+  - User posts assertion to SP, which validates against IdP metadata and grants access. 
+  - Supports SSO across federated domains. 
+    - Trust Setup - IdPs/SPs exchange metadata (certificates, endpoints) via out-of-band config for signature validation.
+
+| Aspect | Advantages                                                  | Disadvantages                                                     |
+| ------ | ----------------------------------------------------------- | ----------------------------------------------------------------- |
+| SAML   | Enterprise-grade; built-in authz; no password storage at SP | XML overhead; complex; weak for SPAs/mobile; MITM riskseducative​ |
+
+- **Framework Comparison** -
+
+| Framework | Focus                   | Format               | Best For              | Drawbacks                   |
+| --------- | ----------------------- | -------------------- | --------------------- | --------------------------- |
+| OAuth 2.0 | Authorization           | JSON tokens          | APIs/mobile           | No identity proofeducative​ |
+| OIDC      | Authentication (+OAuth) | JSON (JWT ID tokens) | Modern web/mobile SSO | Needs OAuth base            |
+| SAML      | Authn + Authz           | XML assertions       | Enterprise B2B/B2E    | Heavyweight; legacy UI      |
+
+> [!TIP]
+> Use OIDC+OAuth for consumer apps; SAML for enterprises needing strong federation.
+
+## Zero Trust Model
+
+- Zero Trust assumes breach - never trust networks, verify explicitly every request (identity, context), and limit privileges to essentials. 
+- For APIs, enforce continuous authn (OAuth/OIDC/MFA), real-time monitoring, schema validation, and end-to-end encryption per call. 
+- Reshapes authz by denying implicit trust—internal microservices get mutual TLS; external users face adaptive risk scoring.
+​- **Key Practices** - Behavior analytics detect anomalies; micro-segmentation isolates resources; no perimeter reliance.
+
+## WAAP Overview
+
+- Web Application and API Protection (WAAP) integrates WAF, DDoS mitigation, bot management, and API-specific defenses like schema validation and rate limiting. 
+- Uses AI for real-time anomaly detection, payload inspection, and OAuth/JWT enforcement against injections/exfiltration. 
+- Essential for public/partner APIs facing volumetric attacks or credential stuffing—beyond traditional WAF for cloud-native scale.
+
+| WAAP Components          | Protects Against            | Benefits                    |
+| ------------------------ | --------------------------- | --------------------------- |
+| WAF + API Inspection     | Injections, schema abuse    | Fine-grained policyradware​ |
+| DDoS/Bot Mitigation      | Volumetric floods, scraping | Availability assurance      |
+| Rate Limiting/Anomaly AI | Abuse, unknown threats      | Scalable enforcementkmcd​   |
+

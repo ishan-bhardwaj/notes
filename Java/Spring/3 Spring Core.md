@@ -169,3 +169,88 @@ spring.main.lazy-initialization=true
 ```
 
 ## Bean Scope
+
+- Default scope is singleton -
+    - Spring container creates only one instance of the bean by default.
+    - That one instance is cached in memory.
+    - All dependency injections for the bean will reference the same bean.
+
+- Explicitly specify bean scope -
+```
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+public class CricketCoach implements Coach {
+    ...
+}
+```
+
+- __Additional Spring Bean Scopes__ -
+
+| Scope       | Description                                            |
+|-------------|--------------------------------------------------------|
+| Singleton   | Create a single shared instance of the bean (default)  |
+| Prototype   | Creates a new bean instance for each container request |
+| Request     | Scoped to an HTTP web request                          |
+| Sessions    | Scoped to an HTTP web session                          |
+| Application | Scope to a web app ServletContext                      |
+| Websocket   | Scoped to a web socket                                 |
+
+## Bean Lifecycle Methods / Hooks
+
+- Use `@PostConstruct` to add custom logic after the bean is constructed -
+```
+@PostConstruct
+public void customStartupStuff() {
+    System.out.println("In custom startup!");
+}
+```
+
+- Use `@PreDestroy` to add custom logic before bean is destroyed -
+```
+@PreDestroy
+public void customCleanupStuff() {
+    System.out.println("In custom cleanup!");
+}
+```
+
+> [!NOTE]
+> Initialization lifecycle callback methods are called on all objects regardless of scope, but in the case of prototype scope, configured destruction lifecycle callbacks are _not called_.
+
+## Configuring Beans with Java code
+
+- Steps -
+    - Create a Java class and annotate as `@Configuration`.
+    - Define `@Bean` method to configure the bean.
+    - Inject the bean into our controller.
+
+- Note that `SwimCoach` class doesn't have `@Component` annotation.
+
+```
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean;
+
+@Configuration
+public class SportsConfig {
+
+    @Bean
+    public Coach swimCoach() {
+        return new SwimCoach();
+    }
+
+}
+```
+
+- Injecting the bean into our controller -
+```
+@Autowired
+public DemoController(@Qualifier("swimCoach") Coach theCoach) {
+    ...
+}
+```
+
+> [!TIP]
+> The bean id defaults to the method name. To provide custom bean id - `@Bean("customBeanId")`.
