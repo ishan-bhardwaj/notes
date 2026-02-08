@@ -169,9 +169,63 @@ thread.start();
   - Time until the aggreating thread runs
   - Aggregation of the results into a single artifact
 
-- Task classification -
+- __Task classification__ -
   - Parallelizable tasks - tasks that are inherently parallelizable and can be easily broken into sub tasks.
   - Sequential tasks - the unbreakable tasks that we are just forced to run on a single thread from start to finish.
   - Partially parallelizable, partially sequential (most common) - tasks which can be partially broken into sub tasks and partially we have to run them sequentially.
+
+## Thread Pooling
+
+- Creating the threads once and reusing them for future tasks.
+- Once the threads are created, they sit in the pool and tasks are distributed among the threads through a queue.
+- If all the threads are busy, the tasks will stay in the queue and wait for a thread to become available.
+- JDK comes with a few implementations of thread pools -
+  - Fixed Thread Pool Executor -
+    - Creates a thread pool with a fixed number of threads in the pool.
+    - Also comes with a built-in queue.
+    - Example -
+    ```
+    int numThreads = 4;
+    Executor executor = Executors.newFixedThreadPool(numThreads);
+    ```
+
+    - To add a task to the queue and have it executed by one of the threads, we simply pass a runnable task into the `execute` method -
+    ```
+    Runnable task = executor.execute(task);
+    ```
+
+## Data sharing between threads
+
+- __Stack__ -
+  - Stack is a memory region where -
+    - methods are called
+    - arguments are passed
+    - local variables are stored
+  - The method calls and their arguments & variables are stored together in a stack frame.
+  - State of each thread's execution = Stack + Instruction Pointer
+  - Stack Properties -
+    - All variables belong to the thread executing on that stack.
+    - Statically allocated when the thread is created.
+    - The stack's size is fixed and is relatively small (platform specific).
+    - If our calling hierarchy is too deep, we may get a `StackOverflowException` - risky with recursive calls.
+
+- __Heap__ -
+  - Heap is a shared memory region that belongs to the process.
+  - Stores -
+    - Objects (anything created with the `new` operator like String, Object, Collection etc).
+    - Member of classes - even its primitive members
+    - Static variables
+  - Heap memory management -
+    - Governed and managed by Garbage Collector.
+    - Objects stay as long as we have at least one reference to them.
+    - Member of classes exist as long as their parent objects exist (i.e. same lifecycle as their parents).
+    - Static variables stay forever.
+
+> [!TIP]
+> Object References -
+>   - If references are declared as local variables inside a method, they are allocated on the stack.
+>   - If they are member of the class, then they are allocated on the heap together with their parent objects.
+>
+> Objects are always allocated on the heap.
 
 
