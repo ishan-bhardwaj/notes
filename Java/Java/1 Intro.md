@@ -274,8 +274,8 @@ Size s = Size.MEDIUM;           // declare variables of the enum type
     - Example - `if (n instanceof byte b)`
     - If `n` fits in a `byte` without loss, `b` is automatically set to `(byte) n`.
 
-  > [!NOTE]
-  > Casting to a smaller numeric type can truncate the value if it’s out of range, eg - `(byte) 300` becomes `44`.
+> [!NOTE]
+> Casting to a smaller numeric type can truncate the value if it’s out of range, eg - `(byte) 300` becomes `44`.
 
 ### Assignment Operators
 
