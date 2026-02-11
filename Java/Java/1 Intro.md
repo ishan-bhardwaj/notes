@@ -1,7 +1,7 @@
 # Java
 
 - Java is a _strongly typed language_ - meaning that every variable must have a declared type.
-- To check java version installed - `javac --version` - eg, `javac 25.0.4`.
+- To check java version installed - `javac --version` - will return - `javac 25.0.4`.
 - Launching a java program from command line -
   - Compile and generate the bytecode - `javac Welcome.java` - it will create a file (`Welcome.class`) containing the bytecodes for this class and stores it in the same directory as the source file.
   - Luanch the JVM and execute the bytecode - `java Welcome` - execution starts with the code in the `main` method of the class.
@@ -10,7 +10,7 @@
 - __JShell__ -
   - Provides a _read-evaluate-print loop_ or _REPL_.
   - JShell evaluates your input java expression, prints the result, and waits for your next input.
-  - Start JShell, type `jshell` in a terminal window.
+  - Start JShell - type `jshell` in a terminal window.
   - Exit JShell - `/exit`
   - Example -
   ```
@@ -38,15 +38,15 @@ public class MyApp {
   ```
 
 > [!NOTE]
-> `IO.println()` is a variant of the println method with no arguments just prints a blank line.
+> `IO.println()` is a variant of the println method with no arguments which just prints a blank line.
 
 > [!TIP]
-> The IO class also has a `print` method that doesn’t add a newline character to the output.
+> The `IO` class also has a `print` method that doesn’t add a newline character to the output.
 
 - __Comments__ -
   - Single-line comment - `//`
   - Multi-lne comment - `/* ... */`
-  - Multi-line comment used for generating documentation automatically - `/__ ... */`
+  - Multi-line comment used for generating documentation automatically - `/** ... */`
 
 ## Data Types
 
@@ -65,17 +65,17 @@ public class MyApp {
 | `int`   | 4 bytes             | $–2^{31} \text{ to } 2^{31}−1$ | 0       | `Integer.MIN_VALUE` | `Integer.MAX_VALUE` |
 | `long`  | 8 bytes             | $–2^{63} \text{ to } 2^{63}−1$ | 0       | `Long.MIN_VALUE`    | `Long.MAX_VALUE`    |
 
-- Internally, Java uses _signed two's completement scheme_ to represent integers.
+> [!TIP] 
+> Internally, Java uses _signed two's completement scheme_ to represent integers.
 
 > [!NOTE]
 > The ranges of the integer types do _not_ depend on the machine on which you will be running the Java code. 
 
 - Long integers end with `L` or `l`, eg - `4000000000L`.
-- Hexadecimal numbers start with `0x` or `0X`, eg - `0xCAFE`.
+- Hexadecimal numbers start with `0x` or `0X`, eg - `0xCAFE`
 - Octal numbers start with `0`, eg - `010` = 8
 - Binary numbers start with `0b` or `0B`, eg - `0b1001` = 9
-- Underscores can be added for readability, eg - `1_000_000` -
-  - Java compiler simply ignores the underscores.
+- Underscores can be added for readability, eg - `1_000_000` - Java compiler simply ignores the underscores.
 
 - __Unsigned__ -
   - Java does _not_ have any unsigned versions of the `int`, `long`, `short`, or `byte` types.
@@ -93,8 +93,8 @@ public class MyApp {
 
 | Type     | Storage Requirement | Range                          | Default | Precision            |
 | -------- | ------------------- | ------------------------------ | ------- | -------------------- |
-| `float`  | 4 bytes             | ~$±3.4 × 10^{38}$ (7 digits)   | 0.0f    | 6-7 decimal digits   |
-| `double` | 8 bytes             | ~$±1.8 × 10^{308}$ (15 digits) | 0.0d    | 15-16 decimal digits |
+| `float`  | 4 bytes             | $~±3.4 × 10^{38}$ (7 digits)   | 0.0f    | 6-7 decimal digits   |
+| `double` | 8 bytes             | $~±1.8 × 10^{308}$ (15 digits) | 0.0d    | 15-16 decimal digits |
 
 - Java 20 adds methods for half-precision (16-bit) floats -
   - `Float.floatToFloat16` & `Float.float16ToFloat` for storing “half-precision” 16-bit floating-point numbers in `short` values.

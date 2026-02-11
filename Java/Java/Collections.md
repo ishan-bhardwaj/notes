@@ -155,3 +155,152 @@ iter.remove();        // now remove it
   - The `SequencedSet` subinterface sharpens the return type of the `reversed` method to `SequencedSet`. 
   - The `SequencedMap` interface has analogous methods for maps.
 
+## Concrete Collections
+
+- All classes in the below table implement the `Collection` interface, with the exception of the classes with names ending in Map. Those classes implement the `Map` interface instead.
+
+| Collection Type     | Description                                                                     |
+| ------------------- | ------------------------------------------------------------------------------- |
+| __ArrayList__       | An indexed sequence that grows and shrinks dynamically                          |
+| __LinkedList__      | An ordered sequence that allows efficient insertion and removal at any location |
+| __ArrayDeque__      | A double-ended queue implemented as a circular array                            |
+| __HashSet__         | An unordered collection that rejects duplicates                                 |
+| __TreeSet__         | A sorted set                                                                    |
+| __EnumSet__         | A set of enumerated type values                                                 |
+| __LinkedHashSet__   | A set that remembers insertion order                                            |
+| __PriorityQueue__   | A collection that allows efficient removal of the smallest element              |
+| __HashMap__         | Stores key–value associations                                                   |
+| __TreeMap__         | A map with sorted keys                                                          |
+| __EnumMap__         | A map whose keys are from an enum type                                          |
+| __LinkedHashMap__   | A map that remembers insertion order of entries                                 |
+| __WeakHashMap__     | A map whose entries can be garbage-collected when keys are no longer referenced |
+| __IdentityHashMap__ | A map that compares keys using `==` instead of `equals()`                       |
+
+- Relationships between these classes -
+![Collection Classes](assets/collection_classes.png)
+
+## Linked Lists
+
+- A linked list stores each object in a separate link - each link also stores a reference to the next link in the sequence.
+- All linked lists are actually doubly linked lists.
+- Removing an element from the middle of a linked list is an inexpensive operation—only the links around the element to be removed need to be updated.
+- Important difference between linked lists and generic collections -
+  - LinkedList is ordered, so element position matters.
+  - `LinkedList.add(x) only` appends to the end.
+  - Inserting in the middle requires knowing the current position.
+  - Iterators represent positions between elements, so position-based insertion belongs to them.
+  - Therefore, the Java Collections Framework supplies a subinterface `ListIterator` that contains an `add` method -
+  ```
+  interface ListIterator<E> extends Iterator<E> {
+    void add(E element);
+    ...
+  }
+  ```
+
+  - Unlike `Collection.add`, this method does not return a `boolean` — it is assumed that the add operation always modifies the list.
+
+- In addition, the `ListIterator` interface has two methods that you can use for traversing a list backwards -
+  - `boolean hasPrevious()`
+  - `E previous()`
+
+- The `listIterator` method of the `LinkedList` class returns an `iterator` object that implements the `ListIterator` interface - `ListIterator<String> iter = staff.listIterator()`
+
+- The `add` method adds the new element before the iterator position -
+  - Example -  the following code skips over the first element in the linked list and adds "Juliet" before the second element -
+  ```
+  var staff = new LinkedList<String>();
+  staff.add("Amy");
+  staff.add("Bob");
+  staff.add("Carl");
+  ListIterator<String> iter = staff.listIterator();
+  iter.next();                                          // skip past first element
+  iter.add("Juliet");
+  ```
+
+- If you call the `add` method multiple times, the elements are simply added in the order in which you supplied them.
+- When you use the add operation with an iterator that was freshly returned from the `listIterator` method and that points to the first element of the list, the newly added element becomes the first element. 
+- When the iterator has passed the last element of the list (that is, when `hasNext` returns `false`), the added element becomes the new tail of the list.
+
+> [!NOTE]
+> `remove()` depends on the last movement i.e. it deletes the element that was last returned by `next()` or `previous()`.
+>
+> This also means that you cannot call `remove()` twice because after `remove()`, there is no “last returned element”. You must move again (`next()` or `previous()`) before removing again.
+
+- A `set` method replaces the last element, returned by a call to `next` or `previous`, with a new element.
+
+- If an iterator finds that its collection has been modified by another iterator or by a method of the collection itself, it throws a `ConcurrentModificationException`. For example, consider the following code -
+```
+List<String> list = . . .;
+ListIterator<String> iter1 = list.listIterator();
+ListIterator<String> iter2 = list.listIterator();
+iter1.next();
+iter1.remove();
+iter2.next();                      // throws ConcurrentModificationException
+```
+
+- Concurrent modification detection - 
+  - The collection keeps track of the number of mutating operations (such as adding and removing elements). 
+  - Each iterator keeps a separate count of the number of mutating operations that it was responsible for.
+  - At the beginning of each iterator method, the iterator simply checks whether its own mutation count equals that of the collection. 
+  - If not, it throws a `ConcurrentModificationException`.
+
+> [!NOTE]
+> The linked list only keeps track of structural modifications to the list, such as adding and removing links. The `set` method does not count as a structural modification. You can attach multiple iterators to a linked list, all of which call `set` to change the contents of existing links.
+
+- The LinkedList class has `get` method that lets you access element at specified index.
+  - But it is very inefficient as LinkedList does not support fast random access.
+  - Each time you look up another element, the search starts again from the beginning of the list. 
+  - The LinkedList object makes no effort to cache the position information.
+
+> [!TIP]
+> The `get` method has one slight optimization - If the index is at least $size() / 2$, the search for the element starts at the end of the list.
+
+- The list iterator interface also has a method to tell you the index of the current position -
+  - `nextIndex`/`previousIndex ` method returns the integer index of the element that would be returned by the next call to `next`/`previous`.
+  - If you have an integer index `n`, then `list.listIterator(n)` returns an iterator that points just before the element with index `n`.
+
+- `java.util.List<E>` -
+
+| Method                                     | Description                                                  |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| `listIterator()`                           | Returns a list iterator starting before the first element    |
+| `listIterator(int index)`                  | Returns a list iterator positioned before element at `index` |
+| `add(int i, E e)`                          | Inserts element at position `i`                              |
+| `addAll(int i, Collection<? extends E> c)` | Inserts all elements of a collection starting at `i`         |
+| `remove(int i)`                            | Removes and returns element at position `i`                  |
+| `get(int i)`                               | Returns element at position `i`                              |
+| `set(int i, E e)`                          | Replaces element at position `i`, returns old value          |
+| `indexOf(Object o)`                        | Index of first matching element, or `-1`                     |
+| `lastIndexOf(Object o)`                    | Index of last matching element, or `-1`                      |
+
+- `java.util.ListIterator<E>` -
+
+| Method            | Description                                                |
+| ----------------- | ---------------------------------------------------------- |
+| `add(E e)`        | Inserts element at iterator’s current position             |
+| `set(E e)`        | Replaces last element returned by `next()` or `previous()` |
+| `hasPrevious()`   | Checks if backward traversal is possible                   |
+| `previous()`      | Returns previous element                                   |
+| `nextIndex()`     | Index of element that `next()` would return                |
+| `previousIndex()` | Index of element that `previous()` would return            |
+
+- `java.util.LinkedList<E>` -
+
+| Method                                  | Description                                      |
+| --------------------------------------- | ------------------------------------------------ |
+| `LinkedList()`                          | Creates an empty linked list                     |
+| `LinkedList(Collection<? extends E> c)` | Creates list containing elements of a collection |
+| `addFirst(E e)`                         | Inserts element at the beginning                 |
+| `addLast(E e)`                          | Inserts element at the end                       |
+| `getFirst()`                            | Returns first element                            |
+| `getLast()`                             | Returns last element                             |
+| `removeFirst()`                         | Removes and returns first element                |
+| `removeLast()`                          | Removes and returns last element                 |
+
+## ArrayLists
+
+- `ArrayList` class also implements the `List` interface.
+- An ArrayList encapsulates a dynamically reallocated array of objects.
+
+## Hash Sets
+
