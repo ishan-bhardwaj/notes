@@ -270,12 +270,12 @@ Size s = Size.MEDIUM;           // declare variables of the enum type
   int nx = (int) x;           // 9
   ```
 
-  > [!NOTE]
-  > Casting to a smaller numeric type can truncate the value if it’s out of range, eg - `(byte) 300` becomes `44`.
-
   - Java 25 preview adds safe casts using `instanceof` pattern matching.
     - Example - `if (n instanceof byte b)`
     - If `n` fits in a `byte` without loss, `b` is automatically set to `(byte) n`.
+
+  > [!NOTE]
+  > Casting to a smaller numeric type can truncate the value if it’s out of range, eg - `(byte) 300` becomes `44`.
 
 ### Assignment Operators
 
