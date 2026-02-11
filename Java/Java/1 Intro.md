@@ -280,7 +280,7 @@ Size s = Size.MEDIUM;           // declare variables of the enum type
 ### Assignment Operators
 
 - Compound assignment operators - `+=`, `-=`. `*=`, `/=`, `%=`
-- Compound assignment operators (+=, -=, *=, etc.) perform an implicit cast to the type of the left-hand side - even if the conversion is narrowing.
+- Compound assignment operators perform an implicit cast to the type of the left-hand side - even if the conversion is narrowing.
 - Example -
 
   ```
@@ -294,7 +294,10 @@ Size s = Size.MEDIUM;           // declare variables of the enum type
   - The fractional part is discarded (`3.5` → `3`), so `x` becomes `3`.
   - No compile-time error, and no warning either.
   - Whereas, `x = x + 3.5;` does not compile and explicit cast is required to fix it.
-  - Java 20+ can warn about such lossy conversions when linting is enabled. Enable such warnings with - `javac -Xlint:lossy-conversions MyApp.java`
+  - Java 20+ can warn about such lossy conversions when linting is enabled. Enable such warnings with -
+   ```
+   javac -Xlint:lossy-conversions MyApp.java
+   ```
 
 - In Java, an assignment is an _expression_ and returns the assigned value, eg -
 
