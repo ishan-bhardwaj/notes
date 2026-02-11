@@ -93,8 +93,8 @@ public class MyApp {
 
 | Type     | Storage Requirement | Range                          | Default | Precision            |
 | -------- | ------------------- | ------------------------------ | ------- | -------------------- |
-| `float`  | 4 bytes             | $~±3.4 × 10^{38}$ (7 digits)   | 0.0f    | 6-7 decimal digits   |
-| `double` | 8 bytes             | $~±1.8 × 10^{308}$ (15 digits) | 0.0d    | 15-16 decimal digits |
+| `float`  | 4 bytes             | $±3.4 × 10^{38}$ (7 digits)    | `0.0f`  | 6-7 decimal digits   |
+| `double` | 8 bytes             | $±1.8 × 10^{308}$ (15 digits)  | `0.0d`  | 15-16 decimal digits |
 
 - Java 20 adds methods for half-precision (16-bit) floats -
   - `Float.floatToFloat16` & `Float.float16ToFloat` for storing “half-precision” 16-bit floating-point numbers in `short` values.
