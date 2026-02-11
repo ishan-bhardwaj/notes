@@ -100,17 +100,17 @@ public class MyApp {
   - `Float.floatToFloat16` & `Float.float16ToFloat` for storing “half-precision” 16-bit floating-point numbers in `short` values.
   - Used for implementing neural networks.
 
-- float literals end with `F` or `f`, eg - `3.14F`.
+- Float literals end with `F` or `f`, eg - `3.14F`.
 - Floating-point literals without `F` are `double` by default, though you can optionally use `D` or `d`, eg - `3.14D`.
 
-- `E` or `e` denotes a decimal exponent, eg - `1.729E3` = 1729.
+- `E` or `e` denotes a decimal exponent, eg - `1.729E3` = `1729`.
 
 - __Hexadecimal notation__ -
   - Floating-point literals can be written in hexadecimal.
   - Example - `0.125` (which is $2^{-3}$) can be written as - `0x1.0p-3`.
   - In hexadecimal floating literals -
     - Use `p` (not `e`) for the exponent.
-    - `e` is a hexadecimal digit.
+    - `e` itself is a hexadecimal digit.
     - Mantissa is hexadecimal and exponent is decimal.
     - The base of the exponent is `2`, not `10`.
 
@@ -118,14 +118,16 @@ public class MyApp {
   - There are 3 special values for overflow/errors -
     - Positive infinity
     - Negative infinity
-    - NaN (Not a Number)
+    - `NaN` (Not a Number)
   - Examples -
     - Positive number / 0 → Positive infinity
-    - 0.0 / 0 → NaN
-    - sqrt(negative number) → NaN
+    - 0.0 / 0 → `NaN`
+    - sqrt(negative number) → `NaN`
 
 > [!NOTE]
-> All “not a number” values (for both Double and Float) are considered distinct, therefore you _cannot_ use `x == Double.NaN` - because it will always return `false`. Better way - `Double.isNaN(x)`.
+> All “not a number” values (for both `Double` and `Float`) are considered distinct, therefore you _cannot_ use `x == Double.NaN` because it will always return `false`. 
+>
+> Better way - `Double.isNaN(x)`.
 
 > [!NOTE]
 > There are both positive and negative floating-point zeroes, `0.0` and `-0.0`, but `0.0 == -0.0` will always return `true`. To check whether a value is negative zero, use this test - `Double.compare(x, -0.0) == 0`.
@@ -168,7 +170,8 @@ public class MyApp {
 > [!WARNING]
 > You must beware of `\u` inside comments, eg - `// \u000A is a newline` - yields a syntax error since `\u000A` is replaced with a newline when the program is read.
 
-- You can use any number of `u` in a Unicode escape (e.g., `\u00E9` and `\uuu00E9` both mean `é`). This makes ASCII-only conversions reversible - a tool can add extra us to existing escapes and later restore them.
+- You can use any number of `u` in a Unicode escape (e.g., `\u00E9` and `\uuu00E9` both mean `é`). 
+  - This makes ASCII-only conversions reversible - a tool can add extra `u`'s to existing escapes and later restore them.
 
 ### `boolean` type
 
