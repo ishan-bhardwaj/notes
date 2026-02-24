@@ -625,10 +625,18 @@ Lock lock = new ReentrantLock();
 Condition condition = lock.newCondition();
 ```
 
-- `void await()` - unlock lock, wait until signalled.
-- `long awaitNanos(long nanosTimeout)` - wait no longer than `nanosTimeout`.
-- `boolean await(long time, TimeUnit unit)` - wait no longer than `time`, in given time units.
-- `boolean awaitUntil(Date deadline)` - wake up before the deadline date.
+- Awaiting -
+  - `void await()` - unlock lock, wait until signalled.
+  - `long awaitNanos(long nanosTimeout)` - wait no longer than `nanosTimeout`.
+  - `boolean await(long time, TimeUnit unit)` - wait no longer than `time`, in given time units.
+  - `boolean awaitUntil(Date deadline)` - wake up before the deadline date.
+
+- Signal -
+  - `void signal()` - wakes up only a single thread, waiting on the condition variable.
+  - A thread that wakes up has to reacquire the lock associated with the condition variable.
+  - If no thread is currently waiting on the condition variable, the signal method does not do anything.
+  - `void signalAll()` - broadcast a signal to all threads currently waiting on the condition variable.
+  
 
 - Example - a UI thread is waiting for user credentials and another thread fetches the username/password from the database (to keep the UI thread unlocked) -
 ```

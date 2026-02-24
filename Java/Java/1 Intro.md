@@ -314,8 +314,8 @@ Size s = Size.MEDIUM;           // declare variables of the enum type
 - `--` decreases a variable by 1.
 - Both operators only work on variables, not on literals (e.g., `4++` is illegal).
 - Two forms - 
-  - Prefix (`++x` / `--x`) - Value is changed before being used in an expression.
-  - Postfix - (`x++` / `x--`) - Value is used first, then changed afterward.
+  - Prefix (`++x` / `--x`) - value is changed before being used in an expression.
+  - Postfix - (`x++` / `x--`) - value is used first, then changed.
 
 - Example -
 
@@ -337,7 +337,7 @@ int b = 2 * n++;              // b = 14, n = 8
   - Logical NOT - `!`
 - __Short-circuit Evaluation__ -
   - `&&` stops evaluating if the first operand is `false`.
-  - `||` stops evaluating if the first operand is true.
+  - `||` stops evaluating if the first operand is `true`.
 
 - __Conditional Operator (`?:`)__ -
   - Syntax - `condition ? expression1 : expression2`
@@ -346,7 +346,7 @@ int b = 2 * n++;              // b = 14, n = 8
 ### Bitwise Operators
 
 - Work on bit patterns - `&` ("and"), `|` ("or"), `^` ("xor"), `~` ("not").
-- `&` and `|` work on boolean values and return boolean - similar to `&&` and `||` - but they do not provide short-circuiting i.e. both operands are always evaluated before result is computed.
+- `&` and `|` work on boolean values also and return `boolean` - similar to `&&` and `||` - but they do not provide short-circuiting i.e. both operands are always evaluated before result is computed.
 
 - __Bit Shift operators__ -
   - `<<` - left shift
@@ -366,7 +366,7 @@ double x = 4;
 double y = 2;
 
 Math.sqrt(x);       // square-root - 2.0
-Math.pow(x, y)      // Power - 16
+Math.pow(x, y)      // Power - 16.0
 
 double x = 9.997;
 Math.round(x);      // round a floating-point number to the nearest integer - 10
@@ -390,7 +390,7 @@ Math.log
 Math.log10
 ```
 
-- `Math.clamp` that forces a number to fit within given bounds -
+- `Math.clamp` forces a number to fit within given bounds -
 
 ```
 Math.clamp(-1, 0, 10)         // too small, yields lower bound 0
@@ -518,7 +518,7 @@ switch (choice) {
 ## Strings
 
 - Java strings are sequences of `char` values.
-- The JVM may store strings as byte sequences for single-byte characters and as char sequences for others, rather than always using char[].
+- The JVM may store strings as byte sequences for single-byte characters and as char sequences for others, rather than always using `char[]`.
 
 - __Strings are immutable__ - 
   - You cannot change a character inside an existing string.
@@ -564,13 +564,13 @@ switch (choice) {
 | `isBlank()`                                               | Returns `true` if the string is empty or whitespace                            |
 | `startsWith(String prefix)`                               | Returns `true` if the string starts with `prefix`                              |
 | `endsWith(String suffix)`                                 | Returns `true` if the string ends with `suffix`                                |
-| `indexOf(String str)`                                     | Index of first occurrence of `str`, or -1                                      |
-| `indexOf(String str, int fromIndex)`                      | First occurrence starting from `fromIndex`, or -1                              |
-| `indexOf(String str, int fromIndex, int toIndex)`         | First occurrence between `fromIndex` and `toIndex`, or -1                      |
-| `lastIndexOf(String str)`                                 | Index of last occurrence of `str`, or -1                                       |
-| `lastIndexOf(String str, int fromIndex)`                  | Last occurrence up to `fromIndex`, or -1                                       |
+| `indexOf(String str)`                                     | Index of first occurrence of `str`, or `-1`                                      |
+| `indexOf(String str, int fromIndex)`                      | First occurrence starting from `fromIndex`, or `-1`                              |
+| `indexOf(String str, int fromIndex, int toIndex)`         | First occurrence between `fromIndex` and `toIndex`, or `-1`                      |
+| `lastIndexOf(String str)`                                 | Index of last occurrence of `str`, or `-1`                                       |
+| `lastIndexOf(String str, int fromIndex)`                  | Last occurrence up to `fromIndex`, or `-1`                                       |
 | `replace(CharSequence oldString, CharSequence newString)` | Returns a new string replacing all occurrences of `oldString` with `newString` |
-| `substring(int beginIndex)`                               | Returns substring from `beginIndex` to end                                     |
+| `substring(int beginIndex)`                               | Returns substring from `beginIndex` to the end                                     |
 | `substring(int beginIndex, int endIndex)`                 | Returns substring from `beginIndex` to `endIndex - 1`                          |
 | `toLowerCase()`                                           | Returns a new string in lowercase                                              |
 | `toUpperCase()`                                           | Returns a new string in uppercase                                              |
