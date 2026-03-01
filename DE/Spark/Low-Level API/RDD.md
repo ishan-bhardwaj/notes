@@ -231,139 +231,102 @@ pairs = lines.map(lambda s: (s, 1))
 counts = pairs.reduceByKey(lambda a, b: a + b)
 ```
 
-## Core Metadata & Introspection
+## Shuffle
 
-| Method               | Usage                    | Description                                                                                                  | Caveats / Notes                                                    |
-| -------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| `id()`               | `rdd.id()`               | Returns a unique identifier for this RDD within its SparkContext. Useful for debugging and lineage tracking. | Read-only; primarily for internal/debugging use.                   |
-| `name()`             | `rdd.name()`             | Returns the name assigned to the RDD. Helps identify RDDs in Spark UI.                                       | Returns `None` if not set.                                         |
-| `setName()`          | `rdd.setName("name")`    | Assigns a human-readable name to the RDD for logging and UI visibility.                                      | Optional; can be updated anytime before action execution.          |
-| `getNumPartitions()` | `rdd.getNumPartitions()` | Returns the number of partitions in the RDD. Determines parallelism and task scheduling.                     | Changing partition count requires `repartition()` or `coalesce()`. |
-| `context`            | `rdd.context`            | SparkContext that created this RDD. Useful for accessing configuration and resources.                        | Read-only.                                                         |
-| `toDebugString()`    | `rdd.toDebugString()`    | Returns a lineage string showing the dependency DAG of the RDD, including parent RDDs and transformations.   | Useful to analyze lineage and optimize shuffles.                   |
+- Shuffle is the process of redistributing data across partitions in Spark so that transformations requiring co-location, grouping, or aggregation can execute correctly.
+- Spark tasks operate independently per partition. If the required data for an operation (like all values for a key) is scattered across multiple partitions or nodes, Spark must move the data to the correct partitions. This movement is called a shuffle.
+- Common operations that trigger shuffle -
+  - ByKey operations - `reduceByKey`, `groupByKey`, `aggregateByKey` — all values for a key must be combined in a single partition.
+  - Join operations - `join`, `cogroup`, `leftOuterJoin`, `rightOuterJoin`, `fullOuterJoin` — data from different RDDs must be co-located by key.
+  - Repartition operations - `repartition` (always triggers shuffle), `coalesce` (only if shuffle is enabled) — to increase or decrease partitions while redistributing data.
 
-## Transformations
+- __Shuffle Characteristics__ -
+  - Partition determinism - The number of partitions in the resulting shuffled RDD is deterministic and predictable.
+  - Element ordering - Elements within each partition are not ordered by default.
+    - How to achieve ordering -
+      - Use `mapPartitions` + `.sorted` to sort elements locally within each partition.
+      - Use `repartitionAndSortWithinPartitions` to efficiently repartition and sort in one operation.
+      - Use `sortBy` to achieve a global ordering across all partitions.
 
-| Method                                                          | Usage                                                   | Description                                                                                  | Caveats / Notes                                                           |
-| --------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `map(f)`                                                        | `rdd.map(lambda x: x*2)`                                | Applies a function `f` to every element and returns a new RDD with transformed elements.     | Narrow transformation; does not shuffle.                                  |
-| `flatMap(f)`                                                    | `rdd.flatMap(lambda x: [x, x*2])`                       | Applies `f` returning an iterable per element and flattens results.                          | Saves extra flattening step vs `map().flatten()`.                         |
-| `filter(f)`                                                     | `rdd.filter(lambda x: x>5)`                             | Returns elements that satisfy a predicate function.                                          | Narrow transformation.                                                    |
-| `distinct([numPartitions])`                                     | `rdd.distinct()`                                        | Removes duplicate elements across partitions.                                                | Wide transformation; involves shuffle and sort.                           |
-| `union(other)`                                                  | `rdd.union(rdd2)`                                       | Returns a new RDD with elements from both RDDs.                                              | Does not remove duplicates.                                               |
-| `intersection(other)`                                           | `rdd.intersection(rdd2)`                                | Returns elements common to both RDDs.                                                        | Wide transformation; shuffle-heavy.                                       |
-| `subtract(other)`                                               | `rdd.subtract(rdd2)`                                    | Returns elements in this RDD that are not in the other.                                      | Wide transformation; requires shuffle.                                    |
-| `sample(withReplacement, fraction, seed)`                       | `rdd.sample(False, 0.1, 42)`                            | Returns a sampled subset of the RDD with optional replacement.                               | Random; seed controls reproducibility.                                    |
-| `randomSplit(weights, seed)`                                    | `rdd.randomSplit([0.7, 0.3], 42)`                       | Splits RDD into multiple RDDs using weights.                                                 | Weighted splits; reproducible with seed.                                  |
-| `sortBy(keyfunc, ascending=True, numPartitions=None)`           | `rdd.sortBy(lambda x: x[1])`                            | Sorts RDD by a key function.                                                                 | Wide transformation; expensive shuffle.                                   |
-| `sortByKey(ascending=True, numPartitions=None)`                 | `rdd.sortByKey()`                                       | Sorts key-value RDD by keys.                                                                 | Requires shuffle.                                                         |
-| `mapValues(f)`                                                  | `rdd.mapValues(lambda v: v*2)`                          | Applies function to values of a pair RDD, keeping keys unchanged.                            | Preserves partitioner; no shuffle if partitioner unchanged.               |
-| `flatMapValues(f)`                                              | `rdd.flatMapValues(lambda v: [v, v*2])`                 | Like `mapValues` but flattens iterables returned.                                            | Preserves partitioner.                                                    |
-| `keyBy(f)`                                                      | `rdd.keyBy(lambda x: x%2)`                              | Converts each element into a key-value pair `(key, element)` using `f`.                      | May trigger shuffle in subsequent key-based operations.                   |
-| `mapPartitions(f)`                                              | `rdd.mapPartitions(lambda iter: [x*2 for x in iter])`   | Applies `f` to each partition instead of individual elements.                                | Useful for expensive initialization (DB/API connections).                 |
-| `mapPartitionsWithIndex(f)`                                     | `rdd.mapPartitionsWithIndex(lambda idx, iter: iter)`    | Like `mapPartitions` but passes partition index to `f`.                                      | Can be used for partition-specific logic.                                 |
-| `zip(other)`                                                    | `rdd.zip(rdd2)`                                         | Zips two RDDs element-wise into pairs.                                                       | RDDs must have identical number of partitions and elements per partition. |
-| `zipWithIndex()`                                                | `rdd.zipWithIndex()`                                    | Zips elements with sequential index.                                                         | Adds unique index; preserves partitioning.                                |
-| `zipWithUniqueId()`                                             | `rdd.zipWithUniqueId()`                                 | Zips elements with globally unique 64-bit IDs.                                               | IDs may not be sequential per partition.                                  |
-| `cartesian(other)`                                              | `rdd.cartesian(rdd2)`                                   | Returns all pairs of elements (Cartesian product).                                           | Extremely expensive; memory-intensive.                                    |
-| `coalesce(numPartitions, shuffle=False)`                        | `rdd.coalesce(2)`                                       | Reduces number of partitions. Avoids full shuffle if `shuffle=False`.                        | Use `repartition()` to increase partitions.                               |
-| `repartition(numPartitions)`                                    | `rdd.repartition(10)`                                   | Randomly reshuffles data to create the specified number of partitions.                       | Always triggers a shuffle.                                                |
-| `repartitionAndSortWithinPartitions(partitioner)`               | `rdd.repartitionAndSortWithinPartitions(partitioner)`   | Repartitions and sorts keys within each partition efficiently.                               | More efficient than separate `repartition` + `sortByKey`.                 |
-| `groupBy(f)`                                                    | `rdd.groupBy(lambda x: x%2)`                            | Groups elements by a function. Returns `(key, iterable)` RDD.                                | Wide transformation; avoid for aggregation, prefer `reduceByKey`.         |
-| `groupByKey([numPartitions])`                                   | `rdd.groupByKey()`                                      | Groups values for each key into iterable.                                                    | Shuffle-heavy; use `reduceByKey` or `aggregateByKey` for aggregation.     |
-| `reduceByKey(func, [numPartitions])`                            | `rdd.reduceByKey(lambda x,y: x+y)`                      | Aggregates values per key using local combine before shuffle.                                | Preferred over `groupByKey`.                                              |
-| `aggregateByKey(zeroValue)(seqFunc, combFunc, [numPartitions])` | `rdd.aggregateByKey(0)(lambda x,y:x+y, lambda x,y:x+y)` | Aggregates per key using separate functions for per-partition and cross-partition combining. | Efficient and flexible; avoids unnecessary allocations.                   |
-| `join(other, [numPartitions])`                                  | `rdd.join(rdd2)`                                        | Returns `(K, (V,W))` pairs for keys present in both RDDs.                                    | Wide transformation; shuffle required.                                    |
-| `leftOuterJoin(other, [numPartitions])`                         | `rdd.leftOuterJoin(rdd2)`                               | Returns all left keys with optional right values.                                            | Shuffle required.                                                         |
-| `rightOuterJoin(other, [numPartitions])`                        | `rdd.rightOuterJoin(rdd2)`                              | Returns all right keys with optional left values.                                            | Shuffle required.                                                         |
-| `fullOuterJoin(other, [numPartitions])`                         | `rdd.fullOuterJoin(rdd2)`                               | Returns all keys from both RDDs.                                                             | Shuffle required.                                                         |
-| `cogroup(other, [numPartitions])`                               | `rdd.cogroup(rdd2)`                                     | Groups values from multiple RDDs sharing keys.                                               | Shuffle-intensive; alias `groupWith`.                                     |
-| `groupWith(other, *others)`                                     | `rdd.groupWith(rdd2)`                                   | Alias for `cogroup` supporting multiple RDDs.                                                | Same as above.                                                            |
-| `pipe(command, [envVars])`                                      | `rdd.pipe("cat")`                                       | Pipes each partition through an external shell command.                                      | Expensive; use only when necessary.                                       |
+- __Performance Impact__ -
+  - Why shuffles are expensive -
+    - Disk I/O - If data does not fit in memory, Spark spills intermediate data to disk.
+    - Serialization - Data must be serialized to be transferred across the network.
+    - Network I/O - Data is physically transferred between executors/nodes.
+  - Task behavior during shuffle -
+    - Map tasks - Organize data by the target partition and prepare it for transfer.
+    - Reduce tasks - Aggregate, join, or combine data in the correct partition after transfer.
+  - Memory usage during shuffle -
+    - Operations like `reduceByKey` and `aggregateByKey` use in-memory hash tables to combine values before sending them across partitions.
+    - Many `ByKey` operations also maintain hash tables on the reduce side to merge incoming data.
+    - If data exceeds available memory, Spark spills data to disk, increasing I/O and garbage collection (GC) overhead.
+  - Intermediate files -
+    - Spark generates many temporary files during shuffle, one per map task per reduce partition.
+    - These files persist until the RDDs are garbage collected, which can take a long time in long-running jobs.
+    - The temporary storage location is controlled by `spark.local.dir`.
+    - Unmanaged disk usage can cause disk exhaustion in long-running jobs.
 
-## Actions
+- __Tuning & Optimization__ -
+  - Reduce shuffle size -
+    - Filter or sample the data before shuffle to avoid unnecessary movement.
+    - Prefer `reduceByKey` over `groupByKey` to combine values on the map side, reducing shuffle volume.
+  - Repartitioning strategies -
+    - Use `coalesce` without shuffle to reduce the number of partitions after filtering, minimizing unnecessary data movement.
+    - Use `repartition` carefully; it always triggers a full shuffle and is expensive.
+  - Sorting strategies -
+    - Use `repartitionAndSortWithinPartitions` when you need sorted data and repartitioning, for maximum efficiency.
+  - Memory management -
+    - Increase executor memory if shuffles frequently spill to disk.
+    - Tune `spark.shuffle.file.buffer` and `spark.reducer.maxSizeInFlight` to optimize shuffle performance.
+  - Disk management -
+    - Periodically clean temporary shuffle files in long-running applications.
+    - Monitor `spark.local.dir` to prevent disk space exhaustion.
 
-| Method                                     | Usage                                              | Description                                                 | Caveats / Notes                                            |
-| ------------------------------------------ | -------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------- |
-| `collect()`                                | `rdd.collect()`                                    | Returns all elements to driver as a list.                   | Can OOM on large datasets; avoid unless small RDD.         |
-| `count()`                                  | `rdd.count()`                                      | Counts number of elements.                                  | Triggers full DAG execution.                               |
-| `first()`                                  | `rdd.first()`                                      | Returns first element.                                      | Equivalent to `take(1)[0]`.                                |
-| `take(n)`                                  | `rdd.take(10)`                                     | Returns first `n` elements as list.                         | Safer than `collect()` for large RDDs.                     |
-| `takeOrdered(n, [key])`                    | `rdd.takeOrdered(5)`                               | Returns `n` smallest elements by default or custom key.     | Triggers partial shuffle.                                  |
-| `takeSample(withReplacement, num, seed)`   | `rdd.takeSample(False, 10, 42)`                    | Returns sampled elements as list.                           | Random; seed ensures reproducibility.                      |
-| `reduce(func)`                             | `rdd.reduce(lambda x,y: x+y)`                      | Aggregates elements using commutative associative function. | Triggers shuffle for wide operations.                      |
-| `sum()`                                    | `rdd.sum()`                                        | Adds all numeric elements.                                  | Shuffles under the hood if distributed.                    |
-| `max()` / `min()`                          | `rdd.max()`                                        | Returns max or min element.                                 | Can accept `key` argument.                                 |
-| `mean()`                                   | `rdd.mean()`                                       | Computes arithmetic mean.                                   | Uses `sum` and `count` internally.                         |
-| `stats()`                                  | `rdd.stats()`                                      | Returns StatCounter object with count, mean, variance, etc. | Computed in one pass; distributed.                         |
-| `countByValue()`                           | `rdd.countByValue()`                               | Returns dictionary of value counts.                         | Driver memory sensitive.                                   |
-| `countByKey()`                             | `rdd.countByKey()`                                 | Returns dictionary of key counts.                           | Driver memory sensitive; for key-value RDDs.               |
-| `collectAsMap()`                           | `rdd.collectAsMap()`                               | Returns key-value RDD as dictionary.                        | Assumes unique keys; OOM possible.                         |
-| `lookup(key)`                              | `rdd.lookup(k)`                                    | Returns list of values for the key.                         | Runs separate job per key; expensive for many keys.        |
-| `foreach(f)`                               | `rdd.foreach(lambda x: print(x))`                  | Runs function for side effects on each element.             | Do not modify driver variables directly; use Accumulators. |
-| `foreachPartition(f)`                      | `rdd.foreachPartition(lambda iter: writeDB(iter))` | Runs function per partition.                                | Efficient for batched writes.                              |
-| `toLocalIterator(prefetchPartitions=None)` | `rdd.toLocalIterator()`                            | Lazily iterates elements without collecting all at driver.  | Useful for streaming large datasets.                       |
-| `top(n, [key])`                            | `rdd.top(5)`                                       | Returns top N elements according to key.                    | Wide operation; shuffle-intensive.                         |
+## RDD Persistence
 
-## Persistence & Checkpointing
+- Allows a dataset (RDD) to be stored in memory across operations.
+- When persisted -
+  - Each node stores computed partitions locally.
+  - Future actions reuse cached partitions instead of recomputing.
+- To persist an RDD - `persist()` or `cache()`.
+- Persistence is lazy - data is cached only when first action runs.
+- Cache happens partition-wise on executors.
+- Spark’s cache is fault-tolerant – if any partition of an RDD is lost, Spark recomputes it from lineage DAG.
 
-| Method                    | Usage                                       | Description                                              | Caveats / Notes                                            |
-| ------------------------- | ------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
-| `cache()`                 | `rdd.cache()`                               | Persist RDD in memory using default level (MEMORY_ONLY). | Avoid caching very large RDDs used once.                   |
-| `persist([storageLevel])` | `rdd.persist(StorageLevel.MEMORY_AND_DISK)` | Persist with custom storage level.                       | Choose level based on memory and recomputation trade-offs. |
-| `unpersist([blocking])`   | `rdd.unpersist()`                           | Remove RDD from memory/disk.                             | Use after last use.                                        |
-| `checkpoint()`            | `rdd.checkpoint()`                          | Persist RDD to reliable storage to truncate lineage.     | Requires HDFS or similar.                                  |
-| `localCheckpoint()`       | `rdd.localCheckpoint()`                     | Persist RDD locally in executor storage.                 | Faster but less fault-tolerant.                            |
-| `isCheckpointed()`        | `rdd.isCheckpointed()`                      | Returns True if checkpoint exists.                       | Useful for DAG analysis.                                   |
-| `getCheckpointFile()`     | `rdd.getCheckpointFile()`                   | Returns checkpoint file path.                            | Only if checkpointed.                                      |
-| `getStorageLevel()`       | `rdd.getStorageLevel()`                     | Returns current persistence level.                       | Helpful for debugging memory usage.                        |
+> [!TIP] 
+> Spark also automatically persists some intermediate data in shuffle operations (e.g. `reduceByKey`) to avoid recomputing the entire input if a node fails during the shuffle. Explicitly persisting the RDD is still recommended.
 
-## Statistical Functions
+- __Storage Levels__ -
 
-| Method               | Usage                         | Description                                          | Caveats / Notes                      |
-| -------------------- | ----------------------------- | ---------------------------------------------------- | ------------------------------------ |
-| `variance()`         | `rdd.variance()`              | Computes variance of RDD elements.                   | Full pass over data.                 |
-| `sampleVariance()`   | `rdd.sampleVariance()`        | Sample variance corrected for bias (divided by N-1). | Corrects bias for sample statistics. |
-| `stdev()`            | `rdd.stdev()`                 | Computes standard deviation.                         | Derived from `variance()`.           |
-| `sampleStdev()`      | `rdd.sampleStdev()`           | Sample standard deviation.                           | Bias-corrected.                      |
-| `histogram(buckets)` | `rdd.histogram([0,10,20,30])` | Computes histogram over given buckets.               | Wide transformation; shuffle-heavy.  |
+| Storage Level         | Meaning (Detailed)                                                                                                 | Performance                  | Memory Usage   | Fault Tolerance                                | When to Use                                                                            | When NOT to Use                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------- | -------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| MEMORY_ONLY           | Stores deserialized objects in JVM memory. If partitions don’t fit, they are recomputed on-the-fly. Default level. | Fastest                      | High           | Lost partitions recomputed from lineage        | Iterative algorithms, ML loops, small/medium datasets that fit in memory               | Large datasets exceeding memory; memory-constrained clusters |
+| MEMORY_AND_DISK       | Stores deserialized objects in memory; partitions that don’t fit spill to disk and are read when needed.           | Fast (memory), medium (disk) | Medium-High    | Lost partitions read from disk or recomputed   | Slightly larger datasets than memory; expensive transformations; multi-stage pipelines | Disk I/O slow; cheap-to-recompute datasets                   |
+| MEMORY_ONLY_SER       | Stores serialized objects (byte arrays) in JVM memory. Saves memory but adds CPU overhead for deserialization.     | Medium                       | Low            | Lost partitions recomputed                     | Memory-constrained clusters; large datasets fitting in memory                          | CPU-bound workloads; latency-sensitive interactive pipelines |
+| MEMORY_AND_DISK_SER   | Stores serialized objects in memory first; excess spilled to disk. Reduces memory usage while allowing reuse.      | Medium                       | Low            | Lost partitions read from disk or recomputed   | Large datasets; memory-limited clusters; expensive to recompute                        | CPU-saturated workloads                                      |
+| DISK_ONLY             | Stores partitions only on disk; no memory used. All reads go to disk.                                              | Slowest                      | Minimal        | Lost partitions read from disk                 | Huge datasets; memory unavailable; recomputation very expensive                        | Iterative or low-latency workloads                           |
+| MEMORY_ONLY_2         | Same as MEMORY_ONLY **but each partition is replicated on 2 cluster nodes**. Replication factor = 2.               | Fast                         | Very High      | Replica used immediately; avoids recomputation | High-availability workloads; low-latency serving; mission-critical iterative jobs      | Memory-constrained clusters; extremely large datasets        |
+| MEMORY_AND_DISK_2     | Same as MEMORY_AND_DISK **but replicated on 2 nodes**. Replication factor = 2.                                     | Fast (memory), medium (disk) | Very High      | Replica used immediately                       | Critical pipelines needing redundancy and fast recovery                                | Disk or memory limited clusters                              |
+| MEMORY_ONLY_SER_2     | Same as MEMORY_ONLY_SER **with 2-node replication**. Replication factor = 2.                                       | Medium                       | Medium         | Replica used instantly                         | Memory-constrained but need redundancy; interactive serving                            | CPU-heavy workloads; clusters under high CPU load            |
+| MEMORY_AND_DISK_SER_2 | Same as MEMORY_AND_DISK_SER **replicated on 2 nodes**. Replication factor = 2.                                     | Medium                       | Medium         | Replica used if node fails                     | Large critical datasets with memory pressure + high fault tolerance                    | CPU-heavy pipelines; low-latency workloads                   |
+| DISK_ONLY_2           | Same as DISK_ONLY **replicated on 2 nodes**. Replication factor = 2.                                               | Slow                         | High           | Replica used                                   | Very large datasets; memory unavailable; reliability critical                          | Interactive or low-latency jobs                              |
+| OFF_HEAP              | Stores serialized objects outside JVM heap in off-heap memory. Requires off-heap enabled. Replication factor = 1.  | Medium                       | Low (off-heap) | Lost partitions recomputed                     | Reduce GC pressure; large memory workloads; long-running jobs                          | Off-heap not configured; insufficient off-heap memory        |
 
-## Input/Output Operations
 
-| Method                                                                      | Usage                             | Description                                 | Caveats / Notes                                       |
-| --------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------- | ----------------------------------------------------- |
-| `saveAsTextFile(path[, codec])`                                             | `rdd.saveAsTextFile("out")`       | Writes elements as text files.              | Many small files can slow downstream; coalesce first. |
-| `saveAsSequenceFile(path[, codec])`                                         | `rdd.saveAsSequenceFile("out")`   | Saves key-value RDD as Hadoop SequenceFile. | Only for key-value RDDs.                              |
-| `saveAsPickleFile(path[, batchSize])`                                       | `rdd.saveAsPickleFile("out.pkl")` | Saves elements as serialized objects.       | Requires Python; driver read can be expensive.        |
-| `saveAsHadoopFile()` / `saveAsNewAPIHadoopFile()` / `saveAsHadoopDataset()` | Various Hadoop APIs               | Output RDD as Hadoop dataset/files.         | Complex API; mainly for Hadoop integration.           |
-| `pipe(cmd)`                                                                 | `rdd.pipe("cat")`                 | Pipes partitions to external shell process. | Expensive; only if necessary.                         |
+> [!NOTE]
+> In Python, stored objects will always be serialized with the Pickle library, so it does not matter whether you choose a serialized level. The available storage levels in Python include `MEMORY_ONLY`, `MEMORY_ONLY_2`, `MEMORY_AND_DISK`, `MEMORY_AND_DISK_2`, `DISK_ONLY`, `DISK_ONLY_2`, and `DISK_ONLY_3`.
 
-## Partitioning & Execution Control
+- __Automatic Cache Monitoring__ -
+  - Spark automatically monitors memory usage on each executor/node.
+  - Cached RDD partitions are removed when memory pressure occurs using Least Recently Used (LRU) policy.
 
-| Method                                        | Usage                            | Description                                                | Caveats / Notes                                |
-| --------------------------------------------- | -------------------------------- | ---------------------------------------------------------- | ---------------------------------------------- |
-| `partitionBy(numPartitions[, partitionFunc])` | `rdd.partitionBy(10)`            | Repartition RDD using a custom partitioner.                | Useful before joins to reduce shuffle.         |
-| `glom()`                                      | `rdd.glom()`                     | Returns RDD where each partition is a list of elements.    | Materializes partitions; mainly for debugging. |
-| `barrier()`                                   | `rdd.barrier()`                  | Marks stage as barrier stage; all tasks launched together. | Useful for synchronizing parallel stages.      |
-| `withResources(profile)`                      | `rdd.withResources(profile)`     | Assigns a ResourceProfile to execution.                    | Optional; mostly advanced scheduling.          |
-| `cleanShuffleDependencies([blocking])`        | `rdd.cleanShuffleDependencies()` | Removes shuffle files and non-persisted ancestors.         | Frees memory; useful for iterative pipelines.  |
+- __Manual RDD Removal with `unpersist()`__ -
+  - Removes an RDD from memory and/or disk cache.
+  - Non-blocking by default.
+  - Blocking removal - `rdd.unpersist(blocking = true)`
 
-## Performance Best-Practices
+> [!TIP]
+> `cache()` internally calls `persist(StorageLevel.MEMORY_ONLY)`.
 
-| Rule                                                     | Applies To      | Why It Matters                             | Tip / Recommendation                                            |
-| -------------------------------------------------------- | --------------- | ------------------------------------------ | --------------------------------------------------------------- |
-| Prefer `reduceByKey` / `aggregateByKey`                  | Aggregation     | Reduces shuffle compared to `groupByKey`   | Avoid `groupByKey` for summing/aggregating values               |
-| Avoid `collect()` on large RDDs                          | Actions         | Can cause driver OOM                       | Use `take()`, `foreachPartition()`, or save to storage          |
-| Cache reused RDDs                                        | Persistence     | Prevents recomputation                     | `cache()` / `persist()` only if reused                          |
-| Use correct storage level                                | Persistence     | Trade-off between memory and recomputation | `MEMORY_ONLY` for fast access, `MEMORY_AND_DISK` for large RDDs |
-| Use `mapPartitions()` for expensive init                 | Transformations | Avoid per-record setup overhead            | Initialize DB/API connections per partition                     |
-| Use `sample()` or `sampleByKey()` early                  | Sampling        | Reduces dataset before heavy ops           | Helps debugging and mitigates skew                              |
-| Avoid `cartesian()` unless tiny                          | Transformations | Explodes memory & shuffle                  | Only use for small datasets                                     |
-| Use `coalesce()` to reduce partitions                    | Partitioning    | Avoids full shuffle                        | Only for decreasing partitions; use `repartition()` to increase |
-| Repartition for load balancing                           | Partitioning    | Prevents skewed partitions                 | After filters or uneven splits                                  |
-| Avoid large closures                                     | Serialization   | Increases task size and network cost       | Broadcast large objects instead                                 |
-| Persist before multiple joins                            | Joins           | Avoid recomputation                        | Cache intermediate RDDs                                         |
-| Use `treeReduce()` / `treeAggregate()` for large cluster | Aggregation     | Reduces driver bottleneck                  | Improves scalability                                            |
-| Control shuffle partitions                               | Shuffles        | Default may be inefficient                 | Tune `spark.sql.shuffle.partitions` or RDD partitioning         |
-| Avoid excessive actions                                  | Execution       | Each action triggers job                   | Chain transformations before action                             |
 
+  
