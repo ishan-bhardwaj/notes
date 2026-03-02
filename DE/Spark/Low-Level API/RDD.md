@@ -333,109 +333,112 @@ counts = pairs.reduceByKey(lambda a, b: a + b)
 - When functions used in Spark transformations (e.g., `map`, `reduce`) run on remote executors, each executor works on its own copy of variables referenced inside the function.
 - Changes made to these variables on executors _are not_ propagated back to the driver.
 - Spark avoids general read-write shared variables because they would be inefficient and hard to synchronize in distributed systems.
-- However, Spark does provide two limited types of shared variables -
-  - __Broadcast Variables__ -
-    - Let you cache a read-only variable on each executor instead of sending it with every task.
-      - Without broadcast - Each task ships its own copy of the variable, leading to high network I/O, serialization overhead, slower execution.
-      - With broadcast - data is sent once per executor and then tasks reuse local cached copy.
-    - Useful for distributing large shared datasets efficiently.
-    - Spark also attempts to distribute broadcast variables using efficient broadcast algorithms to reduce communication cost.
-    - Spark’s Automatic Broadcasting -
-      - Spark automatically broadcasts common data needed by tasks _within_ each stage.
-      - Broadcasted data is cached in serialized form and deserialized before each task runs.
-    - Explicit Broadcast Is needed when -
-      - Multiple stages need same data - since automatic broadcast only works within a single stage.
-      - You want deserialized caching - manual broadcast allows executors to reuse deserialized objects.
-    - Creating a broadcast variable - 
-      ```
-      v = [1, 2, 3]
-      broadcastVar = sc.broadcast(v)
-      <pyspark.core.broadcast.Broadcast object at 0x102789f10>
-      ```
+- However, Spark does provide two limited types of shared variables - Broadcast Variables and Accumulators.
+  
+### Broadcast Variables 
 
-    - Accessing value from a broadcast variable - `broadcastVar.value`
-    - After broadcasting, always use `broadcastVar.value` inside tasks.
-    - Immutability Requirement -
-      - The original variable `v` must not be modified after broadcasting.
-      - Ensures all executors receive identical data.
-      - New executors joining later will receive original value.
-    - Release the resources -
-      - `.unpersist()` -
-        - Removes cached copies from executors.
-        - If used again → Spark re-broadcasts it.
-        - Non-blocking by default.
-        - To block until deletion - `.unpersist(blocking=True)`
-      - `.destroy()` -
-        - Permanently deletes broadcast variable.
-        - Frees all resources used by it.
-        - Cannot be used again after calling.
-        - Also non-blocking by default.
-        - To block - `.destroy(blocking=True)`
+- Let you cache a read-only variable on each executor instead of sending it with every task.
+  - Without broadcast - Each task ships its own copy of the variable, leading to high network I/O, serialization overhead, slower execution.
+  - With broadcast - data is sent once per executor and then tasks reuse local cached copy.
+- Useful for distributing large shared datasets efficiently.
+- Spark also attempts to distribute broadcast variables using efficient broadcast algorithms to reduce communication cost.
+- Spark’s Automatic Broadcasting -
+  - Spark automatically broadcasts common data needed by tasks _within_ each stage.
+  - Broadcasted data is cached in serialized form and deserialized before each task runs.
+- Explicit Broadcast Is needed when -
+  - Multiple stages need same data - since automatic broadcast only works within a single stage.
+  - You want deserialized caching - manual broadcast allows executors to reuse deserialized objects.
+- Creating a broadcast variable - 
+```
+v = [1, 2, 3]
+broadcastVar = sc.broadcast(v)
+<pyspark.core.broadcast.Broadcast object at 0x102789f10>
+```
 
-  - __Accumulators__ -
-    - Accumulators are shared variables that can only be added to using _associative_ and _commutative_ operations.
-    - Designed for efficient parallel aggregation.
-    - Typical uses - counters, total, metrics tracking.
-    - Only driver can read the value of accumulators. Executors can only add values to it, but cannot read it.
-    - Supported types -
-      - Spark provides built-in accumulators for numeric types.
-      - Developers can create custom accumulator types if needed.
-    - Named Accumulators -
-      - Appear in Spark Web UI.
-      - Visible in stage details.
-      - Show per-task updates in Tasks table.
-      - UI tracking is not supported in Python yet.
-    - Creating accumulator using an initial value `v` - `sc.accumulator(v)`
-    - Inside tasks, update using - `.add(value)` or `+=`
-    - Example -
-      ```
-      accum = sc.accumulator(0)
-      sc.parallelize([1,2,3,4]).foreach(lambda x: accum.add(x))
-      accum.value                       # 10 - only driver can read it
-      ```
+- Accessing value from a broadcast variable - `broadcastVar.value`
+- After broadcasting, always use `broadcastVar.value` inside tasks.
+- Immutability Requirement -
+  - The original variable `v` must not be modified after broadcasting.
+  - Ensures all executors receive identical data.
+  - New executors joining later will receive original value.
+- Release the resources -
+  - `.unpersist()` -
+    - Removes cached copies from executors.
+    - If used again → Spark re-broadcasts it.
+    - Non-blocking by default.
+    - To block until deletion - `.unpersist(blocking=True)`
+  - `.destroy()` -
+    - Permanently deletes broadcast variable.
+    - Frees all resources used by it.
+    - Cannot be used again after calling.
+    - Also non-blocking by default.
+    - To block - `.destroy(blocking=True)`
 
-    - Define your own accumulator type by subclassing `AccumulatorParam`
-      - Must implement -
-        - `zero(initialValue)` - returns zero/default value.
-        - `addInPlace(v1,v2)` - combines two values.
+### Accumulators
 
-    - String concatenation accumulator -
-      ```
-      class StringAccumParam(AccumulatorParam):
-        def zero(self, initialValue):
-          return ""
+- Accumulators are shared variables that can only be added to using _associative_ and _commutative_ operations.
+- Designed for efficient parallel aggregation.
+- Typical uses - counters, total, metrics tracking.
+- Only driver can read the value of accumulators. Executors can only add values to it, but cannot read it.
+- Supported types -
+  - Spark provides built-in accumulators for numeric types.
+  - Developers can create custom accumulator types if needed.
+- Named Accumulators -
+  - Appear in Spark Web UI.
+  - Visible in stage details.
+  - Show per-task updates in Tasks table.
+  - UI tracking is not supported in Python yet.
+- Creating accumulator using an initial value `v` - `sc.accumulator(v)`
+  - Inside tasks, update using - `.add(value)` or `+=`
+  - Example -
+  ```
+  accum = sc.accumulator(0)
+  sc.parallelize([1,2,3,4]).foreach(lambda x: accum.add(x))
+  accum.value                       # 10 - only driver can read it
+  ```
 
-        def addInPlace(self, v1, v2):
-          return v1 + v2
+- Define your own accumulator type by subclassing `AccumulatorParam`
+  - Must implement -
+    - `zero(initialValue)` - returns zero/default value.
+    - `addInPlace(v1,v2)` - combines two values.
 
-      strAccum = sc.accumulator("", StringAccumParam())
-      ```
+- String concatenation accumulator -
+```
+class StringAccumParam(AccumulatorParam):
+  def zero(self, initialValue):
+    return ""
 
-    - Fault tolerance behavior -
-      - Inside actions -
-        - Each task update applied only once. 
-        - Even if task restarts, value is not duplicated.
-      - Inside transformations -
-        - Updates may be applied multiple times if task retries or stage recomputed.
-        - Therefore, avoid relying on accumulator correctness inside transformations.
+  def addInPlace(self, v1, v2):
+    return v1 + v2
+
+strAccum = sc.accumulator("", StringAccumParam())
+```
+
+- Fault tolerance behavior -
+  - Inside actions -
+    - Each task update applied only once. 
+    - Even if task restarts, value is not duplicated.
+  - Inside transformations -
+    - Updates may be applied multiple times if task retries or stage recomputed.
+    - Therefore, avoid relying on accumulator correctness inside transformations.
     
-    - Lazy Evaluation -
-      - Accumulators do not override Spark’s lazy execution model.
-      - Example -
-        ```
-        accum = sc.accumulator(0)
+- Lazy Evaluation -
+  - Accumulators do not override Spark’s lazy execution model.
+  - Example -
+  ```
+  accum = sc.accumulator(0)
 
-        def g(x):
-          accum.add(x)
-          return x
+  def g(x):
+    accum.add(x)
+    return x
 
-        data.map(g)
-        ```
+  data.map(g)
+  ```
       
-      - `accum` still `= 0` because `map()` is lazy so no action is executed, hence accumulator is never updated.
-      - Therefore, accumulator updates only occur when an action runs.
+  - `accum` still `= 0` because `map()` is lazy so no action is executed, hence accumulator is never updated.
+  - Therefore, accumulator updates only occur when an action runs.
 
-    - Best practise -
-      - Use accumulators for - debugging, monitoring, counting errors, tracking processed records etc.
-      - Do not use accumulators for - application logic, control flow decisions etc.
+- Best practise -
+  - Use accumulators for - debugging, monitoring, counting errors, tracking processed records etc.
+  - Do not use accumulators for - application logic, control flow decisions etc.
     
