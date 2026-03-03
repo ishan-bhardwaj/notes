@@ -665,3 +665,21 @@ try {
 }
 ```
 
+## `wait()`, `notify()`, `notifyAll()`
+
+- The `Object` class contains the following methods -
+  - `public final void wait() throw InterruptedException`
+  - `public final void notify()`
+  - `public final void notifyAll()`
+- Every Java class inherits from the `Object` class.
+- We can use any object as a condition variable and a lock (using the `synchronized` keyword).
+- `wait()` -
+  - Causes the current thread to wait until another thread wakes it up.
+  - In the wait state, the thread is not consuming any CPU.
+- Two ways to wake up the waiting thread -
+  - `notify()` - wakes up a _single_ thread waiting on that object. If multiple threads are waiting on the same object, any one thread is chosen randomly.
+  - `notifyAll()` - wakes up all the threads waiting on that object.
+
+> [!NOTE]
+> To call `wait()`, `notify()` or `notifyAll()`, we need to acquire the monitor of that object (use `synchronized` on that object).
+
