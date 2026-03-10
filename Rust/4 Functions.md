@@ -30,10 +30,17 @@ fun add(x: i32, y: i32) -> i32 {
 
 - Implicitly returning a result - 
   - The last line of the function is returned.
-  - Can omit semi-colon.
   ```
   fun add(x: i32, y: i32) -> i32 {
     x + y                          // Implicitly returned
+  }
+  ```
+
+  - When returning implicitly, the semi-colon must be ommitted because semi-colon creates a _statement_ which prevents the implicit return and thus, the function returns `unit` instead.
+  - Example - below code will return `unit` -
+  ```
+  fn shoe_size() -> i32 {
+    12;
   }
   ```
 
