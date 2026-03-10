@@ -104,3 +104,7 @@ object StatelessWordCounter {
 
 > [!NOTE]
 > `active(totalCount + newCount)` is NOT a recursive call.
+
+## Child Actors
+
+- 
