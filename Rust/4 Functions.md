@@ -44,6 +44,8 @@ fun add(x: i32, y: i32) -> i32 {
   }
   ```
 
+  - This rule is applicable for code blocks as well.
+
 ## `Unit` as a return type
 
 - A __Unit__ is an empty tuple.
