@@ -256,10 +256,13 @@ Size.values();                  // returns all Size values in an array
 
   ![Legal conversions between numeric types](assets/numeric_types_conversions.png)
 
-  - Solid arrows denote conversions without information loss. 
-  - Dotted arrows denote conversions that may lose precision, eg -
-    - `int n = 123456789; float f = n;`
-    - `f` becomes `1.23456792E8` (magnitude correct, precision lost).
+  - Solid arrows - conversions without information loss. 
+  - Dotted arrows - conversions that may lose precision, eg -
+    ```
+    int n = 123456789;
+    float f = n;            // 1.23456792E8 - magnitude correct, precision lost
+    ```
+    
   - Binary operators convert operands to a common type before computing -
     - If either operand is `double`, convert the other to `double`.
     - Else if either operand is `float`, convert the other to `float`.
@@ -288,16 +291,16 @@ Size.values();                  // returns all Size values in an array
 
   ```
   int x = 0;
-  x += 3.5;
+  x += 3.5;                 // returns 3 - fractional part is discarded
 
   // equivalent to -
-  x = (int)(x + 3.5);
+  x = (int)(x + 3.5); 
+
+  // but
+  x = x + 3.5;              // compiler error!
   ```
 
-  - The fractional part is discarded (`3.5` → `3`), so `x` becomes `3`.
-  - No compile-time error, and no warning either.
-  - Whereas, `x = x + 3.5;` does not compile and explicit cast is required to fix it.
-  - Java 20+ can warn about such lossy conversions when linting is enabled. Enable such warnings with -
+  - Java 20+ can warn about such lossy conversions when linting is enabled. To enable such warnings -
    ```
    javac -Xlint:lossy-conversions MyApp.java
    ```
@@ -306,16 +309,13 @@ Size.values();                  // returns all Size values in an array
 
   ```
   int x = 1;
-  int y = x += 4;
+  int y = x += 4;           // y = 5
   ```
-
-  - `x += 4` sets `x` to `5` and evaluates to `5`, which is then assigned to `y`.
 
 ### Increment & Decrement Operators
 
-- `++` increases a variable by 1.
-- `--` decreases a variable by 1.
-- Both operators only work on variables, not on literals (e.g., `4++` is illegal).
+- `++`, `--`
+- Works on variables, not on literals (e.g., `4++` is illegal).
 - Two forms - 
   - Prefix (`++x` / `--x`) - value is changed before being used in an expression.
   - Postfix - (`x++` / `x--`) - value is used first, then changed.
@@ -349,7 +349,7 @@ int b = 2 * n++;              // b = 14, n = 8
 ### Bitwise Operators
 
 - Work on bit patterns - `&` ("and"), `|` ("or"), `^` ("xor"), `~` ("not").
-- `&` and `|` work on boolean values also and return `boolean` - similar to `&&` and `||` - but they do not provide short-circuiting i.e. both operands are always evaluated before result is computed.
+- `&` and `|` work on boolean values also and return `boolean` - similar to `&&` and `||` - but they do not provide short-circuiting.
 
 - __Bit Shift operators__ -
   - `<<` - left shift
@@ -360,7 +360,6 @@ int b = 2 * n++;              // b = 14, n = 8
 - __Integer Bit-level Methods__ -
   - `Integer.bitCount(n)` - number of 1 bits in binary form of `n`.
   - `Integer.reverse(n)` - reverses bits of `n`.
-
 
 ## `Math` class
 
