@@ -1,17 +1,32 @@
 # Java
 
-- Java is a _strongly typed language_ - meaning that every variable must have a declared type.
-- To check java version installed - `javac --version` - will return - `javac 25.0.4`.
-- Launching a java program from command line -
-  - Compile and generate the bytecode - `javac Welcome.java` - it will create a file (`Welcome.class`) containing the bytecodes for this class and stores it in the same directory as the source file.
-  - Luanch the JVM and execute the bytecode - `java Welcome` - execution starts with the code in the `main` method of the class.
-  - Combining both steps in a single cmd - `java Welcome.java`
+-  _Strongly typed language_ - every variable must have a declared type.
+```
+javac --version         
+// javac 25.0.1
+
+java --version
+// java 25.0.1 2025-10-21 LTS
+// Java(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)
+// Java HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)
+```
+
+- Compile and Launch -
+```
+javac HelloWorld.java          // compiles and generates bytecode - HelloWorld.class in same directory
+java HelloWorld                // executes main method in HelloWorld.class (bytecode)
+
+java HelloWorld                // compiles and executes in single command
+```
 
 - __JShell__ -
   - Provides a _read-evaluate-print loop_ or _REPL_.
-  - JShell evaluates your input java expression, prints the result, and waits for your next input.
-  - Start JShell - type `jshell` in a terminal window.
-  - Exit JShell - `/exit`
+  - Also supports tab completion.
+  ```
+  > jshell              // starts JShell
+  > /exit               // exits JShell
+  ```
+
   - Example -
   ```
   jshell> "Hello World".length()
@@ -24,9 +39,6 @@
   result ==> 15
   ```
 
-> [!TIP]
-> JShell also supports tab completion.
-
 - __Hello World__ - 
 
 ```
@@ -35,13 +47,7 @@ public class MyApp {
     IO.println("Hello, World!");
   }
 }
-  ```
-
-> [!NOTE]
-> `IO.println()` is a variant of the println method with no arguments which just prints a blank line.
-
-> [!TIP]
-> The `IO` class also has a `print` method that doesn’t add a newline character to the output.
+```
 
 - __Comments__ -
   - Single-line comment - `//`
@@ -181,18 +187,25 @@ public class MyApp {
 
 ## Variables and Constants
 
-- Variables are used to store values.
-- Constants are variables whose values don’t change.
-
-- Declaring a variable -
+- Variables are used to store values -
 ```
 double salary;
 int vacationDays;
 long earthPopulation;
 boolean done;
+
+int i, j;                     // declaring multiple variables in same line
+
+int x;
+int y = 10;
+IO.println(x);                // ERROR  - variable not initialized
+IO.println(y);                // 10
 ```
 
-- Declaring multiple variables on a single line - `int i, j;`
+- Constants are variables whose values don’t change -
+```
+final double PI = 3.14;
+```
 
 > [!TIP]
 > To check which Unicode characters are allowed in Java identifiers, use `Character.isJavaIdentifierStart` and `Character.isJavaIdentifierPart`.
@@ -200,28 +213,12 @@ boolean done;
 > [!NOTE]
 > Although `$` is allowed in identifiers, avoid using it in your code as it is reserved for compiler/tool-generated names.
 
-- Initializing Variables -
-```
-int x;
-int y = 10;
-IO.println(x);     // ERROR  - variable not initialized
-IO.println(y);     // 10
-
-x = 5;
-IO.println(x);     // 5
-```
-
 - Type inference - 
   - You do not need to declare the types of local variables if they can be inferred from the initial value -
   ```
   var x = 5;                // x is an int
   var greet = "Hello";      // greet is a string
   ```
-
-- Use the keyword `final` to denote a constant - `final double PI = 3.14;`
-
-> [!NOTE]
-> Generally, we name the constants in all uppercase.
 
 ## Enum Types
 
@@ -231,23 +228,29 @@ IO.println(x);     // 5
 enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
 
 Size s = Size.MEDIUM;           // declare variables of the enum type
+Size.valueOf("MEDIUM");         // returns Size.MEDIUM
+Size.valueOf("Medium");         // Error!
+Size.values();                  // returns all Size values in an array
 ```
 
-- A variable of an enum type (e.g., `Size`) can only hold one of its defined values or `null` if it’s not set.
+- Enum type variable (e.g., `Size`) can only hold one of its defined values or `null` if it’s not set.
 
-## Operators 
+## Arithmetic Operators
 
-### Arithmetic Operators
-
-- Arithmetic Operators - `+`, `-`, `*`, `/`
-- `/` operator denotes integer division if both operands are integers, and floating-point division otherwise. 
-- Integer division by `0` raises an exception, whereas floating-point division by `0` yields an infinite or `NaN` result.
-
-- When one operand of `%` is negative, the result is also negative -
-  - Example - `n % 2` yields `0` for even `n`, `1` for odd positive `n`, and `-1` for odd negative `n`. 
-  - This is because early computer designers chose a convenient but non-Euclidean rule, unlike the mathematical convention of always returning a non-negative remainder.
-  - Better way is to use `Math.floorMod` instead of `%` to avoid negative remainders, eg - `Math.floorMod(position + adjustment, 12)` always returns a value `0–11`.
-  - `floorMod` can still return negative results if the divisor is negative.
+- `+`, `-`, `*`, `/`
+- Division -
+  - `int / int` returns `int`.
+  - If anything is float/double, the result is float/double.
+- Division by `0` -
+  - `int / 0` throws an exception.
+  - `float or double / 0` returns `Infinity`.
+- Modulus `n % 2` -
+  - `0` for even `n`.
+  - `1` for odd positive `n`.
+  - `-1` for odd negative `n`.
+- `Math.floodMod` -
+  - `Math.floorMod(-5, 2)` returns `1`.
+  - `Math.floorMod(5, -2)` returns `-1`.
 
 - __Legal conversions between numeric types__ -
 
