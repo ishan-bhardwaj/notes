@@ -1,6 +1,6 @@
 # Object-oriented Programming
 
-- __Encapsulation / Information Hiding__ - Encapsulation is the concept of combining data (attributes) and behavior (methods) into a single unit — the object — while hiding the internal implementation details from the outside world.
+- __Encapsulation / Information Hiding__ - concept of combining data (attributes) and behavior (methods) into a single unit — the object — while hiding the internal implementation details from the outside world.
 - __Key Principle__ - Methods should never directly access the instance fields of other objects. Instead, interaction with an object’s data should happen only through its public methods.
 
 - Three fundamental characteristics of objects -
@@ -10,26 +10,70 @@
 
 - Classes are interact with each other in three common ways -
   - __Dependence (uses-a)__ -
-    - A class depends on another class if its methods use or manipulate objects of that class.
-    - The dependency exists only when objects of one class need to access objects of another class.
-    - Example - an `Order` class depends on an `Account` class to check a customer’s credit status.
-    - If a class does not use another class, no dependency relationship exists.
-    - Dependencies should be minimized to reduce coupling between classes.
-    - Low coupling ensures that changes in one class are less likely to affect other classes.
+    - Class _temporarily_ uses another class to perform work.
+    - Example -
+    ```
+    class PaymentGateway {
+      public boolean charge(double amount) {
+        IO.println("Charged: " + amount);
+        return true;
+      }
+    }
+
+    class OrderService {
+      public void placeOrder(double amount) {
+        var gateway = new PaymentGateway();             // dependency - temporarily used
+        if (gateway.charge(amount)) {
+          IO.println("Order placed successfully");
+        }
+      }
+    }
+    ```
 
   - __Aggregation (has-a)__ -
-    - Aggregation represents a containment relationship between classes.
-    - Objects of one class contain objects of another class.
-    - Example - an `Order` object contains multiple `Item` objects.
-    - Aggregation models real-world “part-of” relationships.
-    - It helps build complex objects from simpler components.
+    - Object _contains_ other objects (long-term relationship).
+    - Example -
+    ```
+    record Item(String name, double price) {}
+
+    import java.util.List;
+
+    class Order {
+
+      private List<Item> items;                        // aggregation (has-a)
+
+      public Order(List<Item> items) {
+        this.items = items;
+      }
+
+      public double totalPrice() {
+        return items.stream()
+               .mapToDouble(Item::price)
+               .sum();
+      }
+    }
+    ```
 
   - __Inheritance (is-a)__ -
     - Inheritance expresses a relationship between a general class and a more specialized class.
     - A subclass inherits methods and behavior from its superclass.
     - The subclass may add new behavior or modify inherited behavior.
-    - Example - a `RushOrder` class is a specialized form of `Order` with priority handling.
     - Inheritance promotes code reuse and enables polymorphism.
+    - Example -
+    ```
+    class Order {
+      public int deliveryDays() {
+        return 5;
+      }
+    }
+
+    class RushOrder extends Order {                  // is-a relationship
+      @Override
+      public int deliveryDays() {
+        return 1;
+      }
+    }
+    ```
 
 - __Constructor__ -
   - Special method whose purpose is to construct and initialize objects.
