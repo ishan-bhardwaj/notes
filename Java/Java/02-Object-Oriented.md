@@ -10,7 +10,7 @@
 
 - Classes are interact with each other in three common ways -
   - __Dependence (uses-a)__ -
-    - Class _temporarily_ uses another class to perform work.
+    - A class depends on another class but does not model a part-of relationship.
     - Example -
     ```
     class PaymentGateway {
@@ -21,8 +21,10 @@
     }
 
     class OrderService {
+
+      private var gateway = new PaymentGateway();             // dependency uses-a
+
       public void placeOrder(double amount) {
-        var gateway = new PaymentGateway();             // dependency - temporarily used
         if (gateway.charge(amount)) {
           IO.println("Order placed successfully");
         }
@@ -83,21 +85,18 @@
     - Can have zero, one, or more parameters.
     - Has no return value.
     - Always called with the `new` operator.
-  - Example - to construct a `Date` object, combine the constructor with the `new` operator - `new Date()`
-  - The return value of the `new` operation is a reference.
-  - You can explicitly set an object variable to `null` to indicate that it currently refers to no object.
+  - Example -
+  ```
+  var order1 = new Order();                // return value is a reference
+  var order2 = null;                       // refers to no object
+  ```
 
 ## `LocalDate` class
 
-- __`Date` vs `LocalDate`__ -
-  - `Date` class -
-    - Represents a specific point in time.
-    - Older class; includes methods like `getDay()`, `getMonth()`, `getYear()`.
-  - `LocalDate` class -
-    - Represents a date in calendar notation (year, month, day).
-    - Part of modern Java date-time API (Java 8+).
-    - Encourages good OO design by separating time measurement from calendar representation.
-    - Objects are immutable; methods return new objects rather than modifying the original.
+- Represents a date in calendar notation (year, month, day).
+- Part of modern Java date-time API (Java 8+).
+- Encourages good OO design by separating time measurement from calendar representation.
+- Objects are immutable; methods return new objects rather than modifying the original.
 
 - Constructing `LocalDate` Objects -
   - _Static factory methods_ are used instead of constructors.
