@@ -630,46 +630,17 @@ double rate = Double.parseDouble(IO.readln("Interest rate: "));
 ```
 
 > [!TIP]
-> The `IO.readLine` method is not suitable for reading a password from a console since the input is plainly visible to anyone. Use the `readPassword` method of the `Console` class to read a password while hiding the user input -
+> The `IO.readLine` method is not suitable for reading a password from a console since the input is plainly visible to anyone. 
+>
+> Use `System.console().readPassword` to read a password while hiding the user input -
 > ```
 > char[] passwd = System.console().readPassword("Password: ");
 > Arrays.fill(passwd, '*');       // overwrite with *'s immediately after use
 > ```
 
-### `java.lang.IO` API
-
-| __Method__                     | __Description__                                              | __Output Behavior__                     |
-| ------------------------------ | ------------------------------------------------------------ | --------------------------------------- |
-| `println(Object obj)`          | Converts the object to a string and prints it on the console | Prints followed by a __line separator__ |
-| `print(Object obj)`            | Converts the object to a string and prints it on the console | Prints __without__ a line separator     |
-| `println()`                    | Prints a line separator                                      | Prints __only a new line__              |
-| `String readln(String prompt)` | Prints a prompt on the console and waits for user input      | Returns __one line of input__           |
-| `String readln()`              | Waits for user input without printing a prompt               | Returns __one line of input__           |
-
-### `java.lang.System` API
-
-| __Method__  | __Signature__              | __Description__                                                                                                                                            |
-| ----------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `console()` | `static Console console()` | Returns a `Console` object for interacting with the user through a console window if available. Returns __`null`__ if console interaction is not possible. |
-
-
-### `java.io.Console` API
-
-| __Method__     | __Signature__                                        | __Description__                                                     |
-| -------------- | ---------------------------------------------------- | ------------------------------------------------------------------- |
-| `readPassword` | `char[] readPassword(String prompt, Object... args)` | Displays the prompt and reads a password __without echoing__ input. |
-| `readLine`     | `String readLine(String prompt, Object... args)`     | Displays the prompt and reads user input until the end of the line. |
-
 ### Formatting Output
 
-- `IO.print(x)` prints a number with the maximum non-zero digits.
-- Example -
-```
-double x = 10000.0 / 3.0;
-IO.print(x);                  // 3333.3333333333335
-```
-
-- Using `formatted` method -
+- `formatted` method -
   - Uses C-style formatting - `IO.print("%8.2f".formatted(x));`
   - `%8.2f` means -
     - `8` → total width of the field
@@ -704,9 +675,11 @@ IO.print(x);                  // 3333.3333333333335
 | `n`                      | Platform-dependent line separator               | —            |
 
 > [!TIP]
-> You can use the `%s` conversion to format any object. If it implements `Formattable` interface, its `formatTo` method is used, otherwise `toString()` is used.
+> You can use the `%s` conversion to format any object. 
+> 
+> If it implements `Formattable` interface, its `formatTo` method is used, otherwise `toString()` is used.
 
-- Also, you can specify _flags_ that control the appearance of the formatted output, eg - the comma flag adds group separators i.e. `IO.println("%,.2f".formatted(10000.0 / 3.0));` prints `3,333.33`.
+- Specify flags - eg, the comma flag adds group separators i.e. `IO.println("%,.2f".formatted(10000.0 / 3.0));` prints `3,333.33`.
 
 - You can use multiple flags, for example `"%,(.2f"` to use group separators and enclose negative numbers in parentheses.
 
@@ -853,7 +826,11 @@ for (count = 1; count <= 100; count++) {
 - `java.math.BigDecimal` -
   - Used for very precise decimal numbers (money, financial calculations, etc.)
   - Always construct from integers or string.
-  - Avoid `new BigDecimal(0.1)` - because it creates an imprecise value `0.1000000000000000055511151231257827021181583404541015625`
+  ```
+  new BigDecimal(0.1);      // avoid - returns 1000000000000000055511151231257827021181583404541015625
+  BigDecimal.valueOf(0.1);  // returns 0.1
+  new BigDecimal("0.1");    // returns 0.1
+  ```
 
 - Cannot use arithmetic operators like `+`, `-`, `*`, `/` - because Java does not support operator overloading.
 
@@ -907,7 +884,7 @@ BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));      // d = c * (b + 2)
 ## Arrays
 
 - Declaring an array - 
-  - Syntax - `elementType[] arrayName;`
+  - Syntax - `datatype[] arrayName;`
   - Example - `int[] a;`
   - This only declares the variable, it does not create the array.
 
@@ -957,7 +934,7 @@ new elementType[] {}
 - Assigning one array variable to another copies the reference, not the values i.e. both variables point to the same array in memory -
 ```
 int[] luckyNumbers = smallPrimes;
-luckyNumbers[5] = 12; // smallPrimes[5] is also 12
+luckyNumbers[5] = 12;               // smallPrimes[5] is also 12
 ```
 
 - To create a new array with the same values, use `Arrays.copyOf` -
