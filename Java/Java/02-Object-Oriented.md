@@ -8,6 +8,57 @@
   - State - An object’s state represents the data it holds at a given time. The state determines how the object behaves when its methods are executed and is typically stored in instance variables.
   - Identity - An object’s identity distinguishes it from other objects, even if they share the same behavior and state. Each object has a unique identity, usually represented by its memory reference.
 
+## Classes
+
+- Syntax -
+```
+class ClassName {
+    field1
+    field2
+    . . .
+    constructor1
+    constructor2
+    . . .
+    method1
+    method2
+    . . .
+}
+```
+
+- Example -
+```
+class Employee {
+    // instance fields
+    private String name;
+    private double salary;
+
+    // constructor
+    Employee(String n, double s) {
+        name = n;
+        salary = s;
+    }
+
+    // a method
+    String getName() {
+        return name;
+    }
+}
+
+// Constructing objects
+Employee john = new Employee("John Doe", 50000);
+
+// or,
+var john = new Employee("John Doe", 50000);
+```
+
+- The `private` keyword makes sure that the only methods that can access these instance fields are the methods of the `Employee` class itself.
+
+> [!TIP]
+> It is best to make all your instance fields `private`.
+
+> [!TIP]
+> It is common to declare classes and methods as `public`.
+
 - Classes are interact with each other in three common ways -
   - __Dependence (uses-a)__ -
     - A class depends on another class but does not model a part-of relationship.
@@ -94,24 +145,25 @@
 ## `LocalDate` class
 
 - Represents a date in calendar notation (year, month, day).
-- Part of modern Java date-time API (Java 8+).
-- Encourages good OO design by separating time measurement from calendar representation.
-- Objects are immutable; methods return new objects rather than modifying the original.
+- Objects are immutable.
+- Construction - _static factory methods_ are used instead of constructors -
+```
+LocalDate today = LocalDate.now();                    // current date
+LocalDate newYearsEve = LocalDate.of(1994, 11, 1);    // specific date
 
-- Constructing `LocalDate` Objects -
-  - _Static factory methods_ are used instead of constructors.
-  - Current date - `LocalDate today = LocalDate.now()`
-  - Specific date - `LocalDate newYearsEve = LocalDate.of(1999, 12, 31)`
-
-- Accessor Methods -
-  - Useful for computed dates or operations on existing objects.
-  - Get year - `newYearsEve.getYear()`
-  - Get month - `newYearsEve.getMonthValue()`
-  - Get day - `newYearsEve.getDayOfMonth()`
+// accessor methods
+newYearsEve.getYear();                                // 1994
+newYearsEve.getMonthValue();                          // NOVEMBER
+newYearsEve.getDayOfMonth();                          // 1
+```
 
 - Date Arithmetic -
   - `plusDays` -
-    - Immutable method - original object remains unchanged - `LocalDate aThousandDaysLater = newYearsEve.plusDays(1000)`
+    - Immutable method - original object remains unchanged - 
+    ```
+    LocalDate aThousandDaysLater = newYearsEve.plusDays(1000)
+    ```
+
     - Mutator example - `GregorianCalendar.add` - changes the state of the object -
     ```
     GregorianCalendar someDay = new GregorianCalendar(1999, 11, 31); // month 0-11
@@ -119,7 +171,7 @@
     ```
 
 > [!TIP]
-> `jdeprscan` (Java Deprecated API Scanner) is a Java tool for detecting deprecated API usage in your code. It analyzes Java class files or JARs to report usage of APIs that are marked as deprecated in a particular JDK version.
+> `jdeprscan` (Java Deprecated API Scanner) - Java tool for detecting deprecated API usage in your code.
 >
 > Usage - `jdeprscan --release <version> <file-or-directory>`
 >
@@ -131,62 +183,6 @@
 >   - `--class-path <path>` - Specify classpath for dependent classes.
 >
 >   - `--log <file>` - Write output to a file instead of console.
-
-## Classes
-
-- Syntax -
-```
-class ClassName {
-    field1
-    field2
-    . . .
-    constructor1
-    constructor2
-    . . .
-    method1
-    method2
-    . . .
-}
-```
-
-- Example -
-```
-class Employee {
-    // instance fields
-    private String name;
-    private double salary;
-
-    // constructor
-    Employee(String n, double s) {
-        name = n;
-        salary = s;
-    }
-
-    // a method
-    String getName() {
-        return name;
-    }
-}
-```
-
-- Constructing instance - `new Employee("John Doe", 75000)`
-
-- The `private` keyword makes sure that the only methods that can access these instance fields are the methods of the `Employee` class itself. No outside method can read or write to these fields.
-
-> [!TIP]
-> It is best to make all your instance fields `private`.
-
-> [!TIP]
-> It is common to declare classes and methods as `public`.
-
-- You can declare local variables with the `var` keyword instead of specifying their type, provided their type can be inferred from the initial value, eg - 
-```
-// instead of declaring 
-Employee harry = new Employee("Harry Hacker", 50000, 1989, 10, 1);
-
-// you simply write
-var harry = new Employee("Harry Hacker", 50000, 1989, 10, 1);
-```
 
 - __Handling Null Fields in Classes__ -
   - Fields can be null if not properly initialized.
