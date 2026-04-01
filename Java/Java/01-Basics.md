@@ -56,12 +56,6 @@ public class MyApp {
 
 ## Data Types
 
-- Eight primitive types -
-  - Four integer types
-  - Two floating-point number types
-  - `char` type used for UTF-16 code units in the Unicode encoding scheme
-  - `boolean` type for truth values
-
 ### Integer Types
 
 | Type    | Storage Requirement | Range (Inclusive)              | Default | Min Value           | Max Value           |
@@ -72,28 +66,27 @@ public class MyApp {
 | `long`  | 8 bytes             | $–2^{63} \text{ to } 2^{63}−1$ | 0       | `Long.MIN_VALUE`    | `Long.MAX_VALUE`    |
 
 > [!TIP] 
-> Internally, Java uses _signed two's completement scheme_ to represent integers.
+> Java uses _signed two's completement scheme_ to represent integers.
 
 > [!NOTE]
 > The ranges of the integer types do _not_ depend on the machine on which you will be running the Java code. 
 
-- Long integers end with `L` or `l`, eg - `4000000000L`.
-- Hexadecimal numbers start with `0x` or `0X`, eg - `0xCAFE`
-- Octal numbers start with `0`, eg - `010` = 8
-- Binary numbers start with `0b` or `0B`, eg - `0b1001` = 9
-- Underscores can be added for readability, eg - `1_000_000` - Java compiler simply ignores the underscores.
+| Number Type        | Prefix / Suffix          | Example       | Example Value (Decimal) | Notes                               |
+| ------------------ | ------------------------ | ------------- | ----------------------- | ----------------------------------- |
+| Long Integer       | Ends with `L` or `l`     | `4000000000L` | 4000000000              | Used when value exceeds `int` range |
+| Hexadecimal Number | Starts with `0x` or `0X` | `0xCAFE`      | 51966                   | Base-16 (0–9, A–F)                  |
+| Octal Number       | Starts with `0`          | `010`         | 8                       | Base-8 (0–7)                        |
+| Binary Number      | Starts with `0b` or `0B` | `0b1001`      | 9                       | Base-2 (0 and 1)                    |
+
+> [!TIP]
+> Use underscores in long numbers for readability, eg - `1_000_000` - Java compiler simply ignores the underscores.
 
 - __Unsigned__ -
-  - Java does _not_ have any unsigned versions of the `int`, `long`, `short`, or `byte` types.
-  - If values are never negative and you need an extra bit, you can treat signed integers as unsigned, eg - 
-    - A byte normally represents `−128` to `127`
-    - You can instead interpret it as `0` to `255`.
-    - You can store it in a byte and binary arithmetic still works (as long as it doesn’t overflow).
-  - For other operations -
-    - Use `Byte.toUnsignedInt(b)` to convert to an `int` (0 to 255).
-    - Process the value.
-    - Cast back to `byte` if needed.
-  - `Integer` and `Long` also provide methods for unsigned division and remainder.
+  - Java has no unsigned `byte`, `short`, `int`, or `long` types.
+  - You can treat signed values as unsigned when negatives aren’t needed.
+  - Example - `byte` normally `-128..127` → interpret as `0..255`.
+  - For safe operations - convert using `Byte.toUnsignedInt(b)` → process → cast back if needed.
+  - Similarly, `Integer` and `Long` provide unsigned divide and remainder methods.
 
 ### Floating-Point Types
 
@@ -102,33 +95,20 @@ public class MyApp {
 | `float`  | 4 bytes             | $±3.4 × 10^{38}$ (7 digits)    | `0.0f`  | 6-7 decimal digits   |
 | `double` | 8 bytes             | $±1.8 × 10^{308}$ (15 digits)  | `0.0d`  | 15-16 decimal digits |
 
-- Java 20 adds methods for half-precision (16-bit) floats -
-  - `Float.floatToFloat16` & `Float.float16ToFloat` for storing “half-precision” 16-bit floating-point numbers in `short` values.
-  - Used for implementing neural networks.
+| Floating Literal Type    | Suffix          | Example          | Resulting Type | Notes                               |
+| ------------------------ | --------------- | ---------------- | -------------- | ----------------------------------- |
+| Float literal            | `F` or `f`      | `3.14F`          | `float`        | Required to specify 32-bit float    |
+| Double literal (default) | none or `D`/`d` | `3.14` / `3.14D` | `double`       | Default floating-point type in Java |
 
-- Float literals end with `F` or `f`, eg - `3.14F`.
-- Floating-point literals without `F` are `double` by default, though you can optionally use `D` or `d`, eg - `3.14D`.
-
+- Java 20 - `Float.floatToFloat16` / `Float.float16ToFloat` store 16-bit half-precision floats in a short (useful for ML).
 - `E` or `e` denotes a decimal exponent, eg - `1.729E3` = `1729`.
-
-- __Hexadecimal notation__ -
-  - Floating-point literals can be written in hexadecimal.
-  - Example - `0.125` (which is $2^{-3}$) can be written as - `0x1.0p-3`.
-  - In hexadecimal floating literals -
-    - Use `p` (not `e`) for the exponent.
-    - `e` itself is a hexadecimal digit.
-    - Mantissa is hexadecimal and exponent is decimal.
-    - The base of the exponent is `2`, not `10`.
-
-- Floating-point computations follow IEEE 754 -
-  - There are 3 special values for overflow/errors -
-    - Positive infinity
-    - Negative infinity
-    - `NaN` (Not a Number)
-  - Examples -
-    - Positive number / 0 → Positive infinity
-    - 0.0 / 0 → `NaN`
-    - sqrt(negative number) → `NaN`
+- Hex floating literals -
+  - Example - `0x1.0p-3 = 0.125`
+  - Use `p` for exponent (base `2`), mantissa = hex, exponent = decimal.
+- IEEE 754 special values -
+  - Positive infinity, eg - `Positive number / 0` → `Positive infinity`
+  - Negative infinity, eg - `Negative number / 0` → `Negative infinity`
+  - `NaN` (Not a Number), eg - `0.0 / 0` → `NaN`, `sqrt(negative number)` → `NaN`
 
 > [!NOTE]
 > All “not a number” values (for both `Double` and `Float`) are considered distinct, therefore you _cannot_ use `x == Double.NaN` because it will always return `false`. 
@@ -148,27 +128,11 @@ public class MyApp {
   - Bit depth - 16 bits unsigned integer
   - Value range - $0 \text{ to } 2^{16}−1$
   - Default - `\u0000`
-- `'A'` is _not_ the same as `"A"` (string).
 - `char` values can be written in hexadecimal from `\u0000` to `\uFFFF`.
 - Escape sequences work in both `char` and `String` literals, e.g., `'\u005B'`, `"Hello\n"`.
 - The `\u` escape sequence _can also be used outside quotes_, e.g.,
   - `void main()\u007BIO.println("Hello, World!");\u007D`
   - `\u007B` and `\u007D` are the encodings for `{` and `}`
-
--  Escape Sequences for Special Characters -
-
-| Escape Sequence | Meaning | Unicode Value |
-|----------------|---------|---------------|
-| `\b`           | Backspace | `\u0008` |
-| `\t`           | Tab | `\u0009` |
-| `\n`           | Line feed | `\u000a` |
-| `\r`           | Carriage return | `\u000d` |
-| `\f`           | Form feed | `\u000c` |
-| `\"`           | Double quote | `\u0022` |
-| `\'`           | Single quote | `\u0027` |
-| `\\`           | Backslash | `\u005c` |
-| `\s`           | Space (text blocks only) | `\u0020` |
-| `\newline`     | Join this line with the next (text blocks only) | — |
 
 > [!WARNING]
 > Unicode escape sequences are processed before the code is parsed, eg - `"\u0022+\u0022"` is not a string consisting of a plus sign surrounded by quotation marks (`U+0022`). Instead, the `\u0022` are converted into `"` before parsing, yielding `""+""`, or an empty string.

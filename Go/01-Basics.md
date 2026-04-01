@@ -1,13 +1,20 @@
 # Golang
 
 - Create a directory and intialize it as go module -
-    - Using VS code - `Search` > Type `Go - Initialize go.mod` > Enter module name OR using cmd - `go mod init`
-    - This will create a `go.mod` file inside the directory.
-    - The `go.mod` file declares your module’s import path and depedencies & their versions.
+    - `go mod init example/mymodule`
+    - `go.mod` file declares your module’s import path and depedencies & their versions.
 
 > [!TIP]
-> Run `go.get` to download dependencies in an existing project.
+> Run `go get .` to download dependencies in an existing project.
+>
+> To add a specific dependency - `go get example.com/theirmodule`
 
+## Fetching Dependencies
+
+- `go get .` - add all dependencies.
+- `go get example.com/theirmodule` - specific dependency.
+- `go get example.com/theirmodule@v1.3.4` - specific dependency with version.
+- `go get example.com/theirmodule@latest` - specific dependency with latest version.
 
 ## Hello World
 
@@ -27,13 +34,13 @@ func main() {
 - To import multiple modules at the same time -
 ```
 import (
-    "fmt",
+    "fmt"
     "strings"
 )
 ```
 
 > [!NOTE]
-> Anything starting with only upper-case letter is public. That's why we're able to access `fmt.Println`.
+> Anything starting with upper-case letter is public, eg - `fmt.Println`.
 
 - Running the program - `go run helloWorld.go`
     - Compiles / builds the files into a temp directory and then executes it.

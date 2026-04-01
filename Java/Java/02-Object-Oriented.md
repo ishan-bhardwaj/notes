@@ -209,8 +209,6 @@ newYearsEve.getDayOfMonth();                          // 1
       }
       ```
 
-      - Effect - No nulls, object always has a usable value.
-
     - “Tough Love” Approach -
       - Reject `null` arguments with an exception.
       - Example - using `Objects` utility class
@@ -220,9 +218,6 @@ newYearsEve.getDayOfMonth();                          // 1
         // ... other initializations
       }
       ```
-
-      - Effect - Forces the caller to provide valid data.
-      - Throws `NullPointerException` if argument is `null`.
 
 - Methods Operate on Objects -
   - Methods access and modify instance fields of objects.
@@ -244,17 +239,6 @@ newYearsEve.getDayOfMonth();                          // 1
     this.salary += raise;
   }
   ```
-
-### `java.util.Objects` API 
-
-| Method                                                      | Return Type | Behavior                                                               | Notes                                 |
-| ----------------------------------------------------------- | ----------- | ---------------------------------------------------------------------- | ------------------------------------- |
-| `requireNonNull(T obj)`                                     | `void`      | Throws `NullPointerException` if `obj` is null                         | No error message                      |
-| `requireNonNull(T obj, String message)`                     | `void`      | Throws `NullPointerException` if `obj` is null                         | Uses provided message                 |
-| `requireNonNull(T obj, Supplier<String> messageSupplier)`   | `void`      | Throws `NullPointerException` if `obj` is null                         | Message generated lazily via supplier |
-| `requireNonNullElse(T obj, T defaultObj)`                   | `T`         | Returns `obj` if non-null, otherwise returns `defaultObj`              | Default value is immediate            |
-| `requireNonNullElseGet(T obj, Supplier<T> defaultSupplier)` | `T`         | Returns `obj` if non-null, otherwise calls supplier and returns result | Default value created lazily          |
-
 
 ## Class Based Access Privileges
 
@@ -364,12 +348,6 @@ name = n != null && n.length() == 0 ? null : n
   - A source file with method declarations outside a class is a _compact compilation unit_. 
   - It implicitly declares a class whose name is derived from the source file.
   - Technically, the class name can depend on the host name but is usually the file name with its extension removed i.e. if file name is `Application.java` then class name is likely to be `Application`.
-
-> [!NOTE]
-> For an implicitly declared class -
->   - you can declare a constructor because you cannot rely on the name of the class, which is also the name of any constructor.
->   - It doesn’t make sense to implicitly declare classes that you want to use in other classes. You need a reliable name to use the class.
->   - The practical use for a compact compilation unit is a class with a `main` method, which you launch as a source file.
 
 > [!TIP]
 > Every class can have a `main` method. That can be handy for adding demonstration code to a class. If that class is part of another program, its `main` method is not executed.
