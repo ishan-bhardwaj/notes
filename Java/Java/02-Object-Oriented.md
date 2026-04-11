@@ -64,6 +64,7 @@ var john = new Employee("John Doe", 50000);
   - __Dependence (uses-a)__ -
     - A class depends on another class but does not model a part-of relationship.
     - Example -
+
     ```
     class PaymentGateway {
       public boolean charge(double amount) {
@@ -87,6 +88,7 @@ var john = new Employee("John Doe", 50000);
   - __Aggregation (has-a)__ -
     - Object _contains_ other objects (long-term relationship).
     - Example -
+
     ```
     record Item(String name, double price) {}
 
@@ -114,6 +116,7 @@ var john = new Employee("John Doe", 50000);
     - The subclass may add new behavior or modify inherited behavior.
     - Inheritance promotes code reuse and enables polymorphism.
     - Example -
+
     ```
     class Order {
       public int deliveryDays() {
@@ -138,6 +141,7 @@ var john = new Employee("John Doe", 50000);
     - Has no return value.
     - Always called with the `new` operator.
   - Example -
+
   ```
   var order1 = new Order();                // return value is a reference
   var order2 = null;                       // refers to no object
@@ -148,6 +152,7 @@ var john = new Employee("John Doe", 50000);
 - Represents a date in calendar notation (year, month, day).
 - Objects are immutable.
 - Construction - _static factory methods_ are used instead of constructors -
+
 ```
 LocalDate today = LocalDate.now();                    // current date
 LocalDate newYearsEve = LocalDate.of(1994, 11, 1);    // specific date
@@ -161,11 +166,13 @@ newYearsEve.getDayOfMonth();                          // 1
 - Date Arithmetic -
   - `plusDays` -
     - Immutable method - original object remains unchanged - 
+
     ```
     LocalDate aThousandDaysLater = newYearsEve.plusDays(1000)
     ```
 
     - Mutator example - `GregorianCalendar.add` - changes the state of the object -
+
     ```
     GregorianCalendar someDay = new GregorianCalendar(1999, 11, 31); // month 0-11
     someDay.add(Calendar.DAY_OF_MONTH, 1000);
@@ -195,6 +202,7 @@ newYearsEve.getDayOfMonth();                          // 1
     - Permissive Approach - 
       - Replace `null` with a default value.
       - Example -
+
       ```
       if (n == null) 
         name = "unknown"; 
@@ -203,6 +211,7 @@ newYearsEve.getDayOfMonth();                          // 1
       ```
 
       - Using `Objects` utility class -
+
       ```
       Employee(String n, double s, int year, int month, int day) {
          name = Objects.requireNonNullElse(n, "unknown");
@@ -212,7 +221,8 @@ newYearsEve.getDayOfMonth();                          // 1
 
     - “Tough Love” Approach -
       - Reject `null` arguments with an exception.
-      - Example - using `Objects` utility class
+      - Example - using `Objects` utility class -
+
       ```
       Employee(String n, double s, int year, int month, int day) {
         name = Objects.requireNonNull(n, "The name cannot be null");
@@ -247,6 +257,7 @@ newYearsEve.getDayOfMonth();                          // 1
 
 - A method can access the `private` fields of the object it is invoked on.
 - A method of a class can access `private` fields of any other object of the same class -
+
   ```
   class Employee {
       private int id;
@@ -280,6 +291,7 @@ newYearsEve.getDayOfMonth();                          // 1
   - Cannot be reassigned after the constructor completes.
 
 - Example -
+
 ```
 class Employee {
     private final String name; // cannot change after construction
@@ -297,6 +309,7 @@ class Employee {
 - Final Fields in Mutable Classes -
   - `final` applies to the reference, not the object itself.
   - Example -
+
   ```
   private final StringBuilder evaluations;
 
@@ -304,13 +317,15 @@ class Employee {
   ```
 
   - You cannot reassign evaluations to a new object, but the object itself can be mutated -
+
   ```
   void giveGoldStar() {
     evaluations.append(LocalDate.now() + ": Gold star!\n");
   }
   ```
 
-- - A `final` field can be `null`, but once set, it cannot change -
+- A `final` field can be `null`, but once set, it cannot change -
+
 ```
 name = n != null && n.length() == 0 ? null : n
 ```
