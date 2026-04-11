@@ -1,16 +1,17 @@
 # Object-oriented Programming
 
-- __Encapsulation / Information Hiding__ - concept of combining data (attributes) and behavior (methods) into a single unit — the object — while hiding the internal implementation details from the outside world.
-- __Key Principle__ - Methods should never directly access the instance fields of other objects. Instead, interaction with an object’s data should happen only through its public methods.
+- __Encapsulation / Information Hiding__ - bundle data and methods inside an object and hide internal implementation from the outside.
+- __Key Principle__ - objects should access another object’s data only through its public methods, never directly through fields.
 
-- Three fundamental characteristics of objects -
-  - Behavior - An object’s behavior defines what operations can be performed on it. This is represented by the methods that can be invoked on the object.
-  - State - An object’s state represents the data it holds at a given time. The state determines how the object behaves when its methods are executed and is typically stored in instance variables.
-  - Identity - An object’s identity distinguishes it from other objects, even if they share the same behavior and state. Each object has a unique identity, usually represented by its memory reference.
+- Three object characteristics -
+  - Behavior - what the object can do (its methods).
+  - State - the data it holds (instance variables).
+  - Identity - its unique reference that distinguishes it from other objects.
 
 ## Classes
 
 - Syntax -
+
 ```
 class ClassName {
     field1
@@ -59,7 +60,7 @@ var john = new Employee("John Doe", 50000);
 > [!TIP]
 > It is common to declare classes and methods as `public`.
 
-- Classes are interact with each other in three common ways -
+- Classes can interact with each other in three common ways -
   - __Dependence (uses-a)__ -
     - A class depends on another class but does not model a part-of relationship.
     - Example -
@@ -219,9 +220,10 @@ newYearsEve.getDayOfMonth();                          // 1
       }
       ```
 
-- Methods Operate on Objects -
+- Methods operate on Objects -
   - Methods access and modify instance fields of objects.
   - Example -
+
   ```
   void raiseSalary(double byPercent) {
     double raise = salary * byPercent / 100;
@@ -233,6 +235,7 @@ newYearsEve.getDayOfMonth();                          // 1
   - Explicit argument - the value inside parentheses (`5` in the example).
   - Implicit argument - the object before the method name (`number007`).
   - Every method has an implicit parameter this referring to the object -
+
   ```
   void raiseSalary(double byPercent) {
     double raise = this.salary * byPercent / 100;

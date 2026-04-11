@@ -158,13 +158,15 @@ public class MyApp {
   - `\u007B` and `\u007D` are the encodings for `{` and `}`
 
 > [!WARNING]
-> Unicode escape sequences are processed before the code is parsed. 
+> Unicode escape sequences are processed before the code is parsed.
+>
 > Eg - 
 >   - `"\u0022+\u0022"` is not a string consisting of a plus sign surrounded by quotation marks (`U+0022`)
 >   - Instead, the `\u0022` are converted into `"` before parsing, yielding `""+""`
 
 > [!WARNING]
 > Beware of `\u` inside comments.
+>
 > Eg - `// \u000A is a newline` - yields a syntax error since `\u000A` is replaced with a newline when the program is read.
 
 - You can use any number of `u` in a Unicode escape (e.g., `\u00E9` and `\uuu00E9` both mean `é`). 
