@@ -135,10 +135,14 @@ public class MyApp {
 > Better way - `Double.isNaN(x)`.
 
 > [!NOTE]
-> There are both positive and negative floating-point zeroes, `0.0` and `-0.0`, but `0.0 == -0.0` will always return `true`. To check whether a value is negative zero, use this test - `Double.compare(x, -0.0) == 0`.
+> There are both positive and negative floating-point zeroes, `0.0` and `-0.0`, but `0.0 == -0.0` will always return `true`. 
+>
+> To check whether a value is negative zero, use this test - `Double.compare(x, -0.0) == 0`.
 
 > [!WARNING]
-> Floating-point numbers are not suitable for financial calculations because they can produce roundoff errors (e.g., `2.0 - 1.1` prints `0.8999999999999999`), so use `BigDecimal` for exact precision.
+> Floating-point numbers are not suitable for financial calculations because they can produce roundoff errors (e.g., `2.0 - 1.1` prints `0.8999999999999999`).
+>
+> Use `BigDecimal` for exact precision.
 
 ### `char` type
 
