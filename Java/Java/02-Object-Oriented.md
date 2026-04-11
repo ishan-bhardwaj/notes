@@ -147,6 +147,20 @@ var john = new Employee("John Doe", 50000);
   var order2 = null;                       // refers to no object
   ```
 
+> [!TIP]
+> `jdeprscan` (Java Deprecated API Scanner) - Java tool for detecting deprecated API usage in your code.
+>
+> Usage - `jdeprscan --release <version> <file-or-directory>`
+>
+>   - `--release <version>` - Target Java version for deprecation checks (e.g., 17, 21).
+>
+>   - `<file-or-directory>` - The `.class` files or `.jar` files to scan.
+>
+> Other common options -
+>   - `--class-path <path>` - Specify classpath for dependent classes.
+>
+>   - `--log <file>` - Write output to a file instead of console.
+
 ## `LocalDate` class
 
 - Represents a date in calendar notation (year, month, day).
@@ -178,57 +192,44 @@ newYearsEve.getDayOfMonth();                          // 1
     someDay.add(Calendar.DAY_OF_MONTH, 1000);
     ```
 
-> [!TIP]
-> `jdeprscan` (Java Deprecated API Scanner) - Java tool for detecting deprecated API usage in your code.
->
-> Usage - `jdeprscan --release <version> <file-or-directory>`
->
->   - `--release <version>` - Target Java version for deprecation checks (e.g., 17, 21).
->
->   - `<file-or-directory>` - The `.class` files or `.jar` files to scan.
->
-> Other common options -
->   - `--class-path <path>` - Specify classpath for dependent classes.
->
->   - `--log <file>` - Write output to a file instead of console.
+## Handling Null Fields in Classes
+  
+- Fields can be null if not properly initialized.
+- Example - in `Employee` class -
+  - `name` → can be `null` if constructor argument is `null`.
+  - `salary` → primitive type, cannot be `null`.
 
-- __Handling Null Fields in Classes__ -
-  - Fields can be null if not properly initialized.
-  - Example - in `Employee` class -
-    - `name` → can be `null` if constructor argument is `null`.
-    - `salary` → primitive type, cannot be `null`.
+- Strategies for Null Arguments -
+  - Permissive Approach - 
+    - Replace `null` with a default value.
+    - Example -
 
-  - Strategies for Null Arguments -
-    - Permissive Approach - 
-      - Replace `null` with a default value.
-      - Example -
+    ```
+    if (n == null) 
+      name = "unknown"; 
+    else 
+      name = n;
+    ```
 
-      ```
-      if (n == null) 
-        name = "unknown"; 
-      else 
-        name = n;
-      ```
+    - Using `Objects` utility class -
 
-      - Using `Objects` utility class -
+    ```
+    Employee(String n, double s, int year, int month, int day) {
+      name = Objects.requireNonNullElse(n, "unknown");
+      // ... other initializations
+    }
+    ```
 
-      ```
-      Employee(String n, double s, int year, int month, int day) {
-         name = Objects.requireNonNullElse(n, "unknown");
-        // ... other initializations
-      }
-      ```
+  - “Tough Love” Approach -
+    - Reject `null` arguments with an exception.
+    - Example - using `Objects` utility class -
 
-    - “Tough Love” Approach -
-      - Reject `null` arguments with an exception.
-      - Example - using `Objects` utility class -
-
-      ```
-      Employee(String n, double s, int year, int month, int day) {
-        name = Objects.requireNonNull(n, "The name cannot be null");
-        // ... other initializations
-      }
-      ```
+    ```
+    Employee(String n, double s, int year, int month, int day) {
+      name = Objects.requireNonNull(n, "The name cannot be null");
+      // ... other initializations
+    }
+    ```
 
 - Methods operate on Objects -
   - Methods access and modify instance fields of objects.
