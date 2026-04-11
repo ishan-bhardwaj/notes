@@ -231,28 +231,15 @@ newYearsEve.getDayOfMonth();                          // 1
     }
     ```
 
-- Methods operate on Objects -
-  - Methods access and modify instance fields of objects.
-  - Example -
-
-  ```
-  void raiseSalary(double byPercent) {
-    double raise = salary * byPercent / 100;
-    salary += raise;
-  }
-  ```
-
-  - Usage - `number007.raiseSalary(5)`
-  - Explicit argument - the value inside parentheses (`5` in the example).
-  - Implicit argument - the object before the method name (`number007`).
-  - Every method has an implicit parameter this referring to the object -
-
-  ```
-  void raiseSalary(double byPercent) {
-    double raise = this.salary * byPercent / 100;
-    this.salary += raise;
-  }
-  ```
+> [!TIP]
+> Every method has an implicit parameter `this` referring to the object -
+>
+> ```
+> void raiseSalary(double byPercent) {
+>   double raise = this.salary * byPercent / 100;
+>   this.salary += raise;
+> }
+> ```
 
 ## Class Based Access Privileges
 
