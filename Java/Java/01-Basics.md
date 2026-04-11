@@ -11,6 +11,25 @@ java --version
 // Java HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)
 ```
 
+| Full Text                                                     | Sub-Part         | Meaning                                                                                                                                  |
+| ------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **`java 25.0.1 2025-10-21 LTS`**                              |                  | Java Version info                                                                                                                        |
+|                                                               | `25`             | Major release version                                                                                                                    |
+|                                                               | `0.1`            | Patch / bug-fix update of Java 25                                                                                                        |
+|                                                               | `2025-10-21`     | Release date of this update                                                                                                              |
+|                                                               | `LTS`            | Long term support                                                                                                                        |
+| **`Java(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)`** |                  | Java Runtime Environment (JRE) info                                                                                                      |
+|                                                               | `Java SE`        | Standard Edition                                                                                                                         |
+|                                                               | `build 25.0.1+8` | Internal build number                                                                                                                    |
+|                                                               | `LTS-27`         | Oracle’s internal LTS update train                                                                                                       |
+| **`Java HotSpot(TM) 64-Bit Server VM`**                       |                  | Java Virtual Machine (JVM) info                                                                                                          |
+|                                                               | `HotSpot`        | The JVM implementation by Oracle                                                                                                         |
+|                                                               | `64-bit`         | Uses 64-bit memory model                                                                                                                 |
+|                                                               | `Server VM`      | Optimized for backend / server workloads. Other mode is `Client VM` for smaller apps and faster startups                                 |
+| **`mixed mode, sharing`**                                     |                  | JVM execution modes                                                                                                                      |
+|                                                               | `mixed mode`     | Java uses two ways to run code: interpret bytecode and compile to native machine code via JIT (fast after warm-up). Mixed mode uses both |
+|                                                               | `sharing`        | Refers to Class Data Sharing (CDS). JVM shares pre-loaded classes between runs to start faster and use less memory                       |
+
 - Compile and Launch -
 ```
 javac HelloWorld.java          // compiles and generates bytecode - HelloWorld.class in same directory
@@ -65,18 +84,18 @@ public class MyApp {
 | `int`   | 4 bytes             | $–2^{31} \text{ to } 2^{31}−1$ | 0       | `Integer.MIN_VALUE` | `Integer.MAX_VALUE` |
 | `long`  | 8 bytes             | $–2^{63} \text{ to } 2^{63}−1$ | 0       | `Long.MIN_VALUE`    | `Long.MAX_VALUE`    |
 
-> [!TIP] 
-> Java uses _signed two's completement scheme_ to represent integers.
-
-> [!NOTE]
-> The ranges of the integer types do _not_ depend on the machine on which you will be running the Java code. 
-
 | Number Type        | Prefix / Suffix          | Example       | Example Value (Decimal) | Notes                               |
 | ------------------ | ------------------------ | ------------- | ----------------------- | ----------------------------------- |
 | Long Integer       | Ends with `L` or `l`     | `4000000000L` | 4000000000              | Used when value exceeds `int` range |
 | Hexadecimal Number | Starts with `0x` or `0X` | `0xCAFE`      | 51966                   | Base-16 (0–9, A–F)                  |
 | Octal Number       | Starts with `0`          | `010`         | 8                       | Base-8 (0–7)                        |
 | Binary Number      | Starts with `0b` or `0B` | `0b1001`      | 9                       | Base-2 (0 and 1)                    |
+
+> [!TIP] 
+> Java uses _signed two's completement scheme_ to represent integers.
+
+> [!NOTE]
+> The ranges of the integer types do _not_ depend on the machine on which you will be running the Java code. 
 
 > [!TIP]
 > Use underscores in long numbers for readability, eg - `1_000_000` - Java compiler simply ignores the underscores.
@@ -135,13 +154,26 @@ public class MyApp {
   - `\u007B` and `\u007D` are the encodings for `{` and `}`
 
 > [!WARNING]
-> Unicode escape sequences are processed before the code is parsed, eg - `"\u0022+\u0022"` is not a string consisting of a plus sign surrounded by quotation marks (`U+0022`). Instead, the `\u0022` are converted into `"` before parsing, yielding `""+""`, or an empty string.
+> Unicode escape sequences are processed before the code is parsed. 
+> Eg - 
+>   - `"\u0022+\u0022"` is not a string consisting of a plus sign surrounded by quotation marks (`U+0022`)
+>   - Instead, the `\u0022` are converted into `"` before parsing, yielding `""+""`
 
 > [!WARNING]
-> You must beware of `\u` inside comments, eg - `// \u000A is a newline` - yields a syntax error since `\u000A` is replaced with a newline when the program is read.
+> Beware of `\u` inside comments.
+> Eg - `// \u000A is a newline` - yields a syntax error since `\u000A` is replaced with a newline when the program is read.
 
 - You can use any number of `u` in a Unicode escape (e.g., `\u00E9` and `\uuu00E9` both mean `é`). 
   - This makes ASCII-only conversions reversible - a tool can add extra `u`'s to existing escapes and later restore them.
+
+> [!TIP]
+> Each primitive wrapper has two constants -
+>   - `<Type>.SIZE` - size in bits
+>   - `<Type>.BYTES` - size in bytes
+>
+> Example -
+>   - `Integer.SIZE` - 32
+>   - `Integer.BYTES` - 4
 
 ### `boolean` type
 
