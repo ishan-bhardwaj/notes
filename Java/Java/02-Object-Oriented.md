@@ -76,26 +76,26 @@ var john = new Employee("John", 30);
     - Object _contains_ other objects (long-term relationship).
     - Example -
 
-    ```
-    record Item(String name, double price) {}
+      ```
+      record Item(String name, double price) {}
 
-    import java.util.List;
+      import java.util.List;
 
-    class Order {
+      class Order {
 
-      private List<Item> items;                        // aggregation (has-a)
+        private List<Item> items;                        // aggregation (has-a)
 
-      public Order(List<Item> items) {
-        this.items = items;
+        public Order(List<Item> items) {
+          this.items = items;
+        }
+
+        public double totalPrice() {
+          return items.stream()
+                 .mapToDouble(Item::price)
+                 .sum();
+        }
       }
-
-      public double totalPrice() {
-        return items.stream()
-               .mapToDouble(Item::price)
-               .sum();
-      }
-    }
-    ```
+      ```
 
   - __Inheritance (is-a)__ -
     - Inheritance expresses a relationship between a general class and a more specialized class.
@@ -104,20 +104,20 @@ var john = new Employee("John", 30);
     - Inheritance promotes code reuse and enables polymorphism.
     - Example -
 
-    ```
-    class Order {
-      public int deliveryDays() {
-        return 5;
+      ```
+      class Order {
+        public int deliveryDays() {
+          return 5;
+        }
       }
-    }
 
-    class RushOrder extends Order {                  // is-a relationship
-      @Override
-      public int deliveryDays() {
-        return 1;
+      class RushOrder extends Order {                  // is-a relationship
+        @Override
+        public int deliveryDays() {
+          return 1;
+        }
       }
-    }
-    ```
+      ```
 
 - __Constructor__ -
   - Special method whose purpose is to construct and initialize objects.
