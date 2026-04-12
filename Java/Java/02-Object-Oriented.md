@@ -1,89 +1,76 @@
 # Object-oriented Programming
 
 - __Encapsulation / Information Hiding__ - bundle data and methods inside an object and hide internal implementation from the outside.
-- __Key Principle__ - objects should access another object’s data only through its public methods, never directly through fields.
 
+## Classes & Objects
+
+- _Class_ defines a new data type which can be used to create _objects_ of that type.
+- Methods and variables defined within a class are called _members_ of the class.
 - Three object characteristics -
   - Behavior - what the object can do (its methods).
   - State - the data it holds (instance variables).
   - Identity - its unique reference that distinguishes it from other objects.
 
-## Classes
-
-- Syntax -
-
-```
-class ClassName {
-    field1
-    field2
-    . . .
-    constructor1
-    constructor2
-    . . .
-    method1
-    method2
-    . . .
-}
-```
-
 - Example -
+
 ```
 class Employee {
-    // instance fields
-    private String name;
-    private double salary;
+    // instance variables
+    String name;
+    int age;
 
-    // constructor
-    Employee(String n, double s) {
+    // constructors
+    Employee(String n, int a) {
         name = n;
-        salary = s;
+        age = a;
     }
 
-    // a method
+    // methods
     String getName() {
         return name;
     }
 }
-
-// Constructing objects
-Employee john = new Employee("John Doe", 50000);
-
-// or,
-var john = new Employee("John Doe", 50000);
 ```
 
-- The `private` keyword makes sure that the only methods that can access these instance fields are the methods of the `Employee` class itself.
+- Constructing objects -
 
-> [!TIP]
-> It is best to make all your instance fields `private`.
+```
+Employee john;                                // declare reference to object
+john = new Employee("John Doe", 30);          // allocate an Employee object
 
-> [!TIP]
-> It is common to declare classes and methods as `public`.
+// or,
+Employee john = new Employee("John", 30);
 
-- Classes can interact with each other in three common ways -
+// or,
+var john = new Employee("John", 30);
+```
+
+## Class Relationships
+
+- Classes can interact with each other in _three_ common ways -
   - __Dependence (uses-a)__ -
     - A class depends on another class but does not model a part-of relationship.
     - Example -
 
-    ```
-    class PaymentGateway {
-      public boolean charge(double amount) {
-        IO.println("Charged: " + amount);
-        return true;
-      }
-    }
-
-    class OrderService {
-
-      private var gateway = new PaymentGateway();             // dependency uses-a
-
-      public void placeOrder(double amount) {
-        if (gateway.charge(amount)) {
-          IO.println("Order placed successfully");
+      ```
+      class PaymentGateway {
+        public boolean charge(double amount) {
+          IO.println("Charged: " + amount);
+          return true;
         }
       }
-    }
-    ```
+
+      class OrderService {
+
+        private var gateway = new PaymentGateway();             // dependency uses-a
+
+        public void placeOrder(double amount) {
+          if (gateway.charge(amount)) {
+            IO.println("Order placed successfully");
+          }
+        }
+      }
+      ```
 
   - __Aggregation (has-a)__ -
     - Object _contains_ other objects (long-term relationship).
