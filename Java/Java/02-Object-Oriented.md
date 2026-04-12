@@ -100,8 +100,6 @@ var john = new Employee("John", 30);
   - __Inheritance (is-a)__ -
     - Inheritance expresses a relationship between a general class and a more specialized class.
     - A subclass inherits methods and behavior from its superclass.
-    - The subclass may add new behavior or modify inherited behavior.
-    - Inheritance promotes code reuse and enables polymorphism.
     - Example -
 
       ```
