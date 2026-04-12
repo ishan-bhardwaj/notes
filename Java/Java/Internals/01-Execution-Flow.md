@@ -23,10 +23,9 @@ class Employee {
 }
 ```
 
-### Compilation
+## Compilation
 
-- `javac Employee.java`
-- Converts Java source to _bytecode_ (`.class` file)
+- `javac Employee.java` - converts Java source to _bytecode_ (`.class` file)
 - `.class` file contains -
   1. __Constant Pool__ (symbol table), eg -
   
@@ -43,11 +42,9 @@ class Employee {
     invokespecial <init>
     ```
 
-- __`javap`__ -
-  - JDK introspection tool - let's you look inside bytecode.
-  - `javap -v Employee.class` -
+- Use [`javap`](Java\Java\JDK Tools\javap.md) to look inside bytecode.
 
-### Class Loading
+## Class Loading
 
 - `java Employee` - JVM starts and loads classes.
 - __ClassLoader__ system -
@@ -61,7 +58,7 @@ class Employee {
 - `java -Xlog:class+load=info Employee`
   - Logging levels - `info`, `debug`, `trace`
 
-### Class Linking
+## Class Linking
 
 - Steps -
   1. __Bytecode Verification__ -
@@ -84,11 +81,11 @@ class Employee {
       - JVM resolves it to - `memory offset inside object layout`
     - `-XX:+PrintCompilation` - prints methods compiled and optimized after resolution
 
-### Class Initialization
+## Class Initialization
 
 - JVM runs `static {}` blocks.
 
-### Execution
+## Execution
 
 - JVM executes `main()` method.
 - When `main()` starts, JVM creates a __Stack frame__ which contains -
@@ -97,7 +94,7 @@ class Employee {
   - return address
   - intermediate computation values
 
-### Object Creation (`new`)
+## Object Creation (`new`)
 
 - Finally, execution hits - `Employee john = new Employee("John", 30);`
 - Steps - 
@@ -130,7 +127,7 @@ class Employee {
         - local variables
         - operand stack
 
-### Printing Output
+## Printing Output
 
 - `IO.println(john.getName())` -
   - `getName()` executes
@@ -138,7 +135,7 @@ class Employee {
   - `println` converts to character stream
   - OS `syscall` writes to stdout
 
-### Garbage Collection
+## Garbage Collection
 
 - If object becomes unreachable i.e. `john = null` then -
   - object becomes GC eligible
