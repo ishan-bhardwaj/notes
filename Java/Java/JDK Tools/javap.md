@@ -178,7 +178,7 @@ Constant pool:
 > [!NOTE]
 > Everything reduces to `Utf8`, even class names, method names, descriptors, signatures etc - all eventually point to `Utf8`.
 
-- _Constant pool types__ -
+- __Constant pool types__ -
 
 | **javap type**       | **Meaning**                          | **Example**                                                    |
 | -------------------- | ------------------------------------ | -------------------------------------------------------------- |
