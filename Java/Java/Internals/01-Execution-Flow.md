@@ -42,7 +42,7 @@ class Employee {
     invokespecial <init>
     ```
 
-- Use [`javap`](Java\Java\JDK Tools\javap.md) to look inside bytecode.
+- Use `javap` to look inside bytecode.
 
 ## Class Loading
 
