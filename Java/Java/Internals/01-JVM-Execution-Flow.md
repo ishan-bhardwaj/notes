@@ -1,4 +1,4 @@
-# Execution Flow
+# JVM Execution Flow
 
 - `Employee.java` -
 
@@ -26,22 +26,6 @@ class Employee {
 ## Compilation
 
 - `javac Employee.java` - converts Java source to _bytecode_ (`.class` file)
-- `.class` file contains -
-  1. __Constant Pool__ (symbol table), eg -
-  
-    ```
-    #1 = Methodref Employee.<init>
-    #2 = String "John"
-    #3 = Fieldref Employee.name
-    ```
-
-  2. Bytecode instructions, eg - 
- 
-    ```
-    new #Employee
-    invokespecial <init>
-    ```
-
 - Use `javap` to look inside bytecode.
 
 ## Class Loading
