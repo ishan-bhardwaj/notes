@@ -117,15 +117,16 @@ var john = new Employee("John", 30);
       }
       ```
 
-- __Constructor__ -
-  - Special method whose purpose is to construct and initialize objects.
-  - A constructor -
-    - Always have the same name as the class name. 
-    - A class can have more than one constructor.
-    - Can have zero, one, or more parameters.
-    - Has no return value.
-    - Always called with the `new` operator.
-  - Example -
+## Constructor
+  
+- Special method whose purpose is to construct and initialize objects.
+- A constructor -
+  - Always have the same name as the class name. 
+  - A class can have more than one constructor.
+  - Can have zero, one, or more parameters.
+  - Has no return value.
+  - Always called with the `new` operator.
+- Example -
 
   ```
   var order1 = new Order();                // return value is a reference
