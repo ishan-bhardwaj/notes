@@ -135,27 +135,22 @@ var greet = "Hello";      // greet is a String
 
 - __Conversions for `formatted`__ -
 
-| **Conversion Character** | **Type**                                        | **Example**  |
-| ------------------------ | ----------------------------------------------- | ------------ |
-| `d`                      | Decimal integer                                 | `159`        |
-| `x` or `X`               | Hexadecimal integer                             | —            |
-| `o`                      | Octal integer                                   | `237`        |
-| `f` or `F`               | Fixed-point floating-point                      | `15.9`       |
-| `e` or `E`               | Exponential floating-point                      | `1.59e+01`   |
-| `g` or `G`               | General floating-point (shorter of `e` and `f`) | —            |
-| `a` or `A`               | Hexadecimal floating-point                      | `0x1.fccdp3` |
-| `s` or `S`               | String                                          | `Hello`      |
-| `c` or `C`               | Character                                       | `H`          |
-| `b` or `B`               | Boolean                                         | `true`       |
-| `h` or `H`               | Hash code                                       | `42628b2`    |
-| `t` `x` or `T`           | Legacy date/time formatting                     | —            |
-| `%`                      | The percent symbol                              | `%`          |
-| `n`                      | Platform-dependent line separator               | —            |
-
-> [!TIP]
-> You can use the `%s` conversion to format any object. 
-> 
-> If it implements `Formattable` interface, its `formatTo` method is used, otherwise `toString()` is used.
+  | **Conversion Character** | **Type**                                        | **Example**  |
+  | ------------------------ | ----------------------------------------------- | ------------ |
+  | `d`                      | Decimal integer                                 | `159`        |
+  | `x` or `X`               | Hexadecimal integer                             | —            |
+  | `o`                      | Octal integer                                   | `237`        |
+  | `f` or `F`               | Fixed-point floating-point                      | `15.9`       |
+  | `e` or `E`               | Exponential floating-point                      | `1.59e+01`   |
+  | `g` or `G`               | General floating-point (shorter of `e` and `f`) | —            |
+  | `a` or `A`               | Hexadecimal floating-point                      | `0x1.fccdp3` |
+  | `s` or `S`               | String                                          | `Hello`      |
+  | `c` or `C`               | Character                                       | `H`          |
+  | `b` or `B`               | Boolean                                         | `true`       |
+  | `h` or `H`               | Hash code                                       | `42628b2`    |
+  | `t` `x` or `T`           | Legacy date/time formatting                     | —            |
+  | `%`                      | The percent symbol                              | `%`          |
+  | `n`                      | Platform-dependent line separator               | —            |
 
 - Specify flags - 
   - The comma flag adds group separators, eg - 
@@ -164,6 +159,11 @@ var greet = "Hello";      // greet is a String
     ```
 
   - Use multiple flags, eg - `"%,(.2f"` uses group separators and enclose negative numbers in parentheses.
+
+> [!TIP]
+> You can use the `%s` conversion to format any object. 
+> 
+> If it implements `Formattable` interface, its `formatTo` method is used, otherwise `toString()` is used.
 
 - __Flags for `printf`__ -
 
