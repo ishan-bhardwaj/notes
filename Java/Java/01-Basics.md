@@ -43,7 +43,7 @@ java --version
 ## JShell
   
 - Provides a _read-evaluate-print loop_ or _REPL_.
-- Also supports tab completion.
+- Supports tab completion.
   ```
   > jshell              // starts JShell
   > /exit               // exits JShell
@@ -75,11 +75,12 @@ public class MyApp {
   
 - Single-line comment - `//`
 - Multi-lne comment - `/* ... */`
-- Multi-line comment used for generating documentation automatically - `/** ... */`
+- Multi-line comment - `/** ... */`
+  - Used for generating documentation automatically.
 
 ## Variables and Constants
 
-- Variables are used to store values -
+- Variables -
   ```
   double salary;
   int vacationDays;
@@ -94,17 +95,17 @@ public class MyApp {
   IO.println(y);                // 10
   ```
 
-- Constants are variables whose values don’t change -
+- Constants -
   ```
   final double PI = 3.14;
   ```
 
 > [!TIP]
-> To check which Unicode characters are allowed in Java identifiers, use `Character.isJavaIdentifierStart` and `Character.isJavaIdentifierPart`.
+> Check which Unicode characters are allowed in Java identifiers - `Character.isJavaIdentifierStart` and `Character.isJavaIdentifierPart`.
 
 ## Type inference
   
-- You do not need to declare the types of local variables if they can be inferred from the initial value -
+- Types can be inferred from the value -
 ```
 var x = 5;                // x is an int
 var greet = "Hello";      // greet is a string
@@ -112,25 +113,23 @@ var greet = "Hello";      // greet is a string
 
 ## Input and Output
 
-- `IO.readln()` reads one line of input and returns it as a String.
-- You can pass a prompt string -
+- `IO.readln()` reads one line of input and returns it as a `String`.
+- Passing a prompt -
   ```
   String name = IO.readln("What is your name? ");
   ```
 
-- To read an integer or double, convert the input string -
+- Read an integer or double -
   ```
   int age = Integer.parseInt(IO.readln("How old are you? "));
   double rate = Double.parseDouble(IO.readln("Interest rate: "));
   ```
 
 > [!TIP]
-> The `IO.readLine` method is not suitable for reading a password from a console since the input is plainly visible to anyone. 
->
-> Use `System.console().readPassword` to read a password while hiding the user input -
+> Use `System.console().readPassword` to read a password which hiding the user input -
 > ```
 > char[] passwd = System.console().readPassword("Password: ");
-> Arrays.fill(passwd, '*');       // overwrite with *'s immediately after use
+> Arrays.fill(passwd, '*');                     // overwrite with *'s immediately after use
 > ```
 
 ### Formatting Output
@@ -146,9 +145,6 @@ var greet = "Hello";      // greet is a string
   ```
   IO.print("Hello, %s. Next year, you'll be %d.".formatted(name, age + 1));
   ```
-
-  - `%s` → string placeholder
-  - `%d` → integer placeholder
 
 - __Conversions for `formatted`__ -
 
@@ -174,9 +170,13 @@ var greet = "Hello";      // greet is a string
 > 
 > If it implements `Formattable` interface, its `formatTo` method is used, otherwise `toString()` is used.
 
-- Specify flags - eg, the comma flag adds group separators i.e. `IO.println("%,.2f".formatted(10000.0 / 3.0));` prints `3,333.33`.
+- Specify flags - 
+  - The comma flag adds group separators, eg - 
+  ```
+  IO.println("%,.2f".formatted(10000.0 / 3.0));           // prints 3,333.33
+  ```
 
-- You can use multiple flags, for example `"%,(.2f"` to use group separators and enclose negative numbers in parentheses.
+  - Use multiple flags, eg - `"%,(.2f"` uses group separators and enclose negative numbers in parentheses.
 
 - __Flags for `printf`__ -
 
@@ -194,7 +194,9 @@ var greet = "Hello";      // greet is a string
 | `<`                         | Reuses the previous argument                   | `159 9F`    |
 
 > [!TIP]
-> Formatting depends on the system locale (e.g., Germany uses `,` instead of `.`). To ensure consistent output for files, specify a fixed locale -
+> Formatting depends on the system locale (e.g., Germany uses `,` instead of `.`). 
+> 
+> Specifying a fixed locale -
 > ```
 > IO.print(String.format(Locale.US, "%8.2f", x));
 > ```
