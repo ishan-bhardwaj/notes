@@ -12,9 +12,8 @@
   - Identity - its unique reference that distinguishes it from other objects.
 
 - Example -
-
-```
-class Employee {
+  ```
+  class Employee {
     // instance variables
     String name;
     int age;
@@ -29,21 +28,20 @@ class Employee {
     String getName() {
         return name;
     }
-}
-```
+  }
+  ```
 
 - Constructing objects -
+  ```
+  Employee john;                                // declare reference to object
+  john = new Employee("John Doe", 30);          // allocate an Employee object
 
-```
-Employee john;                                // declare reference to object
-john = new Employee("John Doe", 30);          // allocate an Employee object
+  // or,
+  Employee john = new Employee("John", 30);
 
-// or,
-Employee john = new Employee("John", 30);
-
-// or,
-var john = new Employee("John", 30);
-```
+  // or,
+  var john = new Employee("John", 30);
+  ```
 
 ## Class Relationships
 
@@ -51,7 +49,6 @@ var john = new Employee("John", 30);
   - __Dependence (uses-a)__ -
     - A class depends on another class but does not model a part-of relationship.
     - Example -
-
       ```
       class PaymentGateway {
         public boolean charge(double amount) {
@@ -75,7 +72,6 @@ var john = new Employee("John", 30);
   - __Aggregation (has-a)__ -
     - Object _contains_ other objects (long-term relationship).
     - Example -
-
       ```
       record Item(String name, double price) {}
 
@@ -101,7 +97,6 @@ var john = new Employee("John", 30);
     - Inheritance expresses a relationship between a general class and a more specialized class.
     - A subclass inherits methods and behavior from its superclass.
     - Example -
-
       ```
       class Order {
         public int deliveryDays() {
@@ -127,7 +122,6 @@ var john = new Employee("John", 30);
   - Has no return value.
   - Always called with the `new` operator.
 - Example -
-
   ```
   var order1 = new Order();                // return value is a reference
   var order2 = null;                       // refers to no object
@@ -152,31 +146,28 @@ var john = new Employee("John", 30);
 - Represents a date in calendar notation (year, month, day).
 - Objects are immutable.
 - Construction - _static factory methods_ are used instead of constructors -
+  ```
+  LocalDate today = LocalDate.now();                    // current date
+  LocalDate newYearsEve = LocalDate.of(1994, 11, 1);    // specific date
 
-```
-LocalDate today = LocalDate.now();                    // current date
-LocalDate newYearsEve = LocalDate.of(1994, 11, 1);    // specific date
-
-// accessor methods
-newYearsEve.getYear();                                // 1994
-newYearsEve.getMonthValue();                          // NOVEMBER
-newYearsEve.getDayOfMonth();                          // 1
-```
+  // accessor methods
+  newYearsEve.getYear();                                // 1994
+  newYearsEve.getMonthValue();                          // NOVEMBER
+  newYearsEve.getDayOfMonth();                          // 1
+  ```
 
 - Date Arithmetic -
   - `plusDays` -
     - Immutable method - original object remains unchanged - 
-
-    ```
-    LocalDate aThousandDaysLater = newYearsEve.plusDays(1000)
-    ```
+      ```
+      LocalDate aThousandDaysLater = newYearsEve.plusDays(1000)
+      ```
 
     - Mutator example - `GregorianCalendar.add` - changes the state of the object -
-
-    ```
-    GregorianCalendar someDay = new GregorianCalendar(1999, 11, 31); // month 0-11
-    someDay.add(Calendar.DAY_OF_MONTH, 1000);
-    ```
+      ```
+      GregorianCalendar someDay = new GregorianCalendar(1999, 11, 31); // month 0-11
+      someDay.add(Calendar.DAY_OF_MONTH, 1000);
+      ```
 
 ## Handling Null Fields in Classes
   
@@ -189,33 +180,30 @@ newYearsEve.getDayOfMonth();                          // 1
   - Permissive Approach - 
     - Replace `null` with a default value.
     - Example -
-
-    ```
-    if (n == null) 
-      name = "unknown"; 
-    else 
-      name = n;
-    ```
+      ```
+      if (n == null) 
+        name = "unknown"; 
+      else 
+        name = n;
+      ```
 
     - Using `Objects` utility class -
-
-    ```
-    Employee(String n, double s, int year, int month, int day) {
-      name = Objects.requireNonNullElse(n, "unknown");
-      // ... other initializations
-    }
-    ```
+      ```
+      Employee(String n, double s) {
+        name = Objects.requireNonNullElse(n, "unknown");
+        // ... other initializations
+      }
+      ```
 
   - “Tough Love” Approach -
     - Reject `null` arguments with an exception.
     - Example - using `Objects` utility class -
-
-    ```
-    Employee(String n, double s, int year, int month, int day) {
-      name = Objects.requireNonNull(n, "The name cannot be null");
-      // ... other initializations
-    }
-    ```
+      ```
+      Employee(String n, double s) {
+        name = Objects.requireNonNull(n, "The name cannot be null");
+        // ... other initializations
+      }
+      ```
 
 > [!TIP]
 > Every method has an implicit parameter `this` referring to the object -
@@ -232,18 +220,18 @@ newYearsEve.getDayOfMonth();                          // 1
 - A method can access the `private` fields of the object it is invoked on.
 - A method of a class can access `private` fields of any other object of the same class -
 
-  ```
-  class Employee {
+    ```
+    class Employee {
       private int id;
       // other fields
 
       public boolean equals(Employee other) {
           return id == other.id;                // accesses private field of 'other'
       }
-  }
+    }
 
-  if (harry.equals(boss)) { ... }               // valid
-  ```
+    if (harry.equals(boss)) { ... }               // valid
+    ```
 
   - Legal because `boss` is an `Employee` and the method belongs to the same class.
   - This enables methods like `equals`, `compareTo`, or `copy` constructors to work efficiently.
