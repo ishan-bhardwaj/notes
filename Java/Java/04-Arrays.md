@@ -84,14 +84,14 @@ luckyNumbers = Arrays.copyOf(luckyNumbers, 2 * luckyNumbers.length);
 - Initializing a 2D Array -
   - Fixed size initialization - `balances = new double[NYEARS][NRATES]`
   - Shorthand initialization (if elements known) - 
-  ```
-  int[][] magicSquare = {
-    {16, 3, 2, 13},
-    {5, 10, 11, 8},
-    {9, 6, 7, 12},
-    {4, 15, 14, 1}
-  };
-  ```
+    ```
+    int[][] magicSquare = {
+      {16, 3, 2, 13},
+      {5, 10, 11, 8},
+      {9, 6, 7, 12},
+      {4, 15, 14, 1}
+    };
+    ```
 
 - Accessing Elements - `balances[i][j]`
 - Printing a 2D Array - `Arrays.deepToString(a)`

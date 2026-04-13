@@ -258,22 +258,21 @@
 - `java.math.BigDecimal` -
   - Used for very precise decimal numbers (money, financial calculations, etc.)
   - Always construct from integers or string.
-  ```
-  new BigDecimal(0.1);      // avoid - returns 1000000000000000055511151231257827021181583404541015625
-  BigDecimal.valueOf(0.1);  // returns 0.1
-  new BigDecimal("0.1");    // returns 0.1
-  ```
+    ```
+    new BigDecimal(0.1);      // avoid - returns 1000000000000000055511151231257827021181583404541015625
+    BigDecimal.valueOf(0.1);  // returns 0.1
+    new BigDecimal("0.1");    // returns 0.1
+    ```
 
 - Cannot use arithmetic operators like `+`, `-`, `*`, `/` - because Java does not support operator overloading.
+- Instead use methods -
+  ```
+  BigInteger c = a.add(b);  // c = a + b
+  BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));      // d = c * (b + 2)
+  ```
 
 > [!NOTE]
 > Only exception - `+` is overloaded for string concatenation.
-
-- Instead use methods -
-```
-BigInteger c = a.add(b);  // c = a + b
-BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));      // d = c * (b + 2)
-```
 
 > [!TIP]
 > Java 19 feature - `parallelMultiply()` - works like `multiply()` but may be faster using multiple CPU cores.
@@ -297,7 +296,7 @@ BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));      // d = c * (b + 2)
   - Immutable strings allow sharing, so the compiler can store strings in a common pool and multiple variables can reference the same characters without copying.
 
 - __Concatenation__ -
-  - Use `+` to concatenate two strings.
+  - Use `+` operator to concatenate two strings.
   - When you concatenate a string with a non-string value, Java converts the non-string value to a string.
   - Example -
     ```
@@ -306,8 +305,7 @@ BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));      // d = c * (b + 2)
     ```
 
 > [!WARNING]
-> String concatenation uses + and is evaluated left to right. Therefore, if you concatenate a number after a string, everything becomes a string from that point onward.
-> Example -
+> String concatenation uses + and is evaluated left to right.
 > ```
 > int age = 42;
 > String output = "Next year, you'll be " + age + 1 + ".";
@@ -323,9 +321,11 @@ BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));      // d = c * (b + 2)
 > String concatenation only works with strings, not char literals — `':' + 8000` produces the integer `8058`, not a string (The colon character has Unicode value `58`).
 
 > [!WARNING]
-> Do not use the `==` operator to test whether two strings are equal! It only determines whether or not the strings are stored in the same location. 
+> Do not use the `==` operator to test whether two strings are equal - it only determines whether or not the strings are stored in the same location. 
 >
-> Only string literals are shared, not strings that are computed at runtime. Therefore, never use `==` to compare strings. Always use `equals` instead.
+> Only string literals are shared, not strings that are computed at runtime. Therefore, never use `==` to compare strings. 
+>
+> Always use `equals` instead.
 
 > [!TIP]
 > `CharSequence` is the interface type to which all strings belong. 
