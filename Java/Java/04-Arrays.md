@@ -84,6 +84,7 @@
 - Initializing a 2D Array -
   - Fixed size initialization - `balances = new double[NYEARS][NRATES]`
   - Shorthand initialization (if elements known) - 
+  
     ```
     int[][] magicSquare = {
       {16, 3, 2, 13},
