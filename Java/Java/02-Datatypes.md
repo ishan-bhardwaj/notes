@@ -171,7 +171,7 @@
 > [!NOTE]
 > Casting to a smaller numeric type can truncate the value if it’s out of range, eg - `(byte) 300` becomes `44`.
 
-### Assignment Operators
+## Assignment Operators
 
 - Compound assignment operators - `+=`, `-=`. `*=`, `/=`, `%=`
 - Compound assignment operators perform an implicit cast to the type of the left-hand side - even if the conversion is narrowing.
@@ -187,10 +187,10 @@
   x = x + 3.5;              // compiler error!
   ```
 
-  - Java 20+ can warn about such lossy conversions when linting is enabled. To enable such warnings -
-    ```
-    javac -Xlint:lossy-conversions MyApp.java
-    ```
+- Java 20+ can warn about such lossy conversions when linting is enabled. To enable such warnings -
+  ```
+  javac -Xlint:lossy-conversions MyApp.java
+  ```
 
 - In Java, an assignment is an _expression_ and returns the assigned value, eg -
   ```
@@ -198,7 +198,7 @@
   int y = x += 4;           // y = 5
   ```
 
-### Increment & Decrement Operators
+## Increment & Decrement Operators
 
 - `++`, `--`
 - Works on variables, not on literals (e.g., `4++` is illegal).
@@ -215,7 +215,7 @@
   int b = 2 * n++;              // b = 14, n = 8
   ```
 
-### Relational Operators
+## Relational Operators
 
 - Equality (`==`) and inequality (`!=`).
 - Comparisons - `<`, `>`, `<=`, `>=`
@@ -231,7 +231,7 @@
   - Syntax - `condition ? expression1 : expression2`
   - Returns `expression1` if condition is `true`, otherwise returns `expression2`.
 
-### Bitwise Operators
+## Bitwise Operators
 
 - Work on bit patterns - `&` ("and"), `|` ("or"), `^` ("xor"), `~` ("not").
 - `&` and `|` work on boolean values also and return `boolean` - similar to `&&` and `||` - but they do not provide short-circuiting.
