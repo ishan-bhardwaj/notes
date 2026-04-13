@@ -88,11 +88,6 @@ public class MyApp {
   boolean done;
 
   int i, j;                     // declaring multiple variables in same line
-
-  int x;
-  int y = 10;
-  IO.println(x);                // ERROR  - variable not initialized
-  IO.println(y);                // 10
   ```
 
 - Constants -
@@ -101,20 +96,20 @@ public class MyApp {
   ```
 
 > [!TIP]
-> Check which Unicode characters are allowed in Java identifiers - `Character.isJavaIdentifierStart` and `Character.isJavaIdentifierPart`.
+> Check which Unicode characters are allowed in Java identifiers - `Character.isJavaIdentifierStart` and `Character.isJavaIdentifierPart`
 
 ## Type inference
   
 - Types can be inferred from the value -
 ```
 var x = 5;                // x is an int
-var greet = "Hello";      // greet is a string
+var greet = "Hello";      // greet is a String
 ```
 
 ## Input and Output
 
 - `IO.readln()` reads one line of input and returns it as a `String`.
-- Passing a prompt -
+- Display prompt -
   ```
   String name = IO.readln("What is your name? ");
   ```
@@ -132,18 +127,10 @@ var greet = "Hello";      // greet is a string
 > Arrays.fill(passwd, '*');                     // overwrite with *'s immediately after use
 > ```
 
-### Formatting Output
-
-- `formatted` method -
-  - Uses C-style formatting - `IO.print("%8.2f".formatted(x));`
-  - `%8.2f` means -
-    - `8` → total width of the field
-    - `2` → digits after decimal point
-  - Output - ` 3333.33`
-
-- Formatting with Multiple Arguments -
+- Formatting output -
   ```
-  IO.print("Hello, %s. Next year, you'll be %d.".formatted(name, age + 1));
+  IO.print("%8.2f".formatted(x));                                             // 3333.33
+  IO.print("Hello, %s. Next year, you'll be %d.".formatted(name, age + 1));   // multiple arguments
   ```
 
 - __Conversions for `formatted`__ -
@@ -172,26 +159,26 @@ var greet = "Hello";      // greet is a string
 
 - Specify flags - 
   - The comma flag adds group separators, eg - 
-  ```
-  IO.println("%,.2f".formatted(10000.0 / 3.0));           // prints 3,333.33
-  ```
+    ```
+    IO.println("%,.2f".formatted(10000.0 / 3.0));           // prints 3,333.33
+    ```
 
   - Use multiple flags, eg - `"%,(.2f"` uses group separators and enclose negative numbers in parentheses.
 
 - __Flags for `printf`__ -
 
-| **Flag**                    | **Purpose**                                    | **Example** |
-| --------------------------- | ---------------------------------------------- | ----------- |
-| `+`                         | Prints sign for positive and negative numbers  | `+3333.33`  |
-| (space)                     | Adds a space before positive numbers           | ` 3333.33`  |
-| `0`                         | Adds leading zeros                             | `003333.33` |
-| `-`                         | Left-justifies the field                       | `3333.33 `  |
-| `(`                         | Encloses negative numbers in parentheses       | `(3333.33)` |
-| `,`                         | Adds group separators                          | `3,333.33`  |
-| `#` (for `f` format)        | Always includes a decimal point                | `3,333.`    |
-| `#` (for `x` or `o` format) | Adds `0x` or `0` prefix                        | `0xcafe`    |
-| `$`                         | Specifies argument index (positional argument) | `159 9F`    |
-| `<`                         | Reuses the previous argument                   | `159 9F`    |
+  | **Flag**                    | **Purpose**                                    | **Example** |
+  | --------------------------- | ---------------------------------------------- | ----------- |
+  | `+`                         | Prints sign for positive and negative numbers  | `+3333.33`  |
+  | (space)                     | Adds a space before positive numbers           | ` 3333.33`  |
+  | `0`                         | Adds leading zeros                             | `003333.33` |
+  | `-`                         | Left-justifies the field                       | `3333.33 `  |
+  | `(`                         | Encloses negative numbers in parentheses       | `(3333.33)` |
+  | `,`                         | Adds group separators                          | `3,333.33`  |
+  | `#` (for `f` format)        | Always includes a decimal point                | `3,333.`    |
+  | `#` (for `x` or `o` format) | Adds `0x` or `0` prefix                        | `0xcafe`    |
+  | `$`                         | Specifies argument index (positional argument) | `159 9F`    |
+  | `<`                         | Reuses the previous argument                   | `159 9F`    |
 
 > [!TIP]
 > Formatting depends on the system locale (e.g., Germany uses `,` instead of `.`). 
