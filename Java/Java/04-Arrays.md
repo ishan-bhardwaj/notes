@@ -27,16 +27,16 @@
   - `int a[]` - valid, but less common
 
 - You can declare and initialize an array in one step and the array size is inferred automatically -
-```
-int[] smallPrimes = { 2, 3, 5, 7, 11, 13 };
-```
+  ```
+  int[] smallPrimes = { 2, 3, 5, 7, 11, 13 };
+  ```
 
 - Creating an array of length 0 -
-```
-new elementType[0]
-// or
-new elementType[] {}
-```
+  ```
+  new elementType[0]
+  // or
+  new elementType[] {}
+  ```
 
 - Use `Arrays.toString(a)` to convert an array to a string and print it -
   ```
@@ -49,10 +49,10 @@ new elementType[] {}
 ## Array Copying
 
 - Assigning one array variable to another copies the reference, not the values i.e. both variables point to the same array in memory -
-```
-int[] luckyNumbers = smallPrimes;
-luckyNumbers[5] = 12;               // smallPrimes[5] is also 12
-```
+  ```
+  int[] luckyNumbers = smallPrimes;
+  luckyNumbers[5] = 12;               // smallPrimes[5] is also 12
+  ```
 
 - To create a new array with the same values, use `Arrays.copyOf` -
   ```
@@ -62,9 +62,9 @@ luckyNumbers[5] = 12;               // smallPrimes[5] is also 12
   - The second argument is the length of the new array.
 
 - Can also use `copyOf` to resize an array -
-```
-luckyNumbers = Arrays.copyOf(luckyNumbers, 2 * luckyNumbers.length);
-```
+  ```
+  luckyNumbers = Arrays.copyOf(luckyNumbers, 2 * luckyNumbers.length);
+  ```
 
 - Extra elements are filled with -
   - `0` for numeric arrays
@@ -101,10 +101,10 @@ luckyNumbers = Arrays.copyOf(luckyNumbers, 2 * luckyNumbers.length);
 - Java has no multidimensional arrays at all, only one-dimensional arrays. 
 - Multidimensional arrays are faked as “arrays of arrays.”
 - It is legal to construct multi-dimensional arrays where a dimension is zero, eg -
-```
-new int[3][0]             // 3 rows - each having length 0
-new int[0][3]             // no rows
-```
+  ```
+  new int[3][0]             // 3 rows - each having length 0
+  new int[0][3]             // no rows
+  ```
 
 > [!TIP]
 > In Java, each row is stored separately on the heap.
@@ -114,7 +114,7 @@ new int[0][3]             // no rows
 - Syntax - `for (variable : collection) statement`
 -  The collection expression must be an `array` or an object of a class that implements the `Iterable` interface, such as `ArrayList`.
 - Example -
-```
-for (int element : a)
+  ```
+  for (int element : a)
     IO.println(element);
-```
+  ```
