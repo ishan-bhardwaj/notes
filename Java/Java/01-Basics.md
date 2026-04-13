@@ -1,6 +1,7 @@
 # Java
 
 -  _Strongly typed language_ - every variable must have a declared type.
+
 ```
 javac --version         
 // javac 25.0.1
@@ -11,42 +12,44 @@ java --version
 // Java HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)
 ```
 
-| Full Text                                                     | Sub-Part         | Meaning                                                                                                                                  |
-| ------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **`java 25.0.1 2025-10-21 LTS`**                              |                  | Java Version info                                                                                                                        |
-|                                                               | `25`             | Major release version                                                                                                                    |
-|                                                               | `0.1`            | Patch / bug-fix update of Java 25                                                                                                        |
-|                                                               | `2025-10-21`     | Release date of this update                                                                                                              |
-|                                                               | `LTS`            | Long term support                                                                                                                        |
-| **`Java(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)`** |                  | Java Runtime Environment (JRE) info                                                                                                      |
-|                                                               | `Java SE`        | Standard Edition                                                                                                                         |
-|                                                               | `build 25.0.1+8` | Internal build number                                                                                                                    |
-|                                                               | `LTS-27`         | Oracle’s internal LTS update train                                                                                                       |
-| **`Java HotSpot(TM) 64-Bit Server VM`**                       |                  | Java Virtual Machine (JVM) info                                                                                                          |
-|                                                               | `HotSpot`        | The JVM implementation by Oracle                                                                                                         |
-|                                                               | `64-bit`         | Uses 64-bit memory model                                                                                                                 |
-|                                                               | `Server VM`      | Optimized for backend / server workloads. Other mode is `Client VM` for smaller apps and faster startups                                 |
-| **`mixed mode, sharing`**                                     |                  | JVM execution modes                                                                                                                      |
-|                                                               | `mixed mode`     | Java uses two ways to run code: interpret bytecode and compile to native machine code via JIT (fast after warm-up). Mixed mode uses both |
-|                                                               | `sharing`        | Refers to Class Data Sharing (CDS). JVM shares pre-loaded classes between runs to start faster and use less memory                       |
+| Text                                                          | Sub-Part     | Meaning                                                                                                             |
+| ------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **`java 25.0.1 2025-10-21 LTS`**                              |              | Java version information (as printed by a specific JDK build)                                                       |
+|                                                               | `25`         | Major Java feature release (Java 25)                                                                                |
+|                                                               | `0.1`        | Update / patch level of Java 25                                                                                     |
+|                                                               | `2025-10-21` | Vendor build/release date *(not part of official Java versioning spec)*                                             |
+|                                                               | `LTS`        | Long-Term Support designation for this release line (vendor-defined)                                                |
+| **`Java(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)`** |              | Java runtime environment (JRE) build information                                                                    |
+|                                                               | `Java SE`    | Java Standard Edition runtime                                                                                       |
+|                                                               | `25.0.1+8`   | Java version `25.0.1` with build number `+8`                                                                        |
+|                                                               | `LTS-27`     | Vendor-specific internal packaging/build identifier (not a standard Java version field; does not define LTS itself) |
+| **`Java HotSpot(TM) 64-Bit Server VM`**                       |              | JVM implementation details                                                                                          |
+|                                                               | `HotSpot`    | JVM implementation used in OpenJDK ecosystem (originally Sun/Oracle, now widely used across vendors)                |
+|                                                               | `64-Bit`     | JVM running in 64-bit architecture mode                                                                             |
+|                                                               | `Server VM`  | JVM mode optimized for long-running server/backend workloads with aggressive JIT optimizations                      |
+| **`mixed mode, sharing`**                                     |              | JVM execution and runtime optimizations                                                                             |
+|                                                               | `mixed mode` | Execution uses interpreter + tiered JIT compilation (adaptive optimization based on runtime profiling)              |
+|                                                               | `sharing`    | Class Data Sharing (CDS) enabled: preloaded/shared class metadata to reduce startup time and memory usage           |
 
 - Compile and Launch -
-```
-javac HelloWorld.java          // compiles and generates bytecode - HelloWorld.class in same directory
-java HelloWorld                // executes main method in HelloWorld.class (bytecode)
 
-java HelloWorld                // compiles and executes in single command
-```
+  ```
+  javac HelloWorld.java          // compiles and generates bytecode - HelloWorld.class in same directory
+  java HelloWorld                // executes main method in HelloWorld.class (bytecode)
 
-- __JShell__ -
-  - Provides a _read-evaluate-print loop_ or _REPL_.
-  - Also supports tab completion.
+  java HelloWorld                // compiles and executes in single command
+  ```
+
+## JShell
+  
+- Provides a _read-evaluate-print loop_ or _REPL_.
+- Also supports tab completion.
   ```
   > jshell              // starts JShell
   > /exit               // exits JShell
   ```
 
-  - Example -
+- Example -
   ```
   jshell> "Hello World".length()
   $1 ==> 11
@@ -58,7 +61,7 @@ java HelloWorld                // compiles and executes in single command
   result ==> 15
   ```
 
-- __Hello World__ - 
+## Hello World
 
 ```
 public class MyApp {
@@ -68,14 +71,18 @@ public class MyApp {
 }
 ```
 
-- __Comments__ -
-  - Single-line comment - `//`
-  - Multi-lne comment - `/* ... */`
-  - Multi-line comment used for generating documentation automatically - `/** ... */`
+## Comments
+  
+- Single-line comment - `//`
+- Multi-lne comment - `/* ... */`
+- Multi-line comment used for generating documentation automatically - `/** ... */`
 
 ## Data Types
 
 ### Integer Types
+
+- Java uses _signed two's completement scheme_ to represent integers.
+- The ranges of the integer types do _not_ depend on the machine on which you will be running the Java code.
 
 | Type    | Storage Requirement | Range (Inclusive)              | Default | Min Value           | Max Value           |
 |---------|---------------------|--------------------------------|---------|---------------------|---------------------|
@@ -84,18 +91,12 @@ public class MyApp {
 | `int`   | 4 bytes             | $–2^{31} \text{ to } 2^{31}−1$ | 0       | `Integer.MIN_VALUE` | `Integer.MAX_VALUE` |
 | `long`  | 8 bytes             | $–2^{63} \text{ to } 2^{63}−1$ | 0       | `Long.MIN_VALUE`    | `Long.MAX_VALUE`    |
 
-| Number Type        | Prefix / Suffix          | Example       | Example Value (Decimal) | Notes                               |
-| ------------------ | ------------------------ | ------------- | ----------------------- | ----------------------------------- |
-| Long Integer       | Ends with `L` or `l`     | `4000000000L` | 4000000000              | Used when value exceeds `int` range |
-| Hexadecimal Number | Starts with `0x` or `0X` | `0xCAFE`      | 51966                   | Base-16 (0–9, A–F)                  |
-| Octal Number       | Starts with `0`          | `010`         | 8                       | Base-8 (0–7)                        |
-| Binary Number      | Starts with `0b` or `0B` | `0b1001`      | 9                       | Base-2 (0 and 1)                    |
-
-> [!TIP] 
-> Java uses _signed two's completement scheme_ to represent integers.
-
-> [!NOTE]
-> The ranges of the integer types do _not_ depend on the machine on which you will be running the Java code. 
+| Number Type        | Prefix / Suffix          | Example       | 
+| ------------------ | ------------------------ | ------------- |
+| Long Integer       | Ends with `L` or `l`     | `4000000000L` |
+| Hexadecimal Number | Starts with `0x` or `0X` | `0xCAFE`      |
+| Octal Number       | Starts with `0`          | `010`         |
+| Binary Number      | Starts with `0b` or `0B` | `0b1001`      |
 
 > [!TIP]
 > Use underscores in long numbers for readability, eg - `1_000_000` - Java compiler simply ignores the underscores.
@@ -114,16 +115,14 @@ public class MyApp {
 | `float`  | 4 bytes             | $±3.4 × 10^{38}$ (7 digits)    | `0.0f`  | 6-7 decimal digits   |
 | `double` | 8 bytes             | $±1.8 × 10^{308}$ (15 digits)  | `0.0d`  | 15-16 decimal digits |
 
-| Floating Literal Type    | Suffix          | Example          | Resulting Type | Notes                               |
-| ------------------------ | --------------- | ---------------- | -------------- | ----------------------------------- |
-| Float literal            | `F` or `f`      | `3.14F`          | `float`        | Required to specify 32-bit float    |
-| Double literal (default) | none or `D`/`d` | `3.14` / `3.14D` | `double`       | Default floating-point type in Java |
-
-- Java 20 - `Float.floatToFloat16` / `Float.float16ToFloat` store 16-bit half-precision floats in a short (useful for ML).
-- `E` or `e` denotes a decimal exponent, eg - `1.729E3` = `1729`.
+- `Float.floatToFloat16` / `Float.float16ToFloat` store 16-bit half-precision floats in a short (useful for ML).
+- Exponentials - 
+  - `E` or `e` denotes a decimal exponent
+  - Eg - `1.729E3 = 1729` 
 - Hex floating literals -
-  - Example - `0x1.0p-3 = 0.125`
-  - Use `p` for exponent (base `2`), mantissa = hex, exponent = decimal.
+  - `p` = exponent (base `2`), mantissa = hex, exponent = decimal
+  - Eg - `0x1.0p-3 = 0.125`
+
 - IEEE 754 special values -
   - Positive infinity, eg - `Positive number / 0` → `Positive infinity`
   - Negative infinity, eg - `Negative number / 0` → `Negative infinity`
@@ -190,50 +189,49 @@ public class MyApp {
 ## Variables and Constants
 
 - Variables are used to store values -
-```
-double salary;
-int vacationDays;
-long earthPopulation;
-boolean done;
+  ```
+  double salary;
+  int vacationDays;
+  long earthPopulation;
+  boolean done;
 
-int i, j;                     // declaring multiple variables in same line
+  int i, j;                     // declaring multiple variables in same line
 
-int x;
-int y = 10;
-IO.println(x);                // ERROR  - variable not initialized
-IO.println(y);                // 10
-```
+  int x;
+  int y = 10;
+  IO.println(x);                // ERROR  - variable not initialized
+  IO.println(y);                // 10
+  ```
 
 - Constants are variables whose values don’t change -
-```
-final double PI = 3.14;
-```
+  ```
+  final double PI = 3.14;
+  ```
 
 > [!TIP]
 > To check which Unicode characters are allowed in Java identifiers, use `Character.isJavaIdentifierStart` and `Character.isJavaIdentifierPart`.
 
-> [!NOTE]
-> Although `$` is allowed in identifiers, avoid using it in your code as it is reserved for compiler/tool-generated names.
-
-- Type inference - 
-  - You do not need to declare the types of local variables if they can be inferred from the initial value -
-  ```
-  var x = 5;                // x is an int
-  var greet = "Hello";      // greet is a string
-  ```
+## Type inference
+  
+- You do not need to declare the types of local variables if they can be inferred from the initial value -
+```
+var x = 5;                // x is an int
+var greet = "Hello";      // greet is a string
+```
 
 ## Enum Types
 
 - Used when a variable should hold only a _fixed set of values_.
 - Example -
-```
-enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
 
-Size s = Size.MEDIUM;           // declare variables of the enum type
-Size.valueOf("MEDIUM");         // returns Size.MEDIUM
-Size.valueOf("Medium");         // Error!
-Size.values();                  // returns all Size values in an array
-```
+  ```
+  enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
+
+  Size s = Size.MEDIUM;           // declare variables of the enum type
+  Size.valueOf("MEDIUM");         // returns Size.MEDIUM
+  Size.valueOf("Medium");         // Error!
+  Size.values();                  // returns all Size values in an array
+  ```
 
 - Enum type variable (e.g., `Size`) can only hold one of its defined values or `null` if it’s not set.
 
@@ -273,10 +271,10 @@ Size.values();                  // returns all Size values in an array
 
 - __Casts__ -
   - Conversions in which loss of information is possible are done by means of _casts_ -
-  ```
-  double x = 9.997;
-  int nx = (int) x;           // 9
-  ```
+    ```
+    double x = 9.997;
+    int nx = (int) x;           // 9
+    ```
 
   - Java 25 preview adds safe casts using `instanceof` pattern matching.
     - Example - `if (n instanceof byte b)`
@@ -290,7 +288,6 @@ Size.values();                  // returns all Size values in an array
 - Compound assignment operators - `+=`, `-=`. `*=`, `/=`, `%=`
 - Compound assignment operators perform an implicit cast to the type of the left-hand side - even if the conversion is narrowing.
 - Example -
-
   ```
   int x = 0;
   x += 3.5;                 // returns 3 - fractional part is discarded
@@ -303,12 +300,11 @@ Size.values();                  // returns all Size values in an array
   ```
 
   - Java 20+ can warn about such lossy conversions when linting is enabled. To enable such warnings -
-   ```
-   javac -Xlint:lossy-conversions MyApp.java
-   ```
+    ```
+    javac -Xlint:lossy-conversions MyApp.java
+    ```
 
 - In Java, an assignment is an _expression_ and returns the assigned value, eg -
-
   ```
   int x = 1;
   int y = x += 4;           // y = 5
@@ -323,14 +319,13 @@ Size.values();                  // returns all Size values in an array
   - Postfix - (`x++` / `x--`) - value is used first, then changed.
 
 - Example -
+  ```
+  int m = 7;
+  int n = 7;
 
-```
-int m = 7;
-int n = 7;
-
-int a = 2 * ++m;              // a = 16, m = 8
-int b = 2 * n++;              // b = 14, n = 8
-```
+  int a = 2 * ++m;              // a = 16, m = 8
+  int b = 2 * n++;              // b = 14, n = 8
+  ```
 
 ### Relational Operators
 
@@ -430,16 +425,15 @@ Math.E
 
 - Used to choose among more than two values.
 - Example -
-
-```
-String seasonName = switch (seasonCode) {
+  ```
+  String seasonName = switch (seasonCode) {
     case 0 -> "Spring";
     case 1 -> "Summer";
     case 2 -> "Fall";
     case 3 -> "Winter";
     default -> "???";
-};
-```
+  };
+  ```
 
 - Expression after switch is the `selector`.
 - A case label must be a compile-time constant whose type matches the selector type.
@@ -448,28 +442,26 @@ String seasonName = switch (seasonCode) {
 > Java 23 Preview - Switch selector can be float, double, long, or boolean.
 
 - Multiple labels in a `case` -
-
-```
-int numLetters = switch (seasonName) {
+  ```
+  int numLetters = switch (seasonName) {
     case "Spring", "Summer", "Winter" -> 6;
     case "Fall" -> 4;
     default -> -1;
-};
-```
+  };
+  ```
 
 - __Enums in Switch__ -
   - Enum type labels can omit enum name.
+    ```
+    enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
 
-  ```
-  enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
-
-  String label = switch (itemSize) {
-    case SMALL -> "S";                    // no need to use Size.SMALL
-    case MEDIUM -> "M";
-    case LARGE -> "L";
-    case EXTRA_LARGE -> "XL";
-  };
-  ```
+    String label = switch (itemSize) {
+      case SMALL -> "S";                    // no need to use Size.SMALL
+      case MEDIUM -> "M";
+      case LARGE -> "L";
+      case EXTRA_LARGE -> "XL";
+    };
+    ```
 
   - If all enum values covered, `default` is optional; otherwise required.
   - Switch with numeric or String selector must always have `default`.
@@ -532,11 +524,10 @@ switch (choice) {
   - Use `+` to concatenate two strings.
   - When you concatenate a string with a non-string value, Java converts the non-string value to a string.
   - Example -
-
-  ```
-  int age = 15;
-  String rating = "PG" + age;           // "PG15"
-  ```
+    ```
+    int age = 15;
+    String rating = "PG" + age;           // "PG15"
+    ```
 
 > [!WARNING]
 > String concatenation uses + and is evaluated left to right. Therefore, if you concatenate a number after a string, everything becomes a string from that point onward.
@@ -598,9 +589,9 @@ switch (choice) {
 - `StringBuilder` avoids this by building a string in a _mutable buffer_.
 
 - The `String` class doesn’t have a method to reverse the Unicode characters of a string, but `StringBuilder` does - 
-```
-String reversed = new StringBuilder(original).reverse().toString();
-```
+  ```
+  String reversed = new StringBuilder(original).reverse().toString();
+  ```
 
 - __`StringBuilder` API__ -
 
@@ -621,15 +612,15 @@ String reversed = new StringBuilder(original).reverse().toString();
 
 - `IO.readln()` reads one line of input and returns it as a String.
 - You can pass a prompt string -
-```
-String name = IO.readln("What is your name? ");
-```
+  ```
+  String name = IO.readln("What is your name? ");
+  ```
 
 - To read an integer or double, convert the input string -
-```
-int age = Integer.parseInt(IO.readln("How old are you? "));
-double rate = Double.parseDouble(IO.readln("Interest rate: "));
-```
+  ```
+  int age = Integer.parseInt(IO.readln("How old are you? "));
+  double rate = Double.parseDouble(IO.readln("Interest rate: "));
+  ```
 
 > [!TIP]
 > The `IO.readLine` method is not suitable for reading a password from a console since the input is plainly visible to anyone. 
