@@ -135,10 +135,10 @@
   - Always have the same name as the class name.
   - Has no return value.
   - Always called with the `new` operator -
-  ```
-  var order1 = new Order();                // return value is a reference
-  var order2 = null;                       // refers to no object
-  ```
+    ```
+    var order1 = new Order();                // return value is a reference
+    var order2 = null;                       // refers to no object
+    ```
 
 - Constructors can be - 
   | Modifier        | Access            |
@@ -169,15 +169,6 @@
 
   - Constructors are _invoked_, not called like methods.
 
-- Order of execution - 
-  - LOAD class (if needed)
-  - ALLOCATE heap memory
-  - SET default values
-  - RUN field initializers
-  - RUN initializer blocks
-  - RUN constructor
-  - RETURN reference
-
 > [!NOTE] 
 > Compiler automatically adds a no-argument constructor, iff no constructor is provided explicitly.
 
@@ -191,7 +182,7 @@
   - Invoke any methods on this.
   - Pass this to any other methods.
 
-> [!TIP]
+> [!NOTE]
 > Every method has an implicit parameter `this` referring to the object -
 >
 > ```
@@ -214,12 +205,6 @@
 >   - `--class-path <path>` - Specify classpath for dependent classes.
 >
 >   - `--log <file>` - Write output to a file instead of console.
-
-> [!NOTE]
-> The Object class has a `finalize` method that classes can override for cleanup any resources.
->   - Intended to be called before the garbage collector sweeps away an object.
->   - However, we cannot know when this method will be called, and it is now deprecated for removal.
-
 
 ## Initialization Blocks
 
@@ -269,45 +254,25 @@ class Employee {
     }
     ```
 
-- Execution order -
-  - Static fields default to - `0`, `false`, or `null`.
-  - Then -
-    - Static field initializers run
-    - Static initialization blocks run
-  - Executed in the order they appear in the class.
-
 - Happens when the class is loaded, not when objects are created.
-- Triggered by -
-  - First object creation
-  - First access to a static field or method
-  - Explicit class loading
 
-- It is possible to have cycles in static initialization -
-  - Example -
-  ```
-  class Config {
-    static final Config DEFAULT = new Config();
-    String get(String key) { . . . }
-  }
+## Java Object Creation - Execution Order
 
-  class Logger {
-    static final Logger DEFAULT = new Logger(Config.DEFAULT.get("logger.default.file"));
-    void log(String message) { . . . }
-  }
-  ```
+- __Once per class__ -
+  - Load class bytecode
+  - Verify bytecode
+  - Prepare static memory (assign default values to static fields)
+  - Resolve symbolic references
+  - Execute static field initializers
+  - Execute static initializer blocks
 
-  - Now suppose the Config constructor adds a logging message -
-  ```
-  Config() {
-    // read configuration
-    Logger.DEFAULT.log("Config read successfully");
-  }
-  ```
-
-  - The first time you use a `Logger`, the static initializization of the `Config` class invokes the `Config` constructor. 
-  - It calls the `log` method on the `Logger.DEFAULT` variable, which has not yet been set. 
-  - A `NullPointerException` occurs, which causes a fatal `ExceptionInInitializerError`.
-
+- Every time an object is created (`new`) -
+  - Allocate memory on heap
+  - Assign default values to all instance fields
+  - Execute instance field initializers (in textual order)
+  - Execute instance initializer blocks (in textual order)
+  - Execute constructor body
+  - Return object reference
 
 ## `LocalDate` class
 
