@@ -13,7 +13,7 @@
 - In multithread environment, each thread has its own stack and instruction pointer, while the other components are shared by all threads.
 
 > [!NOTE]
-- Context switching with too many threads causes _thrashing_ which means spending more time in management than real productive work.
+> Context switching with too many threads causes _thrashing_ which means spending more time in management than real productive work.
 
 - Threads consume less resources than process. Therefore, context switching between threads from the same process is cheaper than context switching between processes.
 
@@ -208,7 +208,7 @@
       State next = new State(old.count + 1);
 
       if (ref.compareAndSet(old, next)) break;
-    }
+  }
     ```
 
 - Gurantees -
