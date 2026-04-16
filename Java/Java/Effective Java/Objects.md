@@ -136,3 +136,5 @@ var user = new User.Builder("Ishan")
                   .build();                             // returns NyPizza directly - no casting needed
     ```
 
+## Enforce the singleton property with a private constructor or an enum type
+

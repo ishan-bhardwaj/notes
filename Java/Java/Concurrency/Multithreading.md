@@ -19,6 +19,15 @@
 
 - Threads are much faster to create and destroy than processes.
 
+## Thread Safety
+
+- A class is _thread-safe_ if it behaves correctly when accessed from multiple threads, regardless of the scheduling or interleaving of the execution of those threads by the runtime environment, and with no additional synchronization or other coordination on the part of the calling code.
+
+> [!TIP]
+> Stateless objects are always thread-safe.
+
+
+
 ## Thread Scheduling
 
 - __First Come First Serve (FCFS)__ -
