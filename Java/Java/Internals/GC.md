@@ -40,6 +40,12 @@
   - JVM stops all threads, scans the entire heap, removes unreachable objects, and compacts heap.
   - Causes long application pause.
 
+> [!TIP]
+> `System.gc()` triggers a full GC.
+
+> [!TIP]
+> To run off third-party code incorrectly calling `System.gc()` - `-XX:+DisableExplicitGC` - by default, it is set to `false`.
+
 - __Concurrent Collectors__ -
   - Scan for unused objects without stopping application threads.
   - Minimize pause times, but increase CPU usage.
@@ -153,22 +159,6 @@
 - Fully compacts the old generation during a full GC.
 - Enable with - `-XX:+UseParallelGC`
 
-## G1/GC (Garbage First Garbage Collector) Collector
-
-- Default collector in JDK 11+ (and modern JDKs) for 64-bit JVMs on multi-core machines.
-- Heap is split into many equal-sized regions -
-  - still uses Young + Old generation concept, but implemented using regions.
-- Young GC - stop-the-world pause using multiple threads to copy live objects.
-- Old GC - uses concurrent marking + background processing (not full cleanup every time).
-- Follows a Garbage First strategy - prioritizes collecting regions with the _most garbage_.
-- Avoids Full GC in most cases by doing incremental concurrent evacuation -
-    - Live objects are copied between regions gradually.
-- Performs incremental compaction during normal operation, reducing fragmentation (but not eliminating it completely)
-- Trade-off -
-  - Lower and more predictable pause times.
-  - Higher CPU usage due to concurrent GC threads.
-- Enable with - `-XX:+UseG1GC`
-
 ## CMS (Concurrent Mark Sweep) Collector
 
 - CMS was the first concurrent garbage collector designed to reduce pause times.
@@ -185,3 +175,71 @@
 - Historically, it required setting `-XX:+UseParNewGC` flag also -
   - otherwise the young generation would be collected by a single thread.
   - but now it is obsolete.
+
+## G1/GC (Garbage First Garbage Collector) Collector
+
+- Default collector in JDK 11+ (and modern JDKs) for 64-bit JVMs on multi-core machines.
+- Heap is split into many equal-sized regions -
+  - still uses Young + Old generation concept, but implemented using regions.
+- Young GC - stop-the-world pause using multiple threads to copy live objects.
+- Old GC - uses concurrent marking + background processing (not full cleanup every time).
+- Follows a Garbage First strategy - prioritizes collecting regions with the _most garbage_.
+- Avoids Full GC in most cases by doing incremental concurrent evacuation -
+    - Live objects are copied between regions gradually.
+- Performs incremental compaction during normal operation, reducing fragmentation (but not eliminating it completely)
+- Trade-off -
+  - Lower and more predictable pause times.
+  - Higher CPU usage due to concurrent GC threads.
+- Enable with - `-XX:+UseG1GC`
+
+## Choosing a GC
+
+| GC Algorithm         | Scenario / Condition                  | Why                                     |
+| -------------------- | ------------------------------------- | --------------------------------------- |
+| **G1 GC**            | Default choice (most apps)            | Balanced, predictable pause times       |
+| **G1 GC**            | Low-latency / APIs / microservices    | Avoids long pauses, better tail latency |
+| **G1 GC**            | Plenty of CPU available               | Background threads run efficiently      |
+| **Serial GC**        | Single CPU / constrained environment  | No overhead of multiple threads         |
+| **Serial GC**        | CPU-bound batch job (1 core)          | No CPU contention with GC threads       |
+| **Parallel GC**      | CPU-bound batch job (multi-core)      | Maximizes throughput using all CPUs     |
+| **Parallel GC**      | High throughput, latency not critical | Faster overall execution                |
+| **Parallel GC**      | Few or no Full GCs                    | Avoids its main disadvantage            |
+| **Parallel GC**      | CPU already heavily utilized          | No background GC thread contention      |
+| **CMS (Deprecated)** | Legacy system using CMS               | Deprecated, migrate to G1               |
+
+## GC Tuning
+
+- __Sizing the Heap__ -
+  - Heap sizing is a balance problem -
+    - A small heap increases GC frequency and reduces application throughput
+    - A large heap reduces GC frequency but increases pause duration
+  - Larger heaps increase pause time -
+    - GC must scan more memory
+    - Full GC latency grows with heap size
+  - Very large heaps can exceed physical memory -
+    - OS starts using virtual memory (swapping to disk)
+    - JVM is unaware of swapping since it is handled by the OS
+  - Swapping must be strictly avoided -
+    - Disk access is orders of magnitude slower than RAM
+    - Full GC will touch most of the heap and trigger heavy swapping
+    - GC pauses can increase by an order of magnitude
+  - Therefore, never assign heap larger than physical memory -
+    - If multiple JVMs run, consider the sum of all heap sizes
+    - Leave memory for OS, JVM native memory, and other processes
+    - Keep at least ~1 GB headroom.
+  - Heap is controlled by JVM flags -
+    - `-Xms` sets initial size
+    - `-Xmx` sets maximum size
+  - JVM performs ergonomic heap sizing -
+    - Starts with initial heap
+    - Expands when GC frequency is high
+    - Stops growing at maximum heap size
+    - Goal is to maintain acceptable GC overhead
+  - If heap size is predictable
+    - Set `-Xms` equal to `-Xmx`
+    - Avoids heap resizing and improves GC efficiency
+  - Practical sizing approach -
+    - Run application to steady state
+    - Trigger a full GC
+    - Measure used heap after GC
+    - Target ~30% utilization after full GC
