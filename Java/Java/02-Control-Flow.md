@@ -42,12 +42,12 @@ for (int i = 1; i <= 10; i++) {
   ```
 
 > [!TIP]
-> Java lets you put almost anything in those three parts, but a good programming practice is to use the for loop only to control a single counter variable. Otherwise the code becomes confusing and hard to read, eg - 
+> Java lets you put almost anything in those three parts, but avoid as it can be confusing -
 > ```
 > for (int i = 0; i < 10; System.out.println(i++)) { ... }
 > ```
 
-- Initialization can declare multiple variables, provided they are of the same type and the update expression can contain multiple comma-separated expressions -
+- Can declare multiple variables, but they must be of same type -
 ```
 for (int i = 1, j = 10; i <= 10; i++, j--) { . . . }
 ```
@@ -148,7 +148,7 @@ String seasonName = switch (seasonCode) {
   - Note that `default` does NOT match `null`.
 
 > [!TIP]
-> If you cannot compute the result in a single expression, use braces and a `yield` statement -
+> Use braces and a `yield` statement for multi-line expressions -
 > ```
 > case "Spring" -> {
 >    IO.println("spring time!");
@@ -157,7 +157,7 @@ String seasonName = switch (seasonCode) {
 > ```
 
 > [!NOTE]
-> You cannot use `return`, `break`, or `continue` statements in a switch expression.
+> Cannot use `return`, `break`, or `continue` statements in a switch expression.
 
 ## Switch statements
 

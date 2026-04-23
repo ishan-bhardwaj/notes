@@ -207,7 +207,7 @@
 | **Parallel GC**      | CPU already heavily utilized          | No background GC thread contention      |
 | **CMS (Deprecated)** | Legacy system using CMS               | Deprecated, migrate to G1               |
 
-## GC Tuning
+## Basic GC Tuning
 
 - __Sizing the Heap__ -
   - Heap sizing is a balance problem -
@@ -243,3 +243,4 @@
     - Trigger a full GC
     - Measure used heap after GC
     - Target ~30% utilization after full GC
+

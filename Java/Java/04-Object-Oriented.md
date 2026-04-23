@@ -7,9 +7,9 @@
 - _Class_ defines a new data type which can be used to create _objects_ of that type.
 - Methods and variables defined within a class are called _members_ of the class.
 - Three object characteristics -
-  - Behavior - what the object can do (its methods).
-  - State - the data it holds (instance variables).
   - Identity - its unique reference that distinguishes it from other objects.
+  - State - the data it holds (instance variables).
+  - Behavior - what the object can do (its methods).
 
 - Example -
   ```
@@ -36,10 +36,7 @@
   Employee john;                                // declare reference to object
   john = new Employee("John Doe", 30);          // allocate an Employee object
 
-  // or,
-  Employee john = new Employee("John", 30);
-
-  // or,
+  // or
   var john = new Employee("John", 30);
   ```
 
@@ -172,16 +169,6 @@
 > [!NOTE] 
 > Compiler automatically adds a no-argument constructor, iff no constructor is provided explicitly.
 
-- Before Java 25, the call to the other constructor had to be the first statement of the constructor body. 
-  - This restriction has now been removed.
-  - However there are some restrictions on what can happen between the start of a constructor and the call of another constructor. This phase is called the _early construction context_.
-
-- In the early construction context, you may not -
-  - Read any instance variable.
-  - Write any instance variable that has an explicit initialization.
-  - Invoke any methods on this.
-  - Pass this to any other methods.
-
 > [!NOTE]
 > Every method has an implicit parameter `this` referring to the object -
 >
@@ -209,8 +196,7 @@
 ## Initialization Blocks
 
 - A code block inside a class (not inside a method).
-- Executed every time an object is constructed.
-- Runs before the constructor body.
+- Executed every time an object is constructed, before the constructor.
 
 - Example -
 ```
@@ -218,8 +204,6 @@ class Employee {
     private static int nextId;
 
     private int id;
-    private String name;
-    private double salary;
 
     // object initialization block
     {
@@ -238,15 +222,12 @@ class Employee {
 
 ## Static Initialization
 
+- Runs once, when the class is first loaded.
 - Static fields can be initialized in two ways -
   - Inline Initialization - 
     - `private static int nextId = 1`
-    - Simple and preferred when initialization logic is trivial
 
   - Static Initialization Block -
-    - Used when initialization requires multiple statements or complex logic.
-    - Marked with the keyword static.
-    - Runs once, when the class is first loaded.
     - Example -
     ```
     static {
@@ -254,25 +235,52 @@ class Employee {
     }
     ```
 
-- Happens when the class is loaded, not when objects are created.
+## Handling Null Fields in Classes
+  
+- __Permissive Approach__ - 
+  - Replace `null` with a default value -
+    ```
+    if (n == null) 
+      name = "unknown"; 
+    else 
+      name = n;
+    ```
 
-## Java Object Creation - Execution Order
+  - Using `Objects` utility class -
+    ```
+    Employee(String n, double s) {
+      name = Objects.requireNonNullElse(n, "unknown");
+      // ... other initializations
+    }
+    ```
 
-- __Once per class__ -
-  - Load class bytecode
-  - Verify bytecode
-  - Prepare static memory (assign default values to static fields)
-  - Resolve symbolic references
-  - Execute static field initializers
-  - Execute static initializer blocks
+- “Tough Love” Approach -
+  - Reject `null` arguments with an exception -
+    ```
+    Employee(String n, double s) {
+      name = Objects.requireNonNull(n, "The name cannot be null");
+      // ... other initializations
+    }
+    ```
 
-- Every time an object is created (`new`) -
-  - Allocate memory on heap
-  - Assign default values to all instance fields
-  - Execute instance field initializers (in textual order)
-  - Execute instance initializer blocks (in textual order)
-  - Execute constructor body
-  - Return object reference
+## Method parameters
+
+- __Call by value__ - 
+  - Always used in Java.
+  - Method gets a _copy_ of all arguments.
+- __Call by reference__ - 
+  - Method gets the location of the variable that the caller provides. 
+  - Thus, a method can modify the value stored in a variable passed by reference.
+
+> [!TIP]
+> Mmethod gets a copy of the object reference, so it is still using call by value.
+> 
+> But because both the original and the copy refer to the same object, therefore, method can update the states of the object.
+
+> [!TIP]
+> Local variables are not initialized with their default values - you must explicitly initialise them.
+>
+> Instance variables are automatically initialised to their default value (`0`, `false`, `null` etc), if not initialised explicitly.
 
 ## `LocalDate` class
 
@@ -301,56 +309,3 @@ class Employee {
       GregorianCalendar someDay = new GregorianCalendar(1999, 11, 31); // month 0-11
       someDay.add(Calendar.DAY_OF_MONTH, 1000);
       ```
-
-## Handling Null Fields in Classes
-  
-- Fields can be null if not properly initialized.
-- Example - in `Employee` class -
-  - `name` → can be `null` if constructor argument is `null`.
-  - `salary` → primitive type, cannot be `null`.
-
-- Strategies for Null Arguments -
-  - Permissive Approach - 
-    - Replace `null` with a default value.
-    - Example -
-      ```
-      if (n == null) 
-        name = "unknown"; 
-      else 
-        name = n;
-      ```
-
-    - Using `Objects` utility class -
-      ```
-      Employee(String n, double s) {
-        name = Objects.requireNonNullElse(n, "unknown");
-        // ... other initializations
-      }
-      ```
-
-  - “Tough Love” Approach -
-    - Reject `null` arguments with an exception.
-    - Example - using `Objects` utility class -
-      ```
-      Employee(String n, double s) {
-        name = Objects.requireNonNull(n, "The name cannot be null");
-        // ... other initializations
-      }
-      ```
-
-## Method parameters
-
-- __Call by value__ - 
-  - Always used in Java.
-  - Method gets just the value that the caller provides.
-  - Thus, the method gets a _copy_ of all arguments i.e. the method cannot modify the contents of any variables in the method call.
-- __Call by reference__ - 
-  - Method gets the location of the variable that the caller provides. 
-  - Thus, a method can modify the value stored in a variable passed by reference.
-
-> [!TIP]
-> Whenever we pass an object reference to the methods, the method gets a copy of the object reference (hence, still using call by value), but because both the original and the copy refer to the same object, therefore, method can update the states of the object.
-
-> [!TIP]
-> Local variables are not initialized with their default values - you must explicitly initialise them.
-> Instance variables are automatically initialised to their default value (`0`, `false`, `null` etc), if not initialised explicitly.
