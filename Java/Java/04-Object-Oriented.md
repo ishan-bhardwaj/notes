@@ -40,6 +40,8 @@
   var john = new Employee("John", 30);
   ```
 
+- A source file can only contain one public class, and the names of the file & the public class must match.
+
 ## Class Relationships
 
 - Classes can interact with each other in _three_ common ways -
@@ -309,3 +311,66 @@ class Employee {
       GregorianCalendar someDay = new GregorianCalendar(1999, 11, 31); // month 0-11
       someDay.add(Calendar.DAY_OF_MONTH, 1000);
       ```
+
+# Packages
+
+- Java allows you to group related classes into a package.
+- Packages serve three main purposes -
+  - Organization of large programs
+  - Name uniqueness
+  - Encapsulation at a higher level than classes
+
+- A class can use -
+  - All classes in its own package
+  - All public classes from other packages
+  
+- Importing classes -
+  - Using fully qualified names -
+    - `java.time.LocalDate today = java.time.LocalDate.now()`
+    - Always works, but tedious.
+  - Using `import` -
+    ```
+    import java.time.*;                   // imports all classes in java.time package
+    import java.time.LocalDate;           // specific class import
+
+    LocalDate today = LocalDate.now();
+    ```
+
+> [!TIP]
+> `import` is purely for convenience. The bytecode always uses fully qualified names.
+
+> [!TIP]
+> `java.lang`is imported automatically.
+
+- __Module Imports__ (Java 25+) -
+  - Java packages can be organized into modules.
+  - Import all packages in a module -
+    - Example - `import module java.xml`
+    - Important module - 
+      - `import module java.base`
+      - Automatically imported in compact source files.
+      - Includes `java.lang`, `java.util`, `java.time`, `java.io` etc.
+
+- __Static Imports__ -
+  - Allows importing static methods and fields -
+    ```
+    import static java.lang.System.*;
+    err.println("Error");
+    exit(0);
+    ```
+
+  - Enum Constants -
+    ```
+    import static java.time.DayOfWeek.*;
+
+    var day = FRIDAY;
+    ```
+
+- If you don’t put a package statement in the source file - the classes will belong to the unnamed package (no package name).
+
+> [!TIP]
+> The implicitly declared class of a compact compilation unit (with methods declared outside a class) is always in the unnamed package.
+
+- Package structure is important for JVM, not for compiler -
+  - A class with `package com.mycompany` can compile even if it is not contained in a subdirectory `com/mycompany`
+  - But, the JVM won't be able to execute it.

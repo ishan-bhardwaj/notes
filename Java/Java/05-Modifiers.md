@@ -18,6 +18,9 @@
 
   - This enables methods like `equals`, `compareTo`, or `copy` constructors to work.
 
+> [!TIP]
+> Variables with no access modifiers defaults to package access.
+
 ## Private Methods
 
 - Instance fields are made `private` to protect data.
