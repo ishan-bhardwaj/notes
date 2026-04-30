@@ -77,11 +77,11 @@
   - Guarantees immutability of the reference.
   - Improves clarity and safety of your class design.
 
--`final` applies to the reference, not the object itself -
+- `final` applies to the reference, not the object itself -
   ```
   private final StringBuilder evaluations;
 
-  evaluations = new StringBuilder(); // initialized in constructor
+  evaluations = new StringBuilder();          // initialized in constructor
 
   // cannot reassign evaluations to a new object, but the object itself can be mutated
   void giveGoldStar() {

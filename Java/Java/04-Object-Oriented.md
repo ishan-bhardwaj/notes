@@ -275,9 +275,9 @@ class Employee {
   - Thus, a method can modify the value stored in a variable passed by reference.
 
 > [!TIP]
-> Mmethod gets a copy of the object reference, so it is still using call by value.
+> Method gets a copy of the object reference, so it is still using call by value.
 > 
-> But because both the original and the copy refer to the same object, therefore, method can update the states of the object.
+> But because both the original and the copy refer to the same object - method can update the states of the object.
 
 > [!TIP]
 > Local variables are not initialized with their default values - you must explicitly initialise them.

@@ -18,7 +18,7 @@ public class Manager extends Employee {
   - To invoke superclass constructor in subclass constructor -
     ```
     public Manager(String name, double salary) {
-      super(name, salary);              // calls the constructor of `Employee` superclass.
+      super(name, salary);              // calls the constructor of `Employee` superclass
       bonus = 0;
     }
     ```
@@ -26,7 +26,9 @@ public class Manager extends Employee {
     - Before Java 25, the call to super had to be the first statement in the constructor for the subclass. Now, the code between the start of the constructor and the call to super is an _early execution context_.
 
 > [!TIP]
-> When a subclass object is constructed without an explicit invocation of a superclass constructor, the superclass must have a no-argument constructor. That constructor is invoked prior to the subclass construction.
+> When a subclass object is constructed without an explicit invocation of a superclass constructor, the superclass must have a no-argument constructor. 
+>
+> That constructor is invoked prior to the subclass construction.
 
 - Polymorphism is the ability of an object reference to refer to multiple actual types, eg - 
 ```
@@ -36,9 +38,9 @@ Manager m = new Manager("John", 500);
 Employee e = new Manager("John", 500);
 ```
 
-- _Dynamic binding_ is the process of automatically selecting the appropriate method to execute at runtime based on the actual object.
-
-- If the method is `private`, `static`, `final`, or a constructor, then the compiler knows exactly which method to call. This is called _static binding_.
+- __Static vs Dynamic Binding__ -
+  - Dynamic binding - the process of automatically selecting the appropriate method to execute at runtime based on the actual object.
+  - Static binding - if the method is `private`, `static`, `final`, or a constructor, then the compiler knows exactly which method to call.
 
 > [!NOTE]
 >  Java does not support multiple inheritance.
@@ -50,51 +52,43 @@ Employee[] staff = managers;              // OK
 ```
 
 > [!NOTE]
-> All arrays remember the element type with which they were created, and they monitor that only compatible references are stored into them. For example, the array created as `new Manager[10]` remembers that it is an array of managers. Attempting to store an `Employee` reference causes an `ArrayStoreException`.
+> All arrays remember the element type with which they were created, and they monitor that only compatible references are stored into them. 
+>
+> For eg, the array created as `new Manager[10]` remembers that it is an array of managers. Attempting to store an `Employee` reference causes an `ArrayStoreException`.
 
-- When the program runs and uses dynamic binding to call a method, the virtual machine must call the version of the method that is appropriate for the actual type of the object to which `x` refers. It would be time-consuming to carry out this search every time a method is called.
-- Instead, the virtual machine precomputes a method table for each class. The method table lists all method signatures and the actual methods to be called.
-- The virtual machine can build the method table after loading a class, by combining the methods that it finds in the class file with the method table of the superclass.
-- When a method is actually called, the virtual machine simply makes a table lookup.
+- In dynamic binding, the JVM must call the method matching the object’s actual runtime type.
+  - Doing a full lookup on every call would be slow.
+  - So, the JVM builds a method table (vtable) for each class at load time.
+  - This table merges the class’s methods with inherited ones (overridden methods replace parent entries).
+  - At runtime, method calls are resolved via a fast table lookup.
 
 > [!TIP]
 > Every class in Java has a superclass `Object`.
 
 > [!WARNING]
-> When you override a method, the subclass method must be at least as visible as the superclass method. In particular, if the superclass method is `public`, the subclass method must also be declared `public`. 
+> When you override a method, the subclass method must be at least as visible as the superclass method. 
 >
-> It is a common error to accidentally omit the `public` specifier for the subclass method. The compiler then complains that you try to supply a more restrictive access privilege.
+> For eg - if the superclass method is `protected`, the subclass method must also be declared `public` or `protected`, but not `private`. 
 
-## Preventing Inheritance
+## Preventing Inheritance (`final`)
 
-- Classes that cannot be extended are called final classes, and you use the _final_ modifier in the definition of the class to indicate this. 
-- Example -
-```
-public final class Executive extends Manager {
-  ...
-}
-```
+- Classes that cannot be extended are called final classes.
+  ```
+  public final class Executive extends Manager {
+    ...
+  }
+  ```
 
-- All methods in a `final` class are automatically `final`.
-- Make specific method `final` -
-```
-public final String getName() {
-  return name;
-}
-```
-
-- Fields can also be declared as `final`. A `final` field cannot be changed after the object has been constructed. However, if a class is declared `final`, only the methods, not the fields, are automatically `final`.
+- If a class is declared `final` then its methods are automatically `final`, but not the fields.
 
 > [!TIP]
 > The `String` class is a `final` class.
 
 - If you call a method in a constructor, you should declare it as `final` or `private`. Otherwise, it can be overridden in a subclass, and it can access a partially constructed subclass instance.
-
-> [!TIP]
-> Since Java 21, if you compile with the `-Xlint:this-escape` option, the compiler issues a warning when the constructor of a public class calls a method that is not `final` or `private`.
+- Since Java 21, if you compile with the `-Xlint:this-escape` option, the compiler issues a warning when the constructor of a public class calls a method that is not `final` or `private`.
 
 - Some programmers used the `final` keyword hoping to avoid the overhead of dynamic binding -
-  - If a method is not overridden, and it is short, then a compiler can optimize the method call away— a process called _inlining_. 
+  - If a method is not overridden, and it is short, then a compiler can optimize the method call away - a process called _inlining_. 
   - For example, inlining the call `e.getName()` replaces it with the field access `e.name`.
   - This is a worthwhile improvement — CPUs hate branching because it interferes with their strategy of prefetching instructions while processing the current one. 
   - However, if `getName` can be overridden in another class, then the compiler cannot inline it because it has no way of knowing what the overriding code may do.
@@ -134,17 +128,6 @@ if (e instanceof Manager) {
     m.setBonus(5000);
   }
   ```
-
-> [!NOTE]
-> In most situations in which you use instanceof, you need to apply a subclass method. Then use this “pattern-matching” form of instanceof instead of a cast.
->
-> Example -
-> ```
-> Manager m = ... ;
-> if (m instanceof Employee e)       // ERROR - Of course it's an Employee
-> ```
->
-> However, The equally useless `if (m instanceof Employee)` is allowed, for backward compatibility with Java 1.0.
 
 - When an `instanceof` pattern introduces a variable, you can use it right away, in the same expression -
   ```
@@ -186,13 +169,9 @@ if (c instanceof Circle(Point(var a, var b), var r)) ... ;
 if (p instanceof Point(var a, _)) distance = Math.abs(a);
 ```
 
-> [!TIP]
-> Protected - accessible in the package and all subclasses.
-
 ## `Object` Superclass
 
-- Every class in Java extends `Object`, however, you never have to write - `public class Employee extends Object`.
-- Only the values of primitive types (numbers, characters, and boolean values) are not objects.
+- Every class in Java extends `Object` automatically.
 
 ### The `equals` Method
   - The `equals` method, as implemented in the `Object` class, determines whether two object references are identical.

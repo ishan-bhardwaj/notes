@@ -1,6 +1,6 @@
 # Documentation
 
-- `javadoc` tool generates HTML documentation from your source files from the comments that start with a ¬ and ends with a `*/`.
+- `javadoc` tool generates HTML documentation from your source files from the comments that start with a `/**` and ends with a `*/`.
 - Each comment is placed immediately above the member it describes. 
 - The `javadoc` utility extracts information for the following items -
   - Modules
@@ -18,9 +18,13 @@
 - JavaDoc text can contain HTML tags such as `<em>` or `ul` - they are passed through to the generated HTML pages.
 
 > [!NOTE]
-> Starting with Java 23, you can author JavaDoc comments in Markdown instead of plain text and HTML. Markdown comments are delimited with `///` in front of each line, instead of `/**` and `*/`. JavaDoc follows the CommonMarc specification, and in addition supports the Github Flavored Markdown extension for tables.
+> Starting with Java 23, you can author Javadoc comments in Markdown instead of plain text and HTML. 
+>
+> Markdown comments are delimited with `///` in front of each line, instead of `/**` and `*/`. 
+>
+> JavaDoc follows the CommonMarc specification, and in addition supports the Github Flavored Markdown extension for tables.
 
-- __Class Comments__ - must be placed after any import statements, directly before the class definition.
+- __Class Comments__ - must be placed before the class definition.
 - __Method Comments__ -
   - Each method comment must immediately precede the method that it describes.
   - In addition to the general-purpose tags, you can use the following tags -
@@ -38,7 +42,7 @@
   ```
   /**
   * Returns the name of the employee.
-  * @return  the name of the employee
+  * @return the name of the employee
   */
   ```
 

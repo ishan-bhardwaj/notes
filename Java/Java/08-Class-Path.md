@@ -29,19 +29,18 @@
     - The class path is set until the shell exits.
 
 > [!TIP]
-> When using a JAR in jshell, launch it with - `CLASSPATH=archive.jar jshell`.
+> When using a JAR in jshell, launch it with - `CLASSPATH=archive.jar jshell`
 
 > [!TIP]
 > Classes can also be loaded from the _module path_.
 
 ## JAR Files
   
-- JAR = compressed archive.
+- JAR = compressed archive built on ZIP format.
+- Used to distribute applications and libraries.
 - Contains -
   - `.class` files
   - Resources (images, sounds, config)
-- Used to distribute applications and libraries.
-- Built on ZIP format.
 
 - Creating jar files -
   - Using `jar` tool - 
@@ -102,14 +101,14 @@ jar ufm MyArchive.jar manifest-additions.mf
 ```
 
 - Executable jar files -
-  - Use the `e` option of the jar command to specify the entry point of your program — the class that you would normally specify when invoking the java program launcher -
-    - `jar cvfe MyProgram.jar com.mycompany.mypkg.MainAppClass files to add`
-  - Alternatively, you can specify the main class of your program in the manifest, including a statement of the form -
+  - Use the `e` option to specify the entry point of your program -
+    - `jar cvfe MyProgram.jar com.mycompany.mypkg.MainAppClass <files_to_add>`
+  - Alternatively, specify the main class of your program in the manifest -
     - `Main-Class: com.mycompany.mypkg.MainAppClass`
     - Do not add a `.class` extension to the main class name.
 
 > [!WARNING]
-> The last line in the manifest must end with a newline character. Otherwise, the manifest will not be read correctly. It is a common error to produce a text file containing just the Main-Class line without a line terminator.
+> The last line in the manifest must end with a newline character. Otherwise, the manifest will not be read correctly.
 
 - For backward compatibility, version-specific class files are placed in the `META-INF/versions` directory.
 - To add versioned class files, use the `--release` flag - 
@@ -126,11 +125,8 @@ jar cf MyProgram.jar -C bin/8 . --release 9 -C bin/9 Application.class
   - `javac -d bin/8 --release 8 . . . `
   - The `-d` option creates the directory if it doesn’t exist.
 
-> [!TIP]
-> The sole purpose of multi-release JARs is to enable a particular version of your program or library to work with multiple JDK releases. If you add functionality or change an API, you should provide a new version of the JAR instead.
-
 - Tools such as `javap` are not retrofitted to handle multi-release JAR files. 
-  - If you call - `javap -classpath MyProgram.jar Application.class` - you get the base version of the class (which, after all, is supposed to have the same public API as the newer version). 
+  - If you call - `javap -classpath MyProgram.jar Application.class` - you get the base version of the class (which is supposed to have the same public API as the newer version). 
   - If you must look at the newer version, call - 
   ```
   javap -classpath MyProgram.jar\!/META-INF/versions/9/Application.class
