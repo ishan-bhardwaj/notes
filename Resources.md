@@ -31,3 +31,20 @@
 - The Algorithm Design Manual — Steven Skiena
 - Competitive Programming — Steven Halim & Felix Halim
 - Advanced Data Structures — Peter Brass
+
+## Java / Spring
+
+https://www.udemy.com/course/spring-hibernate-tutorial
+
+## Python
+
+https://www.udemy.com/course/the-complete-python-course/
+
+## Kafka
+
+https://www.udemy.com/course/apache-kafka/
+
+## Web Development
+
+https://www.udemy.com/course/the-complete-web-development-bootcamp/
+

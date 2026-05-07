@@ -60,6 +60,8 @@ for car in ford:
 
 - If `__str__` is not present, then `print` calls `__repr__`.
 
+- `my_obj.__doc__` prints the docstring on the constructor.
+
 ## Inheritance
 
 ```
@@ -146,3 +148,51 @@ john.develop()
     money2 = Euro.from_static_sum(16.758, 9.999)
     print(money2)                                                # <FixedFloat 26.76>
     ```
+
+> [!TIP]
+> `isinstance(my_car, Car)` returns `True` if `my_car` is an instance of `Car` class.
+
+## Errors
+
+- Raising errors - `raise NotImplementedError('WIP')`
+- Custom error -
+  ```
+  class MyError(TypeError):
+    pass
+
+  raise MyError('Error occurred!')
+  ```
+
+- Custom error with constructor -
+  ```
+  class MyError(Exception):
+    def __init__(self, message, code):
+      super.__init__(f'Error code {code}: {message}')
+      self.code = code
+  ```
+
+- Catching & re-raising errors -
+  ```
+  try:
+    # code that might fail
+  except TypeError:
+    print('Error!')
+  except ValueError:
+    print('something is wrong!')
+    raise                               # re-raising the same error
+  finally:
+    print('closing')
+  ```  
+
+- `else` - will only run if no error occurs in the `try` block -
+  ```
+  try:
+    # code that might fail
+  except TypeError:
+    print('Error!')
+  else:
+    print('sending notification')
+  ``` 
+
+> [!NOTE]
+> `else` will not run if `try` returns the result.
