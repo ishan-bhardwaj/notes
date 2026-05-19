@@ -14,11 +14,11 @@ public synchronized void method1() {
 }
 ```
 
-  - Implicitly acquires the monitor of `this` object before execution.
-  - If thread `A` acquires the monitor and enters` method1()`, no other thread can enter any synchronized method (`method1()` or `method2()`) of the same object until the monitor is released.
+  - Implicitly acquires the monitor of `this` object before execution
+  - If thread `A` acquires the monitor and enters` method1()`, no other thread can enter any synchronized method (`method1()` or `method2()`) of the same object until the monitor is released
 
   > [!TIP]
-  > Static synchronized methods use the monitor of the `Class` object instead of `this`.
+  > Static synchronized methods use the monitor of the `Class` object instead of `this`
 
 ### Synchronized Block (Custom Lock)
 
@@ -32,12 +32,12 @@ public void method1() {
 }
 ```
 
-  - Any Java object can be used as a monitor lock.
-  - A thread must acquire the monitor of lock before entering the synchronized block.
-  - Two threads can execute the same synchronized block simultaneously if they synchronize on different lock objects.
+  - Any Java object can be used as a monitor lock
+  - A thread must acquire the monitor of lock before entering the synchronized block
+  - Two threads can execute the same synchronized block simultaneously if they synchronize on different lock objects
 
   > [!TIP]
-  > A synchronized instance method is logically equivalent to synchronizing on `this`.
+  > A synchronized instance method is logically equivalent to synchronizing on `this`
   >
   > ```
   > public synchronized void method1() {
@@ -57,13 +57,13 @@ public void method1() {
 
 ## Reentrancy
 
-- Java monitor locks are reentrant.
-- A thread that already owns a lock is allowed to enter another synchronized block/method that requires the same lock.
-- Without reentrancy, the thread would block waiting for a lock that it already owns, causing self-deadlock.
+- Java monitor locks are reentrant
+- A thread that already owns a lock is allowed to enter another synchronized block/method that requires the same lock
+- Without reentrancy, the thread would block waiting for a lock that it already owns, causing self-deadlock
 
 ## Designing Thread-Safe Classes
 
-- Thread safety = protecting shared mutable state and preserving invariants.
+- Thread safety = protecting shared mutable state and preserving invariants
 - __Design Steps__ -
   - Identify object state
   - Identify invariants
@@ -93,7 +93,7 @@ public void method1() {
 
 ## Confinement
 
-- Non-thread-safe components can safely exist inside thread-safe containers.
+- Non-thread-safe components can safely exist inside thread-safe containers
 - Types of confinement -
   - __Instance confinement__ - private field inside object
   - __Lexical confinement__ - local variables inside method/block
@@ -109,7 +109,7 @@ public void method1() {
   - synchronization becomes easier to reason about
 
 - __Escape Analysis__ -
-  - Confinement breaks if object escapes.
+  - Confinement breaks if object escapes
   - Object may escape via -
     - returning references
     - publishing through getters
@@ -117,7 +117,7 @@ public void method1() {
     - inner classes/lambdas
     - callbacks/listeners
     - shared mutable references
-  - Publishing confined object = synchronization bug.
+  - Publishing confined object = synchronization bug
 
 - Example -
   ```
@@ -139,7 +139,7 @@ public void method1() {
   - But because `mySet` is private and not allowed to escape - the `HashSet` is confined to the `PersonSet`
   - The only code paths that can access `mySet` are `addPerson` and `containsPerson` -
     - each of these acquires the lock on the `PersonSet`
-  - All its state is guarded by its intrinsic lock, making `PersonSet` thread-safe.
+  - All its state is guarded by its intrinsic lock, making `PersonSet` thread-safe
 
 ### Synchronized Wrappers
 
@@ -153,7 +153,7 @@ public void method1() {
 
 ### Java Monitor Pattern
 
-- Logical conclusion of instance confinement.
+- Logical conclusion of instance confinement
 - An object -
   - encapsulates all its mutable state
   - guards it with the object’s own intrinsic lock
@@ -169,8 +169,8 @@ public void method1() {
 
 ## Delegating Thread Safety
 
-- Composite object may be thread-safe if underlying components are thread-safe.
-- Delegation = relying on underlying thread-safe components for synchronization correctness.
+- Composite object may be thread-safe if underlying components are thread-safe
+- Delegation = relying on underlying thread-safe components for synchronization correctness
 - Delegation works if -
   - state variables are independent
   - no cross-variable invariants exist
@@ -235,8 +235,8 @@ public void method1() {
     - Dangerous if class does not document its locking strategy
 
 - Option 4 (Best Practical) - __Composition__ -
-  - Wrap the existing collection inside a new class.
-  - New class controls all access using its own lock.
+  - Wrap the existing collection inside a new class
+  - New class controls all access using its own lock
     ```
     class ImprovedList<T> {
       private final List<T> list;
