@@ -133,4 +133,9 @@ public class EmployeeServiceImpl extends EmployeeService {
 
 - Put request - `@PutMapping`
 - Delete request - `@DeleteMapping`
+- Patch request -
+  - Inject the helper class - JsonMapper - a helper class in the Jackson library for JSON processing.
+  
+  ```
 
+  ```
