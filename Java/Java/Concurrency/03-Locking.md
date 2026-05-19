@@ -2,10 +2,9 @@
 
 ## `synchronized`
 
-- Built-in Java locking mechanism.
-- Used to restrict access to a critical section or an entire method to one thread at a time.
-- Implemented using an object's monitor (intrinsic lock).
-- Two ways to use it - `synchronized` method or block.
+- Built-in Java locking mechanism - restricts access to a critical section or an entire method to one thread at a time
+- Implemented using an object's monitor (intrinsic lock) - every Java object has an associated monitor
+- Two ways to use it - `synchronized` method or block
 
 ### Synchronized Method (Monitor Lock)
 
@@ -15,10 +14,8 @@ public synchronized void method1() {
 }
 ```
 
-  - Every Java object has an associated monitor (intrinsic lock).
-  - A synchronized instance method implicitly acquires the monitor of `this` object before execution.
+  - Implicitly acquires the monitor of `this` object before execution.
   - If thread `A` acquires the monitor and enters` method1()`, no other thread can enter any synchronized method (`method1()` or `method2()`) of the same object until the monitor is released.
-  - Synchronization is therefore enforced per monitor (per object), not per method.
 
   > [!TIP]
   > Static synchronized methods use the monitor of the `Class` object instead of `this`.
@@ -37,8 +34,7 @@ public void method1() {
 
   - Any Java object can be used as a monitor lock.
   - A thread must acquire the monitor of lock before entering the synchronized block.
-  - Different lock objects can protect different critical sections, allowing greater concurrency.
-  - Two threads can execute synchronized blocks simultaneously if they synchronize on different lock objects.
+  - Two threads can execute the same synchronized block simultaneously if they synchronize on different lock objects.
 
   > [!TIP]
   > A synchronized instance method is logically equivalent to synchronizing on `this`.
@@ -67,72 +63,33 @@ public void method1() {
 
 ## Designing Thread-Safe Classes
 
-- Thread safety is about protecting shared mutable state and preserving invariants under concurrency.
-- Encapsulation is critical because it limits access to mutable state and makes thread safety easier to reason about.
-
-- __Steps to design a thread-safe class__ -
-  - Identify the object state
-  - Identify invariants/postconditions
+- Thread safety = protecting shared mutable state and preserving invariants.
+- __Design Steps__ -
+  - Identify object state
+  - Identify invariants
   - Define synchronization policy
-
 - __Object State__ -
-  - Includes primitive fields, referenced objects, internal object graph, derived/cache state
-  - Eg - `LinkedList` state includes -
-    - head/tail
-    - node links
-    - size etc
-
+  - Includes fields + referenced mutable objects
+  - Eg - `LinkedList` → head, tail, size, node links
 - __Invariants__ -
-  - Invariant = condition always true for valid object state
-  - Defines legal state space
-  - Eg - `value >= 0` or `lower <= upper`
-  - Invariants may be temporarily broken during mutation internally
-  - Synchronization prevents other threads from observing inconsistent intermediate states
-
-- __Compound Actions & Atomicity__ -
-  - Operations where next state depends on current state must be atomic
-  - Eg - _check-then-act_, _read-modify-write_ etc.
-  - Without synchronization, another thread may modify state between operations
-
+  - Conditions that must always be true for valid state
+  - Eg - `value >= 0`, `lower <= upper`
+  - Synchronization prevents threads from seeing broken intermediate state
+- __Compound Actions__ - check-then-act, read-modify-write must be atomic
 - __Multivariable Invariants__ -
-  - If multiple variables participate in the same invariant (`lower <= upper`) then -
-    - they must usually be guarded by the same lock
-    - updates must happen atomically.
-  - Eg - Say `lower = 10` and `upper = 20`
-    - Thread `A` is updating both the variables one-by-one, so it updates `lower = 50` and releases the lock
-    - But before updating `upper = 100`, Thread `B` reads - `lower = 50` and `upper = 20`
-    - Leading to inconsistent state
-
+  - Related variables should usually use the same lock
+  - Updates must happen atomically
 - __Synchronization Policy__ -
   - Defines -
-    - which state variables are shared
-    - which lock protects them
+    - what is shared
+    - which lock protects it
     - how thread safety is achieved
-  - Mechanisms -
-    - locking
-    - immutability
-    - confinement
-
-- __State Space__ -
-  - State space = all possible states an object can be in.
-  - Smaller state space → easier concurrency reasoning.
-  - `final` fields and immutability reduce state space.
-
 - __State-Dependent Operations__ -
-  - Some operations are only valid in certain states.
-  - Eg - `remove()` requires queue to be non-empty
-  - Concurrent programs may wait until condition becomes true.
-  - Common tools - 
-    - `BlockingQueue`
-    - `Semaphore`
-    - `wait()` / `notify()`
-
-- __Ownership__ -
-  - Thread safety depends on ownership of mutable state.
-  - Ownership determines who controls synchronization.
-  - Eg - 
-    - synchronized collection protects collection structure
-    - NOT mutable objects stored inside it
+  - Valid only in certain states
+  - Eg - `remove()` requires non-empty queue
+- __Ownership -__ - 
+  - Owner controls synchronization
+  - Synchronized collection protects collection structure, not mutable elements inside it
 
 ## Confinement
 
