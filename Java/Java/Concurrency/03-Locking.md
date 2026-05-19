@@ -87,7 +87,7 @@ public void method1() {
 - __State-Dependent Operations__ -
   - Valid only in certain states
   - Eg - `remove()` requires non-empty queue
-- __Ownership -__ - 
+- __Ownership__ -
   - Owner controls synchronization
   - Synchronized collection protects collection structure, not mutable elements inside it
 
@@ -156,7 +156,7 @@ public void method1() {
 - Logical conclusion of instance confinement
 - An object -
   - encapsulates all its mutable state
-  - guards it with the object’s own intrinsic lock
+  - guards it with the object’s own intrinsic lock (`this`)
 - Used in `Vector`, `HashTable` etc
 
 ### Private Lock Pattern
