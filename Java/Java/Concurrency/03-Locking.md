@@ -20,8 +20,8 @@
     - If thread `A` acquires the monitor and enters` method1()`, no other thread can enter any synchronized method (`method1()` or `method2()`) of the same object until the monitor is released.
     - Synchronization is therefore enforced per monitor (per object), not per method.
 
-    > [!TIP]
-    > Static synchronized methods use the monitor of the `Class` object instead of `this`.
+  > [!TIP]
+  > Static synchronized methods use the monitor of the `Class` object instead of `this`.
 
   - **Synchronized Block (Custom Lock)** -
 
