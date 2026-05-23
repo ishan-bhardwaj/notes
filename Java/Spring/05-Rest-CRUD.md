@@ -98,4 +98,44 @@ public Student getStudent(@PathVariable int studentId) {
     }
     ```
 
+## Service Facade Pattern
 
+```
+@Service
+public class EmployeeServiceImpl extends EmployeeService {
+  // inject EmployeeDAO
+
+  @Override
+  public List<Employee> findAll() {
+    return employeeDAO.findAll();
+  }
+}
+```
+
+- Best practise is to apply transactional boundaries at the service layer i.e. apply `@Transactional` on service methods.
+
+## CRUD Mappings
+
+- Post request -
+  ```
+  @PostMapping("/employees")
+  public Employee addEmployee(@RequestBody Employee employee) {
+  
+    // setting id to 0/null to force inserting a new item, instead of updating
+    employee.setId(0);                  // if id in int
+    employee.setId(null);               // if id is integer
+
+    Employee dbEmployee = employeeService.save(employee);
+
+    return dbEmployee;
+  }
+  ```
+
+- Put request - `@PutMapping`
+- Delete request - `@DeleteMapping`
+- Patch request -
+  - Inject the helper class - JsonMapper - a helper class in the Jackson library for JSON processing.
+  
+  ```
+
+  ```
