@@ -27,20 +27,20 @@
 3. For the final RDD, it creates a `ResultStage`
 4. It walks the RDD's dependencies recursively -
     - If dependency is _narrow_ → same stage, keep walking back
-    - If dependency is _wide (ShuffleDependency)_ → create a new `ShuffleMapStage` for the parent; record this as a stage dependency
+    - If dependency is _wide_ (`ShuffleDependency`) → create a new `ShuffleMapStage` for the parent; record this as a stage dependency
 5. This recursion continues until it reaches RDDs with no parents (source RDDs - file scans, `parallelize`, etc.)
 6. Result - a DAG of stages where edges represent shuffle dependencies
 
 ## Stage Reuse
 
-- DAGScheduler maintains a `HashMap[Int, ShuffleMapStage]` keyed by shuffle ID
+- `DAGScheduler` maintains a `HashMap[Int, ShuffleMapStage]` keyed by shuffle ID
 - Before creating a new `ShuffleMapStage`, it checks if one already exists for that shuffle
 - If a previous job already computed and cached that shuffle output, it is reused - the stage is not rerun
 - This is how iterative algorithms (ML training loops) avoid recomputing the same shuffle repeatedly if the base data hasn't changed
 
 ## Data Locality
 
-- DAGScheduler computes _preferred locations_ for every task before submitting to `TaskScheduler`
+- `DAGScheduler` computes _preferred locations_ for every task before submitting to `TaskScheduler`
 - Goal - run the task on the node where its input data already lives, avoiding network reads
 - __Locality levels__ - 
     - `PROCESS_LOCAL` - data is in the same executor's memory (cached partition)
@@ -78,17 +78,15 @@
     - `DAGScheduler` submits them all at once
     - `TaskScheduler` interleaves their tasks across available executor slots
 
-### Missing Shuffle Output Handling
-- When a ShuffleMapStage completes, its map output locations are registered with
-  `MapOutputTracker` (a Driver-side component)
+## Missing Shuffle Output Handling
+
+- When a `ShuffleMapStage` completes, its map output locations are registered with `MapOutputTracker` (a Driver-side component)
 - Reduce tasks query `MapOutputTracker` to find where to fetch each partition's shuffle data
 - If an executor dies and its shuffle output is lost -
     - The reduce task that tries to fetch it reports a `FetchFailedException`
-    - DAGScheduler catches this, marks the map output as lost in `MapOutputTracker`
-    - Resubmits the affected ShuffleMapStage (only the lost partitions need recomputation
-      if the ExternalShuffleService was running; otherwise the whole stage reruns)
-    - After the ShuffleMapStage recomputes, the blocked ResultStage or downstream
-      ShuffleMapStage is resubmitted
+    - `DAGScheduler` catches this, marks the map output as lost in `MapOutputTracker`
+    - Resubmits the affected `ShuffleMapStage` (only the lost partitions need recomputation if the `ExternalShuffleService` was running; otherwise the whole stage reruns)
+    - After the `ShuffleMapStage` recomputes, the blocked `ResultStage` or downstream `ShuffleMapStage` is resubmitted
 
 ## Event-Driven Architecture
 
