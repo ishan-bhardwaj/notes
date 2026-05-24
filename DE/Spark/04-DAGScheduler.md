@@ -96,9 +96,9 @@
 - Key events -
     - `JobSubmitted` - action triggered, new job to process
     - `StageCancelled` / `JobCancelled` - cancellation from user or timeout
-    - `CompletionEvent` - a task finished (success or failure), posted by TaskScheduler
+    - `CompletionEvent` - a task finished (success or failure), posted by `TaskScheduler`
     - `ExecutorLost` - an executor died; need to check for lost shuffle outputs
-    - `TaskSetFailed` - all retries for a TaskSet exhausted; stage has failed
+    - `TaskSetFailed` - all retries for a `TaskSet` exhausted; stage has failed
     - `ResubmitFailedStages` - retry failed stages after a delay
 
 - This design means `DAGScheduler` never blocks - 
