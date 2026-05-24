@@ -2,21 +2,23 @@
 
 - Translates the logical RDD DAG (or physical plan from Catalyst) into a _physical execution plan of Stages_
 - `DAGScheduler` receives the final RDD (the last RDD in the lineage chain) when an action is called
-- Operates entirely on the Driver - no executor involvement at this layer
 - Walks the lineage backwards recursively to discover the full DAG
+- Operates entirely on the Driver - no executor involvement at this layer
 
 ## Stage Types
 
 - __`ShuffleMapStage`__ -
     - Any stage _before the final stage_
     - Its tasks write shuffle output to local disk for downstream stages to consume
-    - Can be _shared across multiple jobs_ - if two jobs need the same shuffle output and it's still available, DAGScheduler reuses it
-    - A job with $N$ shuffles produces $N$ ShuffleMapStages + $1$ ResultStage
+    - Can be _shared across multiple jobs_ - if two jobs need the same shuffle output and it's still available, `DAGScheduler` reuses it
 
 - __`ResultStage`__ -
     - The _final stage_ in a job - directly computes the result of an action
     - There is exactly one `ResultStage` per job
     - Either return data to the Driver (`collect`) or write to external storage (`write`)
+
+> [!TIP]
+> A job with $N$ shuffles produces $N$ ShuffleMapStages + $1$ ResultStage
 
 ## DAGScheduler Algorithm
 
