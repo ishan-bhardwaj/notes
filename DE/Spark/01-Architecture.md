@@ -175,3 +175,109 @@
 - __Task failure__ — 
     - Retried up to `spark.task.maxFailures` (default $4$) on a different executor
     - All retries exhausted → stage fails
+
+## SparkConf
+
+- A key-value store for Spark configuration — every tunable in Spark (memory, cores, serializer, shuffle behavior, etc.) flows through `SparkConf`
+- Immutable - changes after `SparkContext` is created have no effect
+- Lives on the Driver — not distributed, not shared with executors directly
+    - Executor-side config is serialized into `TaskDescription` and shipped with each task
+
+### Priority order (highest to lowest)
+
+- Programmatic — `new SparkConf().set("spark.executor.memory", "4g")`
+- `spark-submit` flags — `--executor-memory 4g` (these set the same keys programmatically under the hood)
+- `spark-defaults.conf` — file on the Driver's classpath (`$SPARK_HOME/conf/spark-defaults.conf`)
+- Spark's hardcoded defaults — defined in source, used when nothing else sets the key
+
+### Creating SparkConf
+
+- Python -
+    ```
+    from pyspark import SparkConf, SparkContext
+    from pyspark.sql import SparkSession
+
+    # via SparkConf
+    conf = SparkConf() \
+        .setAppName("MyApp") \
+        .setMaster("yarn") \
+        .set("spark.executor.memory", "4g")
+
+    # preferred in modern Spark — builder handles SparkConf internally
+    spark = SparkSession.builder \  
+        .appName("MyApp") \
+        .master("yarn") \
+        .config("spark.executor.memory", "4g") \
+        .getOrCreate()
+    ```
+
+- Scala -
+    ```
+    import org.apache.spark.SparkConf
+    import org.apache.spark.sql.SparkSession
+
+    // via SparkConf
+    val conf = new SparkConf()
+        .setAppName("MyApp")
+        .setMaster("yarn")
+        .set("spark.executor.memory", "4g")
+
+    // preferred
+    val spark = SparkSession.builder()
+        .appName("MyApp")
+        .master("yarn")
+        .config("spark.executor.memory", "4g")
+        .config(conf)   // merge an existing SparkConf
+        .getOrCreate()
+    ```
+
+- Java -
+    ```
+    import org.apache.spark.SparkConf;
+    import org.apache.spark.sql.SparkSession;
+
+    // via SparkConf
+    SparkConf conf = new SparkConf()
+        .setAppName("MyApp")
+        .setMaster("yarn")
+        .set("spark.executor.memory", "4g");
+
+    // preferred
+    SparkSession spark = SparkSession.builder()
+        .appName("MyApp")
+        .config(conf)
+        .getOrCreate();
+    ```
+
+### How config gets to Executors
+
+- `SparkConf` lives on the Driver
+- When the Driver launches executors, it passes a filtered subset of config via the Cluster Manager
+- Executor JVM starts with those configs as system properties
+- Task-level config travels inside `TaskDescription` serialized with each task
+
+### Accessing config at runtime
+
+- Python -
+    ```
+    conf = spark.sparkContext.getConf()
+    conf.get("spark.executor.memory")             # throws if not set
+    conf.get("spark.some.key", "default_value")   # with fallback
+    dict(conf.getAll())                           # all as dict
+    ```
+
+- Scala -
+    ```
+    val conf = spark.sparkContext.getConf
+    conf.get("spark.executor.memory")             // throws if not set
+    conf.getOption("spark.some.key")              // Option[String]
+    conf.getAll                                   // Array[(String, String)]
+    ```
+
+- Java -
+    ```
+    SparkConf conf = spark.sparkContext().getConf();
+    conf.get("spark.executor.memory");
+    conf.getOption("spark.some.key");             // scala.Option<String>
+    conf.getAll();                                // Tuple2<String,String>[]
+    ```
