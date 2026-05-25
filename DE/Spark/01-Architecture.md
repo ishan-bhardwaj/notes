@@ -190,6 +190,13 @@
 - `spark-defaults.conf` — file on the Driver's classpath (`$SPARK_HOME/conf/spark-defaults.conf`)
 - Spark's hardcoded defaults — defined in source, used when nothing else sets the key
 
+> [!NOTE]
+> `spark-defaults.conf` is read from the submitting machine — 
+>   - In cluster mode, the Driver runs on a remote node
+>   - `spark-defaults.conf` from that node is NOT read
+>   - Only the `spark-defaults.conf` on the submitting machine (where `spark-submit` runs) is applied
+>   - This causes config to silently differ between client and cluster mode if you rely on node-local config files
+
 ### Creating SparkConf
 
 - Python -
@@ -725,3 +732,142 @@ val canCommit = occ.canCommit(stageId, stageAttemptId, partitionId, taskAttemptI
 // Driver revokes permission when a task is killed
 occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKilled)
 ```
+
+## Deploy Modes
+
+- Controls where the Driver process runs
+- __Client mode__ -
+    - `spark-submit` starts the Driver JVM on the submitting machine
+    - Driver registers with Cluster Manager from outside the cluster
+    - Cluster Manager launches Executor JVMs on worker nodes
+    - All Driver↔Executor RPC traffic (task launch, heartbeat, shuffle metadata, results) crosses the external network between your machine and the cluster
+
+    ```
+    // Using spark-submit - client mode is default - can be omitted
+    spark-submit --deploy-mode client
+
+    // SparkConf
+    .config("spark.submit.deployMode", "client")
+    ```
+
+- __Cluster mode__ -
+    - `spark-submit` sends the job to the Cluster Manager
+    - Cluster Manager allocates a container on a worker node and launches the Driver JVM inside it
+    - Executors are launched on nearby worker nodes
+    - All Driver↔Executor traffic stays inside the cluster network — low latency, high bandwidth
+    - `spark-submit` process exits immediately after submission — it is not the Driver
+
+    ```
+    // Using spark-submit
+    spark-submit --deploy-mode cluster
+
+    // SparkConf
+    .config("spark.submit.deployMode", "cluster")
+    ```
+
+- Comparison -
+    | Aspect                                      | Client Mode                 | Cluster Mode               |
+    | ------------------------------------------- | --------------------------- | -------------------------- |
+    | Driver runs on                              | Submitting machine          | Worker node inside cluster |
+    | Driver resources tracked by Cluster Manager | No                          | Yes                        |
+    | Driver ↔ Executor network                   | External (WAN/VPN)          | Internal cluster network   |
+    | Job survives submitting machine death       | No                          | Yes                        |
+    | `stdout` / `stderr`                         | Visible in terminal         | In cluster logs only       |
+    | Log access after job                        | Local terminal              | `yarn logs`, K8s pod logs  |
+    | Use case                                    | Dev, debug, notebooks       | All production jobs        |
+    | `spark-submit` process after submission     | Stays alive (is the Driver) | Exits immediately          |
+    | Driver memory capped by Cluster Manager     | No                          | Yes                        |
+
+## spark-submit
+
+- A shell script (`$SPARK_HOME/bin/spark-submit`) that bootstraps and launches a Spark application
+- Not a daemon, not a server — a one-shot process that either becomes the Driver (client mode) or submits the Driver to the cluster (cluster mode) and exits
+- Handles dependency resolution, classpath construction, cluster-manager-specific submission protocol, and JVM launch — before a single line of your code runs
+- `spark-submit my_job.py --master yarn --deploy-mode cluster` -
+    1. `spark-submit` shell script invoked
+    2. Finds `JAVA_HOME`, sets up base classpath
+    3. Calls spark-class `org.apache.spark.deploy.SparkSubmit` (JVM process starts)
+    4. `SparkSubmit` parses all arguments
+    5. Builds final classpath — Spark jars + user jars + dependencies
+    6. Determines submission path based on `--master` and `--deploy-mode`
+    7.1. Client mode  → prepares environment, launches Driver JVM in this process (exec)
+    7.2. Cluster mode → submits to Cluster Manager, exits after acknowledgement
+
+> [!NOTE]
+> `spark-submit` in cluster mode exits before the job finishes — 
+>   - The exit code of `spark-submit` only tells you whether submission succeeded, not whether the job succeeded;
+>   - Always poll YARN/K8s API or use `--conf spark.yarn.submit.waitAppCompletion=true` for synchronous behavior in pipelines
+
+### SparkSubmit Working
+
+- `org.apache.spark.deploy.SparkSubmit` is the real entry point
+    - The shell script is just a thin wrapper that sets up the JVM and calls this class
+- __Argument Parsing__ -
+    - Parses `--master`, `--deploy-mode`, `--class`, `--jars`, `--files`, `--conf`, `--driver-memory`, `--executor-memory` etc
+    - Merges with `spark-defaults.conf` — file-level defaults applied here, before programmatic config
+    - Validates required args — throws `SparkException` for missing `--class` on JVM apps, invalid master URLs etc
+- __Classpath construction__ -
+    - Assembles the full classpath in this order -
+        - Spark assembly JAR / individual Spark JARs (`$SPARK_HOME/jars/`)
+        - Hadoop configuration directory (if on YARN)
+        - `--jars` specified by user
+        - `--driver-class-path` extra classpath entries
+        - User application JAR
+    - For Python - constructs `PYTHONPATH` from `--py-files` and Spark's `pyspark.zip` + `py4j` JAR
+- __Submission path selection__ - determined by `--master` + `--deploy-mode` -
+    | `--master`    | `--deploy-mode` | Submission path                                       |
+    | ------------- | --------------- | ----------------------------------------------------- |
+    | `yarn`        | `client`        | `YarnClientSchedulerBackend` — Driver runs locally    |
+    | `yarn`        | `cluster`       | `YarnClusterApplication` — submits to YARN RM         |
+    | `k8s://...`   | `cluster`       | `KubernetesClientApplication` — submits to K8s API    |
+    | `spark://...` | `client`        | `StandaloneSchedulerBackend` — Driver runs locally    |
+    | `spark://...` | `cluster`       | `RestSubmissionClient` — submits to Standalone Master |
+    | `local[*]`    | `client`        | Runs everything in one JVM, no cluster                |
+
+- __Dependency handling__ -
+    ```
+    # fat JAR with all dependencies
+    target/my-job-assembly-1.0.jar
+
+    # Thin JAR + separate dependencies
+    --jars hdfs://path/dep1.jar,hdfs://path/dep2.jar
+
+    # Maven coordinates — Spark downloads and adds to classpath
+    --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0
+    --repositories https://repo1.maven.org/maven2
+
+    # Exclude transitive dependencies that conflict
+    --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0
+    --exclude-packages org.slf4j:slf4j-log4j12
+
+    # Multiple Python files
+    --py-files utils.py,helpers.py
+
+    # Zip package
+    --py-files my_package.zip
+
+    # Egg file
+    --py-files my_package.egg
+
+    # Requirements via conda/venv (Spark 3.1+ with YARN)
+    --archives hdfs://path/environment.tar.gz#environment
+  --conf spark.pyspark.python=./environment/bin/python
+    ```
+
+> [!NOTE]
+> Fat JAR vs thin JAR — `provided` scope is critical — 
+>   - Spark JARs must be marked `provided` in your build
+>   - Including them in the fat JAR causes classpath conflicts (`NoSuchMethodError`, `ClassCastException`) between your bundled Spark version and the cluster's Spark version
+
+> [!TIP]
+> Set `spark.jars.ivy` to a local Ivy cache to provide jars to `spark-submit`
+
+- __Config files and resources__ -
+    ```
+    --files hdfs://path/config.json,hdfs://path/lookup.csv
+
+    # Access in job
+    from pyspark import SparkFiles
+    config_path = SparkFiles.get("config.json")
+    ```
+
