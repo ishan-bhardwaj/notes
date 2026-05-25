@@ -203,7 +203,7 @@
         .setMaster("yarn") \
         .set("spark.executor.memory", "4g")
 
-    # preferred in modern Spark — builder handles SparkConf internally
+    # Preferred in modern Spark — builder handles SparkConf internally
     spark = SparkSession.builder \  
         .appName("MyApp") \
         .master("yarn") \
@@ -222,7 +222,7 @@
         .setMaster("yarn")
         .set("spark.executor.memory", "4g")
 
-    // preferred
+    // Preferred
     val spark = SparkSession.builder()
         .appName("MyApp")
         .master("yarn")
@@ -242,7 +242,7 @@
         .setMaster("yarn")
         .set("spark.executor.memory", "4g");
 
-    // preferred
+    // Preferred
     SparkSession spark = SparkSession.builder()
         .appName("MyApp")
         .config(conf)
@@ -281,3 +281,67 @@
     conf.getOption("spark.some.key");             // scala.Option<String>
     conf.getAll();                                // Tuple2<String,String>[]
     ```
+
+## SparkContext
+
+- The entry point to Spark's core engine — before `SparkSession` existed, `SparkContext` was the only way into Spark
+- One `SparkContext` per JVM — enforced hard
+    - Attempting to create a second one throws an exception unless the first is stopped
+- Owns the connection to the cluster — all communication with the Cluster Manager flows through it
+- Lives on the Driver — initializes and holds references to every core internal component - `DAGScheduler`, `TaskScheduler`, `BlockManager`, `SparkEnv`, `MapOutputTracker`, `BroadcastManager`
+
+### What SparkContext initializes
+
+- When `SparkContext` is created -
+    - Validates and locks the `SparkConf` — frozen from this point
+    - Sets up `SparkEnv` — initializes serializer, RPC environment, `BlockManager`, `MapOutputTracker`, shuffle manager, memory manager
+    - Creates `DAGScheduler`
+    - Creates `TaskScheduler` + `SchedulerBackend` (cluster-manager-specific)
+    - Starts `BlockManagerMaster` on Driver
+    - Initializes `BroadcastManager`
+    - Registers with Cluster Manager and requests initial executors
+    - Starts heartbeat thread to executors
+
+> [!NOTE]
+> This is why `SparkContext` creation is expensive and slow — it's not just an object instantiation, it's bootstrapping the entire distributed runtime.
+
+### Creating SparkContext
+
+- In modern Spark you get it via `spark.sparkContext` i.e. `SparkSession` wraps `SparkContext`
+- Direct creation is only needed for pure RDD workloads or testing
+- Python -
+    ```
+    # Modern - access SparkContext from session
+    sc = spark.sparkContext                    
+
+    # Direct — only for pure RDD or testing
+    sc = SparkContext(conf=sparkConf)
+    ```
+
+- Scala -
+    ```
+    val sc = spark.sparkContext
+    val sc = new SparkContext(sparkConf)
+    ```
+
+- Java -
+    ```
+    SparkContext sc = spark.sparkContext();
+    SparkContext sc = new SparkContext(sparkConf);
+    ```
+
+### Use-cases
+
+| Category              | What you can do                                                                        | Key methods                                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RDD Creation**      | Create RDDs from collections, files, Hadoop formats, ranges, or other RDDs             | `parallelize`, `textFile`, `wholeTextFiles`, `binaryFiles`, `sequenceFile`, `hadoopFile`, `newAPIHadoopFile`, `range`, `union`, `emptyRDD`    |
+| **Shared Variables**  | Broadcast read-only data to executors and maintain distributed counters                | `broadcast`, `accumulator`, `longAccumulator`, `doubleAccumulator`, `collectionAccumulator`                                                   |
+| **Job Control**       | Group, describe, monitor, and cancel running jobs                                      | `setJobGroup`, `cancelJobGroup`, `cancelJob`, `cancelAllJobs`, `setJobDescription`                                                            |
+| **Scheduling**        | Assign jobs to Fair Scheduler pools and configure thread-local scheduling properties   | `setLocalProperty`, `getLocalProperty`                                                                                                        |
+| **Dynamic Resources** | Ship files and JARs to executors dynamically at runtime                                | `addFile`, `addJar`, `listFiles`, `listJars`, `SparkFiles.get`                                                                                |
+| **Cluster Info**      | Inspect application metadata, executor state, deployment mode, and cluster parallelism | `applicationId`, `applicationAttemptId`, `master`, `deployMode`, `version`, `defaultParallelism`, `getExecutorMemoryStatus`, `getExecutorIds` |
+| **Status Tracking**   | Query live job, stage, and executor information                                        | `statusTracker.getActiveJobIds`, `getActiveStageIds`, `getJobInfo`, `getStageInfo`, `getExecutorInfos`                                        |
+| **Persistence**       | View all currently cached or persisted RDDs                                            | `getPersistentRDDs`                                                                                                                           |
+| **Checkpointing**     | Configure checkpoint directories for RDD lineage truncation and fault tolerance        | `setCheckpointDir`, `getCheckpointDir`                                                                                                        |
+| **Configuration**     | Access the immutable runtime `SparkConf`                                               | `getConf`, `getConf().get`, `getConf().getAll`                                                                                                |
+| **Lifecycle**         | Create, inspect, and terminate the `SparkContext`                                      | `getOrCreate`, `isStopped`, `stop`                                                                                                            |
