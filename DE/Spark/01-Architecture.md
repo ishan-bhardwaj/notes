@@ -345,3 +345,383 @@
 | **Checkpointing**     | Configure checkpoint directories for RDD lineage truncation and fault tolerance        | `setCheckpointDir`, `getCheckpointDir`                                                                                                        |
 | **Configuration**     | Access the immutable runtime `SparkConf`                                               | `getConf`, `getConf().get`, `getConf().getAll`                                                                                                |
 | **Lifecycle**         | Create, inspect, and terminate the `SparkContext`                                      | `getOrCreate`, `isStopped`, `stop`                                                                                                            |
+
+## SparkSession
+
+- Unified entry point to Spark introduced in Spark 2.0 — replaced `SparkContext`, `SQLContext`, `HiveContext`, `StreamingContext` as separate entry points
+- One `SparkSession` per application by default — but multiple sessions with isolated configs are possible via `newSession()`
+- Wraps `SparkContext` — 
+    - There is always exactly one `SparkContext` underneath
+    - Multiple `SparkSession` instances share the same `SparkContext`
+- Lives on the Driver
+
+### What SparkSession owns
+
+| Component       | Role                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------ |
+| `SparkContext`  | Core engine — cluster connection, scheduling, RDDs                                   |
+| `SessionState`  | Per-session state — catalog, analyzer, optimizer, planner, function registry         |
+| `SharedState`   | Cross-session shared state — `SparkContext`, Hive metastore connection, shared cache |
+| `RuntimeConfig` | Thin wrapper over `SparkConf` + session-level SQL configs                            |
+| `Catalog`       | User-facing API to databases, tables, functions, caches                              |
+
+> [!NOTE]
+> `SessionState` is per session — each `newSession()` gets its own analyzer, optimizer, temp views, and function registry.
+>
+> `SharedState` is shared across all sessions in the same JVM — same `SparkContext`, same metastore connection, same cached tables.
+
+### Creating SparkSession
+
+- Python -
+    ```
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder \
+        .appName("MyApp") \
+        .master("yarn") \
+        .config("spark.executor.memory", "4g") \
+        .getOrCreate()                              # returns existing session if one exists
+    ```
+
+- Scala -
+    ```
+    import org.apache.spark.sql.SparkSession
+
+    val spark = SparkSession.builder()
+        .appName("MyApp")
+        .master("yarn")
+        .config("spark.executor.memory", "4g")
+        .getOrCreate()
+    ```
+
+- Java -
+    ```
+    import org.apache.spark.sql.SparkSession;
+
+    SparkSession spark = SparkSession.builder()
+        .appName("MyApp")
+        .master("yarn")
+        .config("spark.executor.memory", "4g")
+        .getOrCreate();
+    ```
+
+- `getOrCreate` vs `newSession` vs `cloneSession`
+    - `getOrCreate` — returns existing session if one exists in this JVM
+    - `newSession` — new session with isolated `SessionState`, same `SharedState`
+    - `cloneSession` — internal; used by Spark internally for parallel query execution
+
+### Runtime config — `spark.conf`
+
+```
+# Set SQL-level config at runtime (subset of configs are mutable at runtime)
+spark.conf.set("spark.sql.shuffle.partitions", "400")
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", str(50 * 1024 * 1024))
+
+# Get
+spark.conf.get("spark.sql.shuffle.partitions")
+spark.conf.get("spark.some.key", "default_value")           # with fallback
+
+# Check if modifiable at runtime
+spark.conf.isModifiable("spark.sql.shuffle.partitions")     # True
+spark.conf.isModifiable("spark.executor.memory")            # False — JVM already started
+
+# Get all
+spark.conf.getAll                                           # dict in Python
+```
+
+> [!NOTE]
+> Not all configs are mutable at runtime 
+>   - Anything that controls JVM startup (`spark.executor.memory`, `spark.executor.cores`) is frozen at `SparkContext` creation.
+>   - SQL optimizer configs (`spark.sql.shuffle.partitions`, `spark.sql.autoBroadcastJoinThreshold`) are mutable per session.
+
+### Stopping SparkSession
+
+- `spark.stop()` -
+    - Stops `SparkSession` and underlying `SparkContext`
+    - Releases all cluster resources
+    - Always call in `finally` block in scripts
+
+## Catalog API
+
+```
+# Databases
+spark.catalog.listDatabases()
+spark.catalog.setCurrentDatabase("analytics")
+spark.catalog.currentDatabase()
+
+# Tables
+spark.catalog.listTables()                              # tables in current DB
+spark.catalog.listTables("other_db")                    # tables in specific DB
+spark.catalog.tableExists("my_table")
+spark.catalog.tableExists("other_db", "my_table")
+
+# Columns
+spark.catalog.listColumns("my_table")
+
+# Functions
+spark.catalog.listFunctions()
+spark.catalog.functionExists("my_udf")
+
+# Cache management
+spark.catalog.cacheTable("my_table")
+spark.catalog.cacheTable("my_table", storageLevel=StorageLevel.MEMORY_AND_DISK)
+spark.catalog.uncacheTable("my_table")
+spark.catalog.isCached("my_table")
+spark.catalog.clearCache()                              # unpersist all cached tables
+
+# Refresh — force re-read of metadata after external changes
+spark.catalog.refreshTable("my_table")                  # clears cached metadata + data
+spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointing to this path
+```
+
+## SparkEnv
+
+- The runtime environment container for a Spark process — holds every infrastructure-level component a Driver or Executor needs to function
+- One `SparkEnv` per JVM process — one on the Driver, one on each Executor
+- Created during `SparkContext` initialization on the Driver
+- Created on each Executor when the Executor JVM starts and registers with the Driver
+- Not part of the public API — but every component like shuffle, memory, block storage, RPC etc lives inside it
+
+### What SparkEnv holds
+
+| Component                 | Role                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `SerializerManager`       | Manages serialization for shuffle, RDD persistence, broadcasts — picks codec, handles compression       |
+| `RpcEnv`                  | Netty-based RPC layer — all Driver ↔ Executor communication goes through this                           |
+| `BlockManager`            | Manages storage of blocks (shuffle data, cached RDD partitions, broadcast chunks) in memory and on disk |
+| `MapOutputTracker`        | Tracks shuffle map output locations — which executor holds which output partition                       |
+| `ShuffleManager`          | Manages shuffle write and read — `SortShuffleManager` is the default                                    |
+| `BroadcastManager`        | Creates and distributes broadcast variables — uses `TorrentBroadcast` by default                        |
+| `MemoryManager`           | Controls memory allocation between execution and storage — `UnifiedMemoryManager` by default            |
+| `OutputCommitCoordinator` | Ensures only one task commits output for a given partition — prevents duplicate writes                  |
+| `SecurityManager`         | Handles authentication, encryption, ACLs                                                                |
+| `MetricsSystem`           | Collects and reports executor/Driver metrics to sinks (`Graphite`, `Prometheus`, etc.)                  |
+
+### Driver SparkEnv vs Executor SparkEnv
+
+- Driver and Executor both have a `SparkEnv` but they are configured differently
+- Driver `SparkEnv` runs `MapOutputTrackerMaster`, `BlockManagerMaster` — the authoritative coordinators
+- Executor `SparkEnv` runs `MapOutputTrackerWorker`, `BlockManagerSlave` — the worker-side counterparts that report to the Master
+- Same class, different roles determined by the `isDriver` flag at construction time
+- How `SparkEnv` is created
+    - Driver side - 
+        ```
+        // Inside SparkContext initialization — not public API
+        val env = SparkEnv.createDriverEnv(...)
+        SparkEnv.set(env)
+        ```
+
+    - Executor side -
+        ```
+        // Inside CoarseGrainedExecutorBackend.main() — called when Executor JVM starts
+        val env = SparkEnv.createExecutorEnv(...)
+
+        ```
+
+### Accessing SparkEnv
+
+- `SparkEnv` is accessible via a static reference — same instance within the process
+- `SparkEnv` is not accessible from PySpark tasks — 
+    - Python tasks run in a separate Python process (not the Executor JVM)
+    - `SparkEnv` lives in the JVM
+    - py4j bridge only works on the Driver side
+- Python (via py4j — internal access only) -
+    ```
+    # Not recommended in production — internal API, can break across versions
+    jvm_env = spark.sparkContext._jvm.org.apache.spark.SparkEnv.get()
+    block_manager = jvm_env.blockManager()
+    shuffle_manager = jvm_env.shuffleManager()
+    memory_manager = jvm_env.memoryManager()
+    ```
+
+- Scala -
+    ```
+    import org.apache.spark.SparkEnv
+
+    // Get current SparkEnv (works on both Driver and Executor)
+    val env = SparkEnv.get
+
+    // Access individual components
+    val blockManager = env.blockManager
+    val shuffleManager = env.shuffleManager
+    val memoryManager = env.memoryManager
+    val mapOutputTracker = env.mapOutputTracker
+    val rpcEnv = env.rpcEnv
+    val serializer = env.serializer
+    val serializerManager = env.serializerManager
+    val broadcastManager = env.broadcastManager
+    val outputCommitCoordinator = env.outputCommitCoordinator
+    val metricsSystem = env.metricsSystem
+    ```
+
+- Java -
+    ```
+    import org.apache.spark.SparkEnv;
+
+    SparkEnv env = SparkEnv.get();
+    env.blockManager();
+    env.shuffleManager();
+    env.memoryManager();
+    env.serializerManager();
+    ```
+
+## SparkEnv Components
+
+### SerializerManager
+
+- Sits above the raw serializer (`KryoSerializer` / `JavaSerializer`) and adds compression, encryption, and per-block decisions about whether to compress
+- Decides whether to compress a block based on its type — 
+    - Shuffle data is always compressed if `spark.shuffle.compress=true`
+    - Broadcast data compressed if `spark.broadcast.compress=true`
+    - RDD partitions compressed if `spark.rdd.compress=true`
+- Handles spill compression separately — `spark.shuffle.spill.compress`
+
+```
+val sm = SparkEnv.get.serializerManager
+
+// Serialize a stream with compression — used internally for shuffle writes
+val compressed = sm.wrapForCompression(blockId, outputStream)
+
+// Check if a block should be encrypted
+sm.shouldEncrypt(blockId)
+```
+
+### RpcEnv
+
+- Netty-based message-passing layer — every Driver ↔ Executor interaction is an RPC call through this
+- Replaces the old Akka-based system (removed in Spark 2.0)
+- `RpcEndpoint` — 
+    - Named actor-like object that handles messages
+    - `DAGScheduler`, `BlockManagerMaster`, `MapOutputTrackerMaster` are all `RpcEndpoint`s registered in the Driver's `RpcEnv`
+- `RpcEndpointRef` — 
+    - Serializable reference to an endpoint
+    - Executors hold refs to Driver endpoints
+
+```
+val rpcEnv = SparkEnv.get.rpcEnv
+
+// Look up an endpoint by name — used internally
+val ref = rpcEnv.setupEndpointRef(driverAddress, "MapOutputTracker")
+
+// Ask — request/response (Future-based)
+val result = ref.ask[MapOutputStatistics](GetMapOutputStatistics(shuffleId))
+
+// Send — fire and forget
+ref.send(ExecutorRegistered(executorId))
+```
+
+### BlockManager
+
+- Every block of data in Spark — RDD partition, shuffle file chunk, broadcast piece — has a `BlockId` and is managed by `BlockManager`
+- On each executor, `BlockManager` decides whether a block lives in memory (`MemoryStore`) or on disk (`DiskStore`)
+- `BlockManagerMaster` on the Driver maintains a registry of all blocks across all executors — knows which executor holds which block
+
+```
+val bm = SparkEnv.get.blockManager
+
+// Put a block into memory
+bm.putSingle(blockId, value, storageLevel, tellMaster = true)
+
+// Get a block
+val block = bm.getSingle[MyType](blockId)
+
+// Get remote block from another executor
+val remoteBlock = bm.getRemoteBytes(blockId)
+
+// Remove a block
+bm.removeBlock(blockId, tellMaster = true)
+
+// Check block status
+bm.getStatus(blockId)   // Option[BlockStatus] — mem size, disk size, storage level
+```
+
+### MapOutputTracker
+
+- After a shuffle map stage completes, each map task registers its output location with `MapOutputTrackerMaster` on the Driver
+- Reduce tasks query `MapOutputTrackerWorker` on their executor - worker fetches locations from Master if not cached locally
+- This is how reduce tasks know which executor to fetch each shuffle partition from
+
+```
+// On Driver — MapOutputTrackerMaster
+val tracker = SparkEnv.get.mapOutputTracker.asInstanceOf[MapOutputTrackerMaster]
+
+// Get all output locations for a shuffle
+val statuses = tracker.getMapSizesByExecutorId(shuffleId, startPartition, endPartition)
+
+// Check if all map outputs for a shuffle are registered
+tracker.containsShuffle(shuffleId)
+
+// Unregister all outputs for a shuffle (called when shuffle data is lost)
+tracker.unregisterShuffle(shuffleId)
+```
+
+### ShuffleManager
+
+- Single pluggable interface for shuffle write and read — default is `SortShuffleManager`
+- `SortShuffleManager` has three write paths depending on conditions -
+    - `BypassMergeSortShuffleWriter` — 
+        - Used when no map-side aggregation and partitions ≤ `spark.shuffle.sort.bypassMergeThreshold` (default $200$)
+        - Writes one file per partition then merges
+    - `UnsafeShuffleWriter` — 
+        - Used when serializer supports relocation and no map-side aggregation
+        - Oerates on serialized binary data directly, avoids deserialization
+    - `SortShuffleWriter` — 
+        - Default path
+        - Sorts records by partition, spills to disk if needed, merges spill files
+
+```
+val sm = SparkEnv.get.shuffleManager
+
+// Register a shuffle — returns a ShuffleHandle that determines write path
+val handle = sm.registerShuffle(shuffleId, numMaps, dependency)
+
+// Get a writer for a map task
+val writer = sm.getWriter[K, V](handle, mapId, context, metrics)
+writer.write(records.iterator)
+writer.stop(success = true)
+
+// Get a reader for a reduce task
+val reader = sm.getReader[K, V](handle, startPartition, endPartition, context, metrics)
+val result = reader.read()
+```
+
+### MemoryManager
+
+- Controls the split between execution memory (shuffle, sort, aggregation) and storage memory (cached RDDs, broadcast)
+- `UnifiedMemoryManager` (default since Spark 1.6) — single pool, execution and storage share memory and can borrow from each other
+- `StaticMemoryManager` (legacy) — fixed split, no borrowing
+
+```
+val mm = SparkEnv.get.memoryManager
+
+// Acquire execution memory for a task
+val granted = mm.acquireExecutionMemory(numBytes, taskAttemptId, MemoryMode.ON_HEAP)
+
+// Acquire storage memory for a block
+val success = mm.acquireStorageMemory(blockId, numBytes, MemoryMode.ON_HEAP)
+
+// Release
+mm.releaseExecutionMemory(numBytes, taskAttemptId, MemoryMode.ON_HEAP)
+mm.releaseStorageMemory(numBytes, MemoryMode.ON_HEAP)
+
+// Inspect
+mm.executionMemoryUsed    // bytes currently used for execution
+mm.storageMemoryUsed      // bytes currently used for storage
+mm.maxOnHeapStorageMemory // total available for storage
+```
+
+### OutputCommitCoordinator
+
+- Solves the duplicate output problem — if a task is retried (speculative execution or failure), two task attempts could both try to commit output for the same partition
+- `OutputCommitCoordinator` on the Driver grants commit permission to exactly one task attempt per partition; the other is aborted
+- Without this, speculative execution would produce duplicate output files
+
+```
+val occ = SparkEnv.get.outputCommitCoordinator
+
+// Task asks for permission to commit
+val canCommit = occ.canCommit(stageId, stageAttemptId, partitionId, taskAttemptId)
+
+// Driver revokes permission when a task is killed
+occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKilled)
+```
