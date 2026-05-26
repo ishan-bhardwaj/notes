@@ -200,7 +200,7 @@
 ### Creating SparkConf
 
 - Python -
-    ```
+    ```python
     from pyspark import SparkConf, SparkContext
     from pyspark.sql import SparkSession
 
@@ -219,7 +219,7 @@
     ```
 
 - Scala -
-    ```
+    ```scala
     import org.apache.spark.SparkConf
     import org.apache.spark.sql.SparkSession
 
@@ -239,7 +239,7 @@
     ```
 
 - Java -
-    ```
+    ```java
     import org.apache.spark.SparkConf;
     import org.apache.spark.sql.SparkSession;
 
@@ -266,7 +266,7 @@
 ### Accessing config at runtime
 
 - Python -
-    ```
+    ```python
     conf = spark.sparkContext.getConf()
     conf.get("spark.executor.memory")             # throws if not set
     conf.get("spark.some.key", "default_value")   # with fallback
@@ -274,7 +274,7 @@
     ```
 
 - Scala -
-    ```
+    ```scala
     val conf = spark.sparkContext.getConf
     conf.get("spark.executor.memory")             // throws if not set
     conf.getOption("spark.some.key")              // Option[String]
@@ -282,7 +282,7 @@
     ```
 
 - Java -
-    ```
+    ```java
     SparkConf conf = spark.sparkContext().getConf();
     conf.get("spark.executor.memory");
     conf.getOption("spark.some.key");             // scala.Option<String>
@@ -317,7 +317,7 @@
 - In modern Spark you get it via `spark.sparkContext` i.e. `SparkSession` wraps `SparkContext`
 - Direct creation is only needed for pure RDD workloads or testing
 - Python -
-    ```
+    ```python
     # Modern - access SparkContext from session
     sc = spark.sparkContext                    
 
@@ -326,13 +326,13 @@
     ```
 
 - Scala -
-    ```
+    ```scala
     val sc = spark.sparkContext
     val sc = new SparkContext(sparkConf)
     ```
 
 - Java -
-    ```
+    ```java
     SparkContext sc = spark.sparkContext();
     SparkContext sc = new SparkContext(sparkConf);
     ```
@@ -380,7 +380,7 @@
 ### Creating SparkSession
 
 - Python -
-    ```
+    ```python
     from pyspark.sql import SparkSession
 
     spark = SparkSession.builder \
@@ -391,7 +391,7 @@
     ```
 
 - Scala -
-    ```
+    ```scala
     import org.apache.spark.sql.SparkSession
 
     val spark = SparkSession.builder()
@@ -402,7 +402,7 @@
     ```
 
 - Java -
-    ```
+    ```java
     import org.apache.spark.sql.SparkSession;
 
     SparkSession spark = SparkSession.builder()
@@ -419,7 +419,7 @@
 
 ### Runtime config - `spark.conf`
 
-```
+```python
 # Set SQL-level config at runtime (subset of configs are mutable at runtime)
 spark.conf.set("spark.sql.shuffle.partitions", "400")
 spark.conf.set("spark.sql.autoBroadcastJoinThreshold", str(50 * 1024 * 1024))
@@ -450,7 +450,7 @@ spark.conf.getAll                                           # dict in Python
 
 ## Catalog API
 
-```
+```python
 # Databases
 spark.catalog.listDatabases()
 spark.catalog.setCurrentDatabase("analytics")
@@ -512,14 +512,14 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
 - Same class, different roles determined by the `isDriver` flag at construction time
 - How `SparkEnv` is created
     - Driver side - 
-        ```
+        ```scala
         // Inside SparkContext initialization - not public API
         val env = SparkEnv.createDriverEnv(...)
         SparkEnv.set(env)
         ```
 
     - Executor side -
-        ```
+        ```scala
         // Inside CoarseGrainedExecutorBackend.main() - called when Executor JVM starts
         val env = SparkEnv.createExecutorEnv(...)
 
@@ -533,7 +533,7 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
     - `SparkEnv` lives in the JVM
     - py4j bridge only works on the Driver side
 - Python (via py4j - internal access only) -
-    ```
+    ```python
     # Not recommended in production - internal API, can break across versions
     jvm_env = spark.sparkContext._jvm.org.apache.spark.SparkEnv.get()
     block_manager = jvm_env.blockManager()
@@ -542,7 +542,7 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
     ```
 
 - Scala -
-    ```
+    ```scala
     import org.apache.spark.SparkEnv
 
     // Get current SparkEnv (works on both Driver and Executor)
@@ -562,7 +562,7 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
     ```
 
 - Java -
-    ```
+    ```java
     import org.apache.spark.SparkEnv;
 
     SparkEnv env = SparkEnv.get();
@@ -583,7 +583,7 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
     - RDD partitions compressed if `spark.rdd.compress=true`
 - Handles spill compression separately - `spark.shuffle.spill.compress`
 
-```
+```scala
 val sm = SparkEnv.get.serializerManager
 
 // Serialize a stream with compression - used internally for shuffle writes
@@ -604,7 +604,7 @@ sm.shouldEncrypt(blockId)
     - Serializable reference to an endpoint
     - Executors hold refs to Driver endpoints
 
-```
+```scala
 val rpcEnv = SparkEnv.get.rpcEnv
 
 // Look up an endpoint by name - used internally
@@ -623,7 +623,7 @@ ref.send(ExecutorRegistered(executorId))
 - On each executor, `BlockManager` decides whether a block lives in memory (`MemoryStore`) or on disk (`DiskStore`)
 - `BlockManagerMaster` on the Driver maintains a registry of all blocks across all executors - knows which executor holds which block
 
-```
+```scala
 val bm = SparkEnv.get.blockManager
 
 // Put a block into memory
@@ -648,7 +648,7 @@ bm.getStatus(blockId)   // Option[BlockStatus] - mem size, disk size, storage le
 - Reduce tasks query `MapOutputTrackerWorker` on their executor - worker fetches locations from Master if not cached locally
 - This is how reduce tasks know which executor to fetch each shuffle partition from
 
-```
+```scala
 // On Driver - MapOutputTrackerMaster
 val tracker = SparkEnv.get.mapOutputTracker.asInstanceOf[MapOutputTrackerMaster]
 
@@ -676,7 +676,7 @@ tracker.unregisterShuffle(shuffleId)
         - Default path
         - Sorts records by partition, spills to disk if needed, merges spill files
 
-```
+```scala
 val sm = SparkEnv.get.shuffleManager
 
 // Register a shuffle - returns a ShuffleHandle that determines write path
@@ -698,7 +698,7 @@ val result = reader.read()
 - `UnifiedMemoryManager` (default since Spark 1.6) - single pool, execution and storage share memory and can borrow from each other
 - `StaticMemoryManager` (legacy) - fixed split, no borrowing
 
-```
+```scala
 val mm = SparkEnv.get.memoryManager
 
 // Acquire execution memory for a task
@@ -723,7 +723,7 @@ mm.maxOnHeapStorageMemory // total available for storage
 - `OutputCommitCoordinator` on the Driver grants commit permission to exactly one task attempt per partition; the other is aborted
 - Without this, speculative execution would produce duplicate output files
 
-```
+```scala
 val occ = SparkEnv.get.outputCommitCoordinator
 
 // Task asks for permission to commit
@@ -863,7 +863,7 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
 > Set `spark.jars.ivy` to a local Ivy cache to provide jars to `spark-submit`
 
 - __Config files and resources__ -
-    ```
+    ```python
     --files hdfs://path/config.json,hdfs://path/lookup.csv
 
     # Access in job
