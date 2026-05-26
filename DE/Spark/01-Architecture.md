@@ -5,6 +5,8 @@
 - Fault tolerance via lineage recomputation - any lost partition is rebuilt by replaying its DAG chain from source, no data replication needed
 - In-memory execution - intermediate results stay in RAM, spill to disk only under memory pressure
 
+---
+
 ## Components
 
 - __Driver__ - 
@@ -47,6 +49,8 @@
 > `DAGScheduler` thinks in data dependencies and partition lineage. 
 > 
 > `TaskScheduler` thinks in slots, resources, and scheduling policy.
+
+---
 
 ## Execution Flow
 
@@ -137,6 +141,8 @@
     - Executors write directly to the sink (HDFS, S3, etc.)
     - Driver only tracks task completion
 
+---
+
 ## Partitions
 
 - Every RDD/DataFrame is divided into partitions - partition is the atomic unit of parallelism
@@ -155,6 +161,8 @@
 > Target $~128 MB$ per partition
 >
 > Partition count should be a multiple of total executor cores to avoid wasted slots in the last wave
+
+---
 
 ## Fault Tolerance
 
@@ -175,6 +183,8 @@
 - __Task failure__ - 
     - Retried up to `spark.task.maxFailures` (default $4$) on a different executor
     - All retries exhausted → stage fails
+
+---
 
 ## SparkConf
 
@@ -289,6 +299,8 @@
     conf.getAll();                                // Tuple2<String,String>[]
     ```
 
+---
+
 ## SparkContext
 
 - The entry point to Spark's core engine - before `SparkSession` existed, `SparkContext` was the only way into Spark
@@ -352,6 +364,8 @@
 | **Checkpointing**     | Configure checkpoint directories for RDD lineage truncation and fault tolerance        | `setCheckpointDir`, `getCheckpointDir`                                                                                                        |
 | **Configuration**     | Access the immutable runtime `SparkConf`                                               | `getConf`, `getConf().get`, `getConf().getAll`                                                                                                |
 | **Lifecycle**         | Create, inspect, and terminate the `SparkContext`                                      | `getOrCreate`, `isStopped`, `stop`                                                                                                            |
+
+---
 
 ## SparkSession
 
@@ -448,6 +462,8 @@ spark.conf.getAll                                           # dict in Python
     - Releases all cluster resources
     - Always call in `finally` block in scripts
 
+---
+
 ## Catalog API
 
 ```python
@@ -480,6 +496,8 @@ spark.catalog.clearCache()                              # unpersist all cached t
 spark.catalog.refreshTable("my_table")                  # clears cached metadata + data
 spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointing to this path
 ```
+
+---
 
 ## SparkEnv
 
@@ -571,6 +589,8 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
     env.memoryManager();
     env.serializerManager();
     ```
+
+---
 
 ## SparkEnv Components
 
@@ -733,6 +753,8 @@ val canCommit = occ.canCommit(stageId, stageAttemptId, partitionId, taskAttemptI
 occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKilled)
 ```
 
+---
+
 ## Deploy Modes
 
 - Controls where the Driver process runs
@@ -777,6 +799,8 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
     | Use case                                    | Dev, debug, notebooks       | All production jobs        |
     | `spark-submit` process after submission     | Stays alive (is the Driver) | Exits immediately          |
     | Driver memory capped by Cluster Manager     | No                          | Yes                        |
+
+---
 
 ## spark-submit
 
@@ -871,21 +895,23 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
     config_path = SparkFiles.get("config.json")
     ```
 
+---
+
 ## Application Lifecycle
 
-- `spark-submit` invoked
-  → Driver JVM starts
-  → `SparkContext` + `SparkEnv` initialized
-  → Cluster Manager contacted - executors requested
-  → Executors launch, register with Driver
-  → User code runs - transformations build DAG (nothing executes)
-  → Action called - job submitted to `DAGScheduler`
-  → `DAGScheduler` creates stages
-  → `TaskScheduler` dispatches tasks to executors
-  → Tasks execute - shuffle writes, results produced
-  → Job completes - result returned or written to sink
-  → More jobs may run (same `SparkContext`, same executors)
-  → `SparkContext.stop()` called (or application exits)
-  → Executors deregistered, containers released
-  → Driver JVM exits
-  → Cluster Manager marks application complete
+- `spark-submit` invoked → 
+    - Driver JVM starts →
+    - `SparkContext` + `SparkEnv` initialized →
+    - Cluster Manager contacted - executors requested →
+    - Executors launch, register with Driver →
+    - User code runs - transformations build DAG (nothing executes) →
+    - Action called - job submitted to `DAGScheduler` →
+    - `DAGScheduler` creates stages →
+    - `TaskScheduler` dispatches tasks to executors →
+    - Tasks execute - shuffle writes, results produced →
+    - Job completes - result returned or written to sink →
+    - More jobs may run (same `SparkContext`, same executors) →
+    - `SparkContext.stop()` called (or application exits) →
+    - Executors deregistered, containers released →
+    - Driver JVM exits →
+    - Cluster Manager marks application complete →
