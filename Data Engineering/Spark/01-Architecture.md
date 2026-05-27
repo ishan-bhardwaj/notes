@@ -1,16 +1,22 @@
 # Spark Architecture
 
-- Distributed in-memory DAG execution engine - your code runs on the Driver, data is processed in parallel across Executors
-- Lazy evaluation - transformations build a DAG, nothing executes until an action (count(), collect(), write()) is called
-- Fault tolerance via lineage recomputation - any lost partition is rebuilt by replaying its DAG chain from source, no data replication needed
-- In-memory execution - intermediate results stay in RAM, spill to disk only under memory pressure
-
----
+- Distributed in-memory DAG execution engine - 
+    - Code runs on the Driver
+    - Data is processed in parallel across Executors
+- Lazy evaluation - 
+    - Transformations build a DAG
+    - Nothing executes until an action (`count()`, `collect()`, `write()`) is called
+- Fault tolerance via lineage recomputation - 
+    - Any lost partition is rebuilt by replaying its DAG chain from source
+    - No data replication needed
+- In-memory execution - 
+    - Intermediate results stay in memory
+    - Spill to disk only under memory pressure
 
 ## Components
 
 - __Driver__ - 
-    - Runs `main()`, owns `SparkSession`, DAGScheduler, TaskScheduler
+    - Runs `main()`, owns `SparkSession`, `DAGScheduler`, `TaskScheduler`
     - Single point of failure for the job
     - Assembles final results for actions like `collect()`
 - __Executors__ - 
@@ -45,11 +51,6 @@
     - Serves shuffle files independently of executor lifecycle
     - This is what makes dynamic allocation safe - executor can die, shuffle data survives
 
-> [!NOTE]
-> `DAGScheduler` thinks in data dependencies and partition lineage. 
-> 
-> `TaskScheduler` thinks in slots, resources, and scheduling policy.
-
 ---
 
 ## Execution Flow
@@ -57,9 +58,9 @@
 - Action called -
     - Catalyst optimizes → Physical Plan
     - DAGScheduler cuts plan into Stages at every shuffle boundary
-    - TaskScheduler assigns Tasks (1 per partition) to Executor slots
+    - TaskScheduler assigns Tasks ($1$ per partition) to Executor slots
     - Executors run tasks as threads, each processing one partition
-    - shuffle data written to local disk between stages
+    - Shuffle data written to local disk between stages
     - Final result written to sink or sent back to Driver
 
 ### 1. Startup
@@ -76,35 +77,40 @@
 
 - Every transformation (`filter`, `select`, `join`, `groupBy`) adds a node to the DAG - zero execution happens
 - DataFrame/SQL path - 
-    - Action triggers Catalyst pipeline - Unresolved Logical Plan → 
-    - Analyzer resolves column names and types → 
-    - Optimizer applies rules (predicate pushdown, column pruning, constant folding) → 
-    - Planner selects physical operators → 
-    - Physical Plan
-- RDD path - DAG built directly from RDD lineage, no Catalyst involved
-- Physical plan is a tree of operators - `FileScan`, `Filter`, `SortMergeJoin`, `HashAggregate`, `Exchange` (shuffle node)
+    - Action triggers Catalyst pipeline - 
+        - Unresolved Logical Plan
+        - Analyzer resolves column names and types
+        - Optimizer applies rules (predicate pushdown, column pruning, constant folding)
+        - Planner selects physical operators
+        - Physical Plan
+- RDD path - 
+    - DAG built directly from RDD lineage
+    - No Catalyst involved
 
 ### 3. DAG → Stages
 
 - DAGScheduler walks the physical plan bottom-up and cuts a new stage at every wide dependency
 - Narrow dependency - 
     - One input partition maps to exactly one output partition
-    - Eg - `filter`, `select`, `map`, `union`
     - Pipelines within a stage with zero network I/O
+    - Eg - `filter`, `select`, `map`, `union`
 - Wide dependency - 
     - One output partition depends on multiple input partitions
     - Requires full network redistribution
     - Eg - `groupBy`, `join`, `repartition`, `distinct`
-- Everything within a stage runs as a fully pipelined chain on a single partition - no intermediate materialization, no network
 - DAGScheduler also tags each task with preferred locations - HDFS block locations for input stages, cached partition locations for stages reading persisted data
 
 ### 4. Stages → Tasks
 
-- Each stage produces a TaskSet - one task per partition, all tasks in the set are independent and can run in parallel
-- TaskScheduler assigns tasks using delay scheduling - waits briefly for a data-local slot (partition already on the same node), falls back to rack-local, then any available slot
+- Each stage produces a `TaskSet` - 
+    - One task per partition
+    - All tasks in the set are independent and can run in parallel
+- TaskScheduler assigns tasks using delay scheduling - 
+    - Waits briefly for a data-local slot (partition already on the same node)
+    - Falls back to rack-local, then any available slot
 - Task is serialized along with its closure - every variable the task lambda references gets captured and shipped to the executor
 
-> [!TIP]
+> [!WARNING]
 > Large objects in closures are a common source of OOM and slow task dispatch
 
 ### 5. Task Execution
@@ -125,7 +131,6 @@
 - Reduce-side  
     - Each task fetches its partition's slice from every map-side node over HTTP
     - BlockManager on each executor handles serving these blocks
-- Shuffle is the most expensive operation in Spark - full network transfer, disk I/O on both sides, sort overhead
 - With External Shuffle Service -
     - Shuffle files are served by the node daemon, not the executor JVM
     - Executor can be killed and relaunched without losing shuffle output
@@ -145,7 +150,7 @@
 
 ## Partitions
 
-- Every RDD/DataFrame is divided into partitions - partition is the atomic unit of parallelism
+- Every RDD/DataFrame is divided into partitions
 - One task processes one partition - partition count directly determines parallelism
 - Input partitions are determined by source - 
     - HDFS file splits (default $128 MB$ blocks)
@@ -179,16 +184,16 @@
     - If that executor held shuffle output and no External Shuffle Service is running, parent stage reruns to regenerate lost shuffle data
 - __Stage failure__ - 
     - DAGScheduler resubmits the stage
-    - f shuffle data from a parent stage is also lost, parent stages rerun recursively
+    - If shuffle data from a parent stage is also lost, parent stages rerun recursively
 - __Task failure__ - 
     - Retried up to `spark.task.maxFailures` (default $4$) on a different executor
-    - All retries exhausted → stage fails
+    - All retries exhausted - stage fails
 
 ---
 
 ## SparkConf
 
-- A key-value store for Spark configuration - every tunable in Spark (memory, cores, serializer, shuffle behavior, etc.) flows through `SparkConf`
+- A key-value store for Spark configuration - every tunable in Spark config (memory, cores, serializer, shuffle behavior, etc.) flows through it
 - Immutable - changes after `SparkContext` is created have no effect
 - Lives on the Driver - not distributed, not shared with executors directly
     - Executor-side config is serialized into `TaskDescription` and shipped with each task
@@ -198,14 +203,15 @@
 - Programmatic - `new SparkConf().set("spark.executor.memory", "4g")`
 - `spark-submit` flags - `--executor-memory 4g` (these set the same keys programmatically under the hood)
 - `spark-defaults.conf` - file on the Driver's classpath (`$SPARK_HOME/conf/spark-defaults.conf`)
-- Spark's hardcoded defaults - defined in source, used when nothing else sets the key
+- Spark's hardcoded defaults - defined in Spark source code
 
 > [!NOTE]
-> `spark-defaults.conf` is read from the submitting machine - 
->   - In cluster mode, the Driver runs on a remote node
->   - `spark-defaults.conf` from that node is NOT read
->   - Only the `spark-defaults.conf` on the submitting machine (where `spark-submit` runs) is applied
->   - This causes config to silently differ between client and cluster mode if you rely on node-local config files
+> `spark-defaults.conf` is read only by `spark-submit` on the _submitting_ machine. In cluster mode, the remote Driver does not load its own node-local `spark-defaults.conf`
+>
+> In both client and cluster mode -
+>   - `spark-submit` loads configs locally
+>   - Builds the final Spark configuration
+>   - Sends that configuration to the Driver/cluster
 
 ### Creating SparkConf
 
@@ -248,24 +254,6 @@
         .getOrCreate()
     ```
 
-- Java -
-    ```java
-    import org.apache.spark.SparkConf;
-    import org.apache.spark.sql.SparkSession;
-
-    // via SparkConf
-    SparkConf conf = new SparkConf()
-        .setAppName("MyApp")
-        .setMaster("yarn")
-        .set("spark.executor.memory", "4g");
-
-    // Preferred
-    SparkSession spark = SparkSession.builder()
-        .appName("MyApp")
-        .config(conf)
-        .getOrCreate();
-    ```
-
 ### How config gets to Executors
 
 - `SparkConf` lives on the Driver
@@ -278,25 +266,18 @@
 - Python -
     ```python
     conf = spark.sparkContext.getConf()
-    conf.get("spark.executor.memory")             # throws if not set
-    conf.get("spark.some.key", "default_value")   # with fallback
-    dict(conf.getAll())                           # all as dict
+    conf.get("spark.executor.memory")               # throws if not set
+    conf.get("spark.some.key", "default_value")     # with fallback
+    dict(conf.getAll())                             # all as dict
     ```
 
 - Scala -
     ```scala
     val conf = spark.sparkContext.getConf
-    conf.get("spark.executor.memory")             // throws if not set
-    conf.getOption("spark.some.key")              // Option[String]
-    conf.getAll                                   // Array[(String, String)]
-    ```
-
-- Java -
-    ```java
-    SparkConf conf = spark.sparkContext().getConf();
-    conf.get("spark.executor.memory");
-    conf.getOption("spark.some.key");             // scala.Option<String>
-    conf.getAll();                                // Tuple2<String,String>[]
+    conf.get("spark.executor.memory")               // throws if not set
+    conf.get("spark.some.key", "default_value")     // with fallback
+    conf.getOption("spark.some.key")                // Option[String]
+    conf.getAll                                     // Array[(String, String)]
     ```
 
 ---
@@ -326,7 +307,7 @@
 
 ### Creating SparkContext
 
-- In modern Spark you get it via `spark.sparkContext` i.e. `SparkSession` wraps `SparkContext`
+- In modern Spark you get it via `spark.sparkContext` - `SparkSession` wraps `SparkContext`
 - Direct creation is only needed for pure RDD workloads or testing
 - Python -
     ```python
@@ -341,12 +322,6 @@
     ```scala
     val sc = spark.sparkContext
     val sc = new SparkContext(sparkConf)
-    ```
-
-- Java -
-    ```java
-    SparkContext sc = spark.sparkContext();
-    SparkContext sc = new SparkContext(sparkConf);
     ```
 
 ### Use-cases
@@ -412,26 +387,15 @@
         .appName("MyApp")
         .master("yarn")
         .config("spark.executor.memory", "4g")
-        .getOrCreate()
-    ```
-
-- Java -
-    ```java
-    import org.apache.spark.sql.SparkSession;
-
-    SparkSession spark = SparkSession.builder()
-        .appName("MyApp")
-        .master("yarn")
-        .config("spark.executor.memory", "4g")
-        .getOrCreate();
+        .getOrCreate()                              // returns existing session if one exists
     ```
 
 - `getOrCreate` vs `newSession` vs `cloneSession`
     - `getOrCreate` - returns existing session if one exists in this JVM
-    - `newSession` - new session with isolated `SessionState`, same `SharedState`
+    - `newSession` - new session with isolated `SessionState`, but same `SharedState`
     - `cloneSession` - internal; used by Spark internally for parallel query execution
 
-### Runtime config - `spark.conf`
+### RuntimeConfig - `spark.conf`
 
 ```python
 # Set SQL-level config at runtime (subset of configs are mutable at runtime)
@@ -505,7 +469,7 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
 - One `SparkEnv` per JVM process - one on the Driver, one on each Executor
 - Created during `SparkContext` initialization on the Driver
 - Created on each Executor when the Executor JVM starts and registers with the Driver
-- Not part of the public API - but every component like shuffle, memory, block storage, RPC etc lives inside it
+- Not part of the public API
 
 ### What SparkEnv holds
 
@@ -528,7 +492,7 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
 - Driver `SparkEnv` runs `MapOutputTrackerMaster`, `BlockManagerMaster` - the authoritative coordinators
 - Executor `SparkEnv` runs `MapOutputTrackerWorker`, `BlockManagerSlave` - the worker-side counterparts that report to the Master
 - Same class, different roles determined by the `isDriver` flag at construction time
-- How `SparkEnv` is created
+- How `SparkEnv` is created -
     - Driver side - 
         ```scala
         // Inside SparkContext initialization - not public API
@@ -540,17 +504,15 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
         ```scala
         // Inside CoarseGrainedExecutorBackend.main() - called when Executor JVM starts
         val env = SparkEnv.createExecutorEnv(...)
-
         ```
 
 ### Accessing SparkEnv
 
-- `SparkEnv` is accessible via a static reference - same instance within the process
 - `SparkEnv` is not accessible from PySpark tasks - 
     - Python tasks run in a separate Python process (not the Executor JVM)
     - `SparkEnv` lives in the JVM
-    - py4j bridge only works on the Driver side
-- Python (via py4j - internal access only) -
+    - `py4j` bridge only works on the Driver side
+- Python (via `py4j` - internal access only) -
     ```python
     # Not recommended in production - internal API, can break across versions
     jvm_env = spark.sparkContext._jvm.org.apache.spark.SparkEnv.get()
@@ -579,17 +541,6 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
     val metricsSystem = env.metricsSystem
     ```
 
-- Java -
-    ```java
-    import org.apache.spark.SparkEnv;
-
-    SparkEnv env = SparkEnv.get();
-    env.blockManager();
-    env.shuffleManager();
-    env.memoryManager();
-    env.serializerManager();
-    ```
-
 ---
 
 ## SparkEnv Components
@@ -601,7 +552,7 @@ spark.catalog.refreshByPath("hdfs://path/")             # refresh tables pointin
     - Shuffle data is always compressed if `spark.shuffle.compress=true`
     - Broadcast data compressed if `spark.broadcast.compress=true`
     - RDD partitions compressed if `spark.rdd.compress=true`
-- Handles spill compression separately - `spark.shuffle.spill.compress`
+- Handles spill compression separately - `spark.shuffle.spill.compress=true`
 
 ```scala
 val sm = SparkEnv.get.serializerManager
@@ -685,16 +636,22 @@ tracker.unregisterShuffle(shuffleId)
 ### ShuffleManager
 
 - Single pluggable interface for shuffle write and read - default is `SortShuffleManager`
-- `SortShuffleManager` has three write paths depending on conditions -
-    - `BypassMergeSortShuffleWriter` - 
-        - Used when no map-side aggregation and partitions ≤ `spark.shuffle.sort.bypassMergeThreshold` (default $200$)
-        - Writes one file per partition then merges
-    - `UnsafeShuffleWriter` - 
-        - Used when serializer supports relocation and no map-side aggregation
-        - Oerates on serialized binary data directly, avoids deserialization
-    - `SortShuffleWriter` - 
-        - Default path
-        - Sorts records by partition, spills to disk if needed, merges spill files
+- `SortShuffleManager` chooses one of three shuffle write paths -
+  - `SortShuffleWriter` (default) -
+    - Writes records into an in-memory sorter, spills sorted runs to disk, then merges them into final shuffle output.
+  - `BypassMergeSortShuffleWriter` -
+    - Fast path for simple shuffles - does not sort records in memory
+    - Instead, writes directly into one temporary file per reduce partition, then concatenates/merges them into the final shuffle data file
+    - Used when -
+      - There is no map-side aggregation
+      - Number of reduce partitions is small enough - `<= spark.shuffle.sort.bypassMergeThreshold` (default $200$)
+  - `UnsafeShuffleWriter` -
+    - Optimized binary shuffle writer
+    - Stores records as serialized binary data and sorts binary pointers instead of JVM objects
+    - Used when -
+      - There is no map-side aggregation
+      - Serializer supports object relocation
+      - Partition count is within supported limits
 
 ```scala
 val sm = SparkEnv.get.shuffleManager
@@ -814,7 +771,7 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
     4. `SparkSubmit` parses all arguments
     5. Builds final classpath - Spark jars + user jars + dependencies
     6. Determines submission path based on `--master` and `--deploy-mode`
-    7.1. Client mode  → prepares environment, launches Driver JVM in this process (exec)
+    7.1. Client mode  → prepares environment, launches Driver JVM in this process (`exec`)
     7.2. Cluster mode → submits to Cluster Manager, exits after acknowledgement
 
 > [!NOTE]
@@ -875,7 +832,7 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
 
     # Requirements via conda/venv (Spark 3.1+ with YARN)
     --archives hdfs://path/environment.tar.gz#environment
-  --conf spark.pyspark.python=./environment/bin/python
+    --conf spark.pyspark.python=./environment/bin/python
     ```
 
 > [!NOTE]
@@ -894,24 +851,3 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
     from pyspark import SparkFiles
     config_path = SparkFiles.get("config.json")
     ```
-
----
-
-## Application Lifecycle
-
-- `spark-submit` invoked → 
-    - Driver JVM starts →
-    - `SparkContext` + `SparkEnv` initialized →
-    - Cluster Manager contacted - executors requested →
-    - Executors launch, register with Driver →
-    - User code runs - transformations build DAG (nothing executes) →
-    - Action called - job submitted to `DAGScheduler` →
-    - `DAGScheduler` creates stages →
-    - `TaskScheduler` dispatches tasks to executors →
-    - Tasks execute - shuffle writes, results produced →
-    - Job completes - result returned or written to sink →
-    - More jobs may run (same `SparkContext`, same executors) →
-    - `SparkContext.stop()` called (or application exits) →
-    - Executors deregistered, containers released →
-    - Driver JVM exits →
-    - Cluster Manager marks application complete →
