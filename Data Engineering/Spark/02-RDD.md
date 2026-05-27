@@ -1,6 +1,6 @@
-# RDD
+# Resilient Distributed Dataset
 
-- __RDD (Resilient Distributed Dataset)__ -
+- __RDD__ -
     - The core distributed data abstraction in Spark
     - An immutable, partitioned collection of records distributed across executor JVMs
 - __Immutable__ -
@@ -21,7 +21,7 @@
     - Used when DataFrame/Dataset abstractions are insufficient (custom binary formats, iterative ML algorithms, graph processing)
 
 > [!NOTE]
-> `DataFrame` is `Dataset[Row]` - a Dataset where the type parameter is an untyped `Row`.
+> `DataFrame = Dataset[Row]` - a Dataset where the type parameter is an untyped `Row`.
 >
 > Under the hood, a DataFrame/Dataset compiles down to an `RDD` of `InternalRow` for execution. The optimizer operates above RDD level - by the time tasks run, it's RDD mechanics all the way down.
 
@@ -69,8 +69,8 @@
 
 - __Partition__ -
     - The atomic unit of parallelism
-    - One task processes exactly one partition
     - A contiguous slice of the RDD's data living on one executor
+    - One task processes exactly one partition
 - __Partition count = parallelism__ - more partitions → more tasks can run concurrently (bounded by total executor cores)
 - Every partition has an index ($0$-based) and a set of preferred locations for data locality
 
@@ -84,9 +84,9 @@
     - `minPartitions` sets a floor
     - Spark may split further but never merges blocks
 - __Shuffle output__ -
-    - Controlled by `spark.sql.shuffle.partitions` (SQL/DataFrame) or `rdd.partitionBy(n)` / operation `numPartitions` arg (RDD API)
+    - Controlled by `spark.sql.shuffle.partitions` (SQL/DataFrame) or `rdd.partitionBy(n)`
 - `coalesce(n)` -
-    - Reduces to `n` without shuffle
+    - Reduces to `n` without shuffle - may still move data between executors, but it avoids a shuffle exchange
     - May produce skewed partition sizes if reduction is large
 - `repartition(n)` -
     - Always full shuffle
@@ -113,7 +113,6 @@
     - Samples the RDD to determine range boundaries
     - Assigns keys to partitions by sorted range
     - Used by `sortByKey`
-    - Sampling cost at construction
 
 ### Custom Partitioner
 
@@ -148,13 +147,13 @@
 
 ### Inspecting Partitions
 
-```python
+    ```python
     rdd.getNumPartitions()                          # partition count
     rdd.glom().collect()                            # collect each partition as a list - debug only, small data
     rdd.mapPartitionsWithIndex(
         lambda idx, it: [(idx, x) for x in it]
     ).collect()                                     # see which element is in which partition
-```
+    ```
 
 ### Partition Locality
 
@@ -166,19 +165,6 @@
 - `TaskScheduler` delay-schedules -
     - Waits briefly for a better locality slot before falling back
     - Controlled by `spark.locality.wait` (default $3s$ per level)
-
----
-
-## Transformations vs Actions
-
-- __Transformation__ -
-    - Returns a new RDD
-    - Lazy - recorded as a DAG node, zero execution
-    - Eg - `map`, `filter`, `flatMap`, `groupByKey`, `join`, `distinct`, `repartition`, `sortBy`, `mapPartitions`, `mapPartitionsWithIndex`, `zip`, `cogroup`
-- __Action__ -
-    - Triggers DAG execution
-    - Returns a value to the Driver or writes to storage
-    - Eg - `count`, `collect`, `take`, `first`, `reduce`, `fold`, `aggregate`, `foreach`, `foreachPartition`, `saveAsTextFile`, `saveAsObjectFile`, `countByKey`, `lookup`
 
 ---
 
@@ -207,6 +193,10 @@
 
 - Scala -
     ```scala
+    // HadoopRDD - actual I/O, produces elements from a RecordReader
+    override def compute(split: Partition, context: TaskContext): Iterator[(K, V)] =
+        new HadoopIterator(split.asInstanceOf[HadoopPartition], context)
+
     // MappedRDD - wraps parent iterator, applies f lazily
     override def compute(split: Partition, context: TaskContext): Iterator[B] =
         parent.iterator(split, context).map(f)
@@ -214,18 +204,16 @@
     // FilteredRDD
     override def compute(split: Partition, context: TaskContext): Iterator[T] =
         parent.iterator(split, context).filter(pred)
-
-    // HadoopRDD - actual I/O, produces elements from a RecordReader
-    override def compute(split: Partition, context: TaskContext): Iterator[(K, V)] =
-        new HadoopIterator(split.asInstanceOf[HadoopPartition], context)
     ```
 
 ### Full Iterator Chain Example
 
-- `sc.textFile("hdfs://...")` → HadoopRDD → `Iterator[String]` (reads HDFS blocks)
-    - `.filter(_.contains("ERROR"))` → `FilteredRDD` → wraps `HadoopRDD` iterator
-    - `.map(line => parse(line))` → `MappedRDD` → wraps `FilteredRDD` iterator
-    - `.mapPartitions(iter => aggregate)` → `MapPartitionsRDD` → wraps `MappedRDD` iterator
+```python
+sc.textFile("hdfs://...")
+    .filter(_.contains("ERROR")
+    .map(line => parse(line))
+    .mapPartitions(iter => aggregate)
+```
 
 - When a task runs, it calls `mapPartitionsRDD.iterator(partition, ctx)` -
     - `MapPartitionsRDD.compute` calls `MappedRDD.iterator`
@@ -326,13 +314,6 @@
     #      HadoopRDD[...] ...
     ```
 
-### DAGScheduler & Stage Cutting
-
-- `DAGScheduler` walks the RDD lineage bottom-up from the final RDD on which an action was called
-- Cuts a stage boundary at every `ShuffleDependency` - each stage is a maximal set of RDDs connected only by `NarrowDependency`
-- Within a stage, all transformations pipeline on a single partition - one pass, zero network I/O
-- Between stages, a shuffle materializes data to disk and redistributes it across the network
-
 ---
 
 ## NarrowDependency vs ShuffleDependency
@@ -368,7 +349,6 @@
 ### Co-partitioning Eliminates Shuffles
 
 - If two RDDs share the same `Partitioner` (same type, same `numPartitions`), a join between them is narrow - matching partitions are already co-located
-- Two RDDs are co-partitioned only if both used the same `HashPartitioner` instance with the same `numPartitions`
 
 - Python -
     ```python
@@ -481,7 +461,7 @@
 - Spark does NOT automatically unpersist RDDs when they go out of scope -
     - Memory held until explicit `unpersist()` or LRU eviction
 
-> [!NOTE]
+> [!WARNING]
 > In long-running applications (streaming, notebooks), forgetting to `unpersist()` intermediate RDDs is a common cause of progressive memory degradation.
 
 ### Checkpoint vs Lineage Truncation
@@ -495,10 +475,8 @@
     - Recomputation starts from the checkpoint file
     - Requires a checkpoint directory set via `sc.setCheckpointDir("hdfs://...")`
 
-> [!NOTE]
+> [!TIP]
 > Always `persist()` before `checkpoint()` - otherwise Spark recomputes the RDD twice: once to checkpoint, once for the job.
->
-> Checkpointing is critical for iterative algorithms (ML, graph processing) where lineage grows unboundedly across iterations. Without it, a failure in iteration 100 replays all 100 iterations.
 
 - Python -
     ```python
@@ -567,11 +545,6 @@
     - Action - returns `Map[K, Long]` to Driver
     - Internally a `map(_ => 1)` + `reduceByKey(_ + _)` + `collect` + convert to map
     - Risk of Driver OOM if key cardinality is high - use `reduceByKey` + `saveAsTextFile` for large cardinality
-
-> [!NOTE]
-> `reduceByKey` vs `groupByKey` - the most common Spark interview question at every level.
->
-> `reduceByKey` runs `mergeValue` on the map side - each partition emits at most one record per key. `groupByKey` emits every raw record. For 1B records with 1M unique keys, `reduceByKey` shuffles ~1M records; `groupByKey` shuffles 1B. The difference is not just performance - `groupByKey` can OOM executors when value lists are large; `reduceByKey` cannot (it aggregates in a fixed-size buffer).
 
 ### Join Operations
 
@@ -652,14 +625,16 @@
     - The partitioner is stored as metadata on the RDD; Spark checks it during join planning
 
 > [!NOTE]
-> `mapValues` preserves the partitioner because keys don't change - Spark knows the partition assignment is still valid. `map` always loses the partitioner even if you don't touch the key, because Spark cannot statically prove the key is unchanged without inspecting the function body.
+> `mapValues` preserves the partitioner because keys don't change - Spark knows the partition assignment is still valid. 
+>
+> `map` always loses the partitioner even if you don't touch the key, because Spark cannot statically prove the key is unchanged without inspecting the function body.
 
 ### Lookup & Sampling
 
 - __`lookup(key)`__ -
     - Action - returns `Seq[V]` for a given key
-    - If RDD has a known partitioner, only the relevant partition is scanned - O(partition_size) not O(total_size)
-    - Without a partitioner, scans all partitions - full O(n) scan
+    - If RDD has a known partitioner, only the relevant partition is scanned - `O(partition_size) `not `O(total_size)`
+    - Without a partitioner, scans all partitions - full `O(n)` scan
     - Not suitable for high-frequency lookups - each call is a Spark job; use `collectAsMap` + local map for repeated lookups on small RDDs
 - __`sampleByKey(withReplacement, fractions, seed)`__ -
     - Stratified sample - each key sampled at its own specified rate
@@ -678,8 +653,12 @@
 
 ### Numeric PairRDD Operations
 
-- __`sumByKey`__ - not a built-in; use `reduceByKey(_ + _)`
-- __`meanByKey`__ - not a built-in; use `aggregateByKey((0.0, 0))((acc, v) => (acc._1 + v, acc._2 + 1), (a, b) => (a._1 + b._1, a._2 + b._2)).mapValues(x => x._1 / x._2)`
+- __`sumByKey`__ - not a built-in - use `reduceByKey(_ + _)`
+- __`meanByKey`__ - not a built-in - use 
+    ```
+    aggregateByKey((0.0, 0))((acc, v) => (acc._1 + v, acc._2 + 1), (a, b) => (a._1 + b._1, a._2 + b._2)).mapValues(x => x._1 / x._2)
+    ```
+
 - __`collectAsMap()`__ -
     - Action - collects `RDD[(K, V)]` into a `Map[K, V]` on the Driver
     - If duplicate keys exist, last value wins
@@ -690,10 +669,8 @@
 ## CoGroupedRDD
 
 - __`CoGroupedRDD`__ - the internal RDD that backs all multi-RDD key-based operations (`join`, `cogroup`, `subtractByKey`, `intersection`)
-- Groups values from N parent RDDs by key into a single partition - produces `RDD[(K, Array[Iterable[_]])]` internally
+- Groups values from `N` parent RDDs by key into a single partition - produces `RDD[(K, Array[Iterable[_]])]` internally
 - `cogroup` on two RDDs returns `RDD[(K, (Iterable[V1], Iterable[V2]))]`
-- `join` is `cogroup` + `flatMap` to cross-product and unwrap non-empty iterables
-- Not usually constructed directly - created internally by `cogroup`
 
 ### How CoGroupedRDD Works
 
@@ -774,7 +751,7 @@
 - __`ShuffledRDD`__ - the concrete RDD class produced by any wide transformation that requires redistributing data across the network
     - Has exactly one parent and exactly one `ShuffleDependency`
 - Produced by - `reduceByKey`, `groupByKey`, `aggregateByKey`, `combineByKey`, `sortByKey`, `repartition`, `partitionBy`, `distinct`, `coalesce(shuffle=True)`
-- Not usually constructed directly - Spark internals create it; but understanding it is essential for shuffle tuning
+- Not usually constructed directly - Spark internals create it
 
 ### ShuffledRDD Fields
 
