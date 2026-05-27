@@ -835,14 +835,6 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
     --conf spark.pyspark.python=./environment/bin/python
     ```
 
-> [!NOTE]
-> Fat JAR vs thin JAR - `provided` scope is critical - 
->   - Spark JARs must be marked `provided` in your build
->   - Including them in the fat JAR causes classpath conflicts (`NoSuchMethodError`, `ClassCastException`) between your bundled Spark version and the cluster's Spark version
-
-> [!TIP]
-> Set `spark.jars.ivy` to a local Ivy cache to provide jars to `spark-submit`
-
 - __Config files and resources__ -
     ```python
     --files hdfs://path/config.json,hdfs://path/lookup.csv
@@ -851,3 +843,11 @@ occ.taskCompleted(stageId, stageAttemptId, partitionId, taskAttemptId, TaskKille
     from pyspark import SparkFiles
     config_path = SparkFiles.get("config.json")
     ```
+
+> [!NOTE]
+> Fat JAR vs thin JAR - `provided` scope is critical - 
+>   - Spark JARs must be marked `provided` in your build
+>   - Including them in the fat JAR causes classpath conflicts (`NoSuchMethodError`, `ClassCastException`) between your bundled Spark version and the cluster's Spark version
+
+> [!TIP]
+> Set `spark.jars.ivy` to a local Ivy cache to provide jars to `spark-submit`
