@@ -97,6 +97,11 @@
     - `spark-defaults.conf` - file on the Driver's classpath (`$SPARK_HOME/conf/spark-defaults.conf`)
     - Spark's hardcoded defaults - defined in Spark source code
 
+| Mutable at Runtime             | Immutable After Startup |
+| ------------------------------ | ----------------------- |
+| SQL configs                    | Executor/JVM configs    |
+| `spark.sql.shuffle.partitions` | `spark.executor.memory` |
+
 > [!NOTE]
 > `spark-defaults.conf` is read only by `spark-submit` on the _submitting_ machine.
 >
@@ -104,11 +109,6 @@
 >   - `spark-submit` loads configs locally
 >   - Builds the final Spark configuration
 >   - Sends that configuration to the Driver/cluster
-
-| Mutable at Runtime             | Immutable After Startup |
-| ------------------------------ | ----------------------- |
-| SQL configs                    | Executor/JVM configs    |
-| `spark.sql.shuffle.partitions` | `spark.executor.memory` |
 
 ### Accessing config at runtime
 
@@ -130,7 +130,7 @@
     ```
 
 > [!TIP]
-> `spark.conf.isModifiable("<config-key>")` returns `true` if the config is modifiable at runtime
+> `spark.conf.isModifiable("<config>")` returns `true` if the config is modifiable at runtime
 
 ## SparkContext
 
@@ -208,18 +208,18 @@
         - shuffle blocks
         - broadcast chunks
 
-    | Driver                          | Executor                        |
-    | ------------------------------- | ------------------------------- |
-    | Maintains global block registry | Stores/serves actual blocks     |
-    | Knows block locations           | Reads/writes memory/disk blocks |
+        | Driver                          | Executor                        |
+        | ------------------------------- | ------------------------------- |
+        | Maintains global block registry | Stores/serves actual blocks     |
+        | Knows block locations           | Reads/writes memory/disk blocks |
 
 - __MapOutputTracker__ -
     - Tracks where shuffle map outputs are located
     - Map tasks register shuffle output metadata
     - Reduce tasks use this metadata to fetch shuffle blocks
 
-    > [!TIP]
-    > Without `MapOutputTracker`, reduce tasks would not know where to fetch shuffle data from.
+> [!TIP]
+> Without `MapOutputTracker`, reduce tasks would not know where to fetch shuffle data from.
 
 - __ShuffleManager__ -
     - Handles shuffle write/read logic
@@ -234,10 +234,10 @@
         - Execution memory can evict storage memory
         - Storage cannot evict execution memory
 
-    > [!TIP]
-    > Spills happen when execution memory is insufficient 
-    >
-    > Cache eviction happens when execution needs more memory
+> [!TIP]
+> Spills happen when execution memory is insufficient 
+>
+> Cache eviction happens when execution needs more memory
 
 - __OutputCommitCoordinator__ -
     - Prevents duplicate output commits
@@ -251,6 +251,7 @@
 - Python API -
     - Python tasks run in a separate Python process (not the Executor JVM where `SparkEnv` resides)
     - `py4j` bridge only works on the Driver side
+    
     ```python
     # Not recommended in production - internal API, can break across versions
     jvm_env = spark.sparkContext._jvm.org.apache.spark.SparkEnv.get()
