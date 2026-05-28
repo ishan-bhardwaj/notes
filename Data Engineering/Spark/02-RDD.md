@@ -17,7 +17,7 @@
     - Custom partitioning
     - Custom binary/non-tabular formats
     - Fine-grained locality control
-    - Legacy Hadoop InputFormat
+    - Legacy Hadoop `InputFormat`
     - Explicit control over caching and recomputation
 
 - __Creating RDDs__ -
@@ -26,7 +26,7 @@
     | Local collection | `sc.parallelize`                    |
     | Files            | `sc.textFile`                       |
     | Hadoop formats   | `sc.hadoopFile`, `newAPIHadoopFile` |
-    | Existing RDD     | transformation                      |
+    | Existing RDD     | Transformations                     |
     | DataFrame        | `df.rdd`                            |
 
 > [!WARNING]
@@ -34,24 +34,24 @@
 
 ## RDD Partitions
 
-- Partition = atomic unit of parallelism.
+- Partition = atomic unit of parallelism
 - One task processes one partition
-- Partition count determines maximum task parallelism.
+- Partition count determines maximum task parallelism
 - Each partition has -
     - Index ($0$-based)
-    - Preferred locations
+    - Preferred locality
     - Dependency mapping to parent partitions
 
 - Partition sizing -
     | Problem             | Symptom                                                  |
     | ------------------- | -------------------------------------------------------- |
     | Too few partitions  | OOM, poor parallelism, stragglers                        |
-    | Too many partitions | scheduler overhead, tiny files, driver metadata pressure |
+    | Too many partitions | Scheduler overhead, tiny files, driver metadata pressure |
 
 > [!TIP]
 > Good rule of thumb -
->   - Target roughly 128 MB – 256 MB per partition
->   - Use 2–4x total executor cores for parallelism headroom
+>   - Target roughly 128 MB - 256 MB per partition
+>   - Use 2-4x total executor cores for parallelism headroom
 
 ### Partition Count Rules
 
@@ -75,21 +75,21 @@
 
 | Locality        | Meaning                   |
 | --------------- | ------------------------- |
-| `PROCESS_LOCAL` | data in same executor JVM |
-| `NODE_LOCAL`    | data on same machine      |
-| `RACK_LOCAL`    | data on same rack         |
-| `ANY`           | anywhere                  |
+| `PROCESS_LOCAL` | Data in same executor JVM |
+| `NODE_LOCAL`    | Data on same machine      |
+| `RACK_LOCAL`    | Data on same rack         |
+| `ANY`           | Anywhere                  |
 
 - DAGScheduler computes preferred locality for each task
 - TaskScheduler uses delay scheduling -
-    - waits briefly for better locality
-    - falls back if no local slot becomes free
+    - Waits briefly for better locality
+    - Falls back if no local slot becomes free
 
 ## RDD Iterator Model & Compute Chain
 
 - Each RDD implements `compute(partition, context): Iterator[T]`
-- A task calls `iterator()` on the final RDD in the stage
 - Transformations wrap parent iterators
+- A task calls `iterator()` on the final RDD in the stage
 - Execution is pull-based -
     - The terminal consumer (shuffle writer or action) pulls elements from the outermost iterator
     - Each `next()` call cascades down the chain through every transformation
@@ -120,10 +120,10 @@
 
 | API                | Granularity                 | Best Use                                   |
 | ------------------ | --------------------------- | ------------------------------------------ |
-| `map`              | per record                  | simple stateless transforms                |
-| `mapPartitions`    | per partition               | expensive setup, batching, DB/client reuse |
-| `foreach`          | per record side effect      | rarely preferred                           |
-| `foreachPartition` | partition-level side effect | external writes, batching                  |
+| `map`              | Per record                  | Simple stateless transforms                |
+| `mapPartitions`    | Per partition               | Expensive setup, batching, DB/client reuse |
+| `foreach`          | Per record side effect      | Rarely preferred                           |
+| `foreachPartition` | Partition-level side effect | External writes, batching                  |
 
 - Python -
     ```python
@@ -146,8 +146,8 @@
 - Lineage = recipe to rebuild an RDD
 - Stored as dependencies between RDDs
 - Forms a DAG because RDDs are immutable
-- Lost partitions are recomputed from lineage
 - Lineage enables fault tolerance without replication -
+    - Lost partitions are recomputed from lineage
     - But long lineage can become expensive
     - Use -
         - `persist()` to avoid recomputation
@@ -171,7 +171,7 @@
     #  |  PythonRDD[2] ...
     #  |  MapPartitionsRDD[1] ...
     #  |  data.txt MapPartitionsRDD[0] ...
-    #      HadoopRDD[...] ...
+    #  |    HadoopRDD[...] ...
     ```
 
 ## NarrowDependency vs ShuffleDependency
@@ -259,12 +259,12 @@
         - Replicated level - fetch from another executor if available
 
 > [!TIP]
-> Kryo is $3–10×$ faster and produces $3–5×$ smaller output
+> Kryo is 3-10× faster and produces 3-5× smaller output
 >
-> ```
-> SparkSession.builder \
->   .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
->   .config("spark.kryo.registrationRequired", "false") \
+> ```scala
+> SparkSession.builder()
+>   .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+>   .config("spark.kryo.registrationRequired", "false")
 >   .getOrCreate()
 > ```
 
@@ -282,7 +282,7 @@
 
 - PairRDD = `RDD[(K, V)]`
     - Unlocks key-based distributed operations through `PairRDDFunctions`
-    - Scala implicit enrichment (`PairRDDFunctions`) activates it when the element type is a $2-tuple$
+    - Scala implicit enrichment (`PairRDDFunctions`) activates it when the element type is a $2$-tuple
 
 | Function         | Usage Example                               | Parameters                                                                                                                                                                                                                     | Special Notes                                                 |
 | ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
@@ -322,7 +322,7 @@
 > [!NOTE]
 > `map` vs `mapValues` -
 >   - `mapValues` is partitioner-preserving because the keys do not change
->   - `map` is not because Spark cannot prove key unchanged
+>   - `map` is not because Spark cannot prove key is unchanged
 
 ## CoGroupedRDD
 
@@ -333,7 +333,7 @@
 
 - __Execution Model__ -
     - For each parent RDD -
-        - Matching partitioner - `NarrowDependency` / local read
+        - Matching partitioner - `NarrowDependency` (local read)
         - Different or missing partitioner - `ShuffleDependency`
     - Co-partitioned parents avoid shuffle entirely
     - Uses `ExternalAppendOnlyMap` internally -
@@ -373,7 +373,7 @@
         - Uses `BlockManager` / Netty for remote fetches
         - Merges, sorts, or aggregates fetched records if needed
 - __Shuffle Files__ -
-    - Modern Spark `SortShuffleManager` usually writes -
+    - `SortShuffleManager` usually writes -
         - One data file per mapper
         - One index file per mapper
     - Avoids `numMappers × numReducers` small-file explosion by older `HashShuffleManager`
