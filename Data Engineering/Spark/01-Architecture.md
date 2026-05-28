@@ -182,15 +182,69 @@
 ## SparkEnv
 
 - Internal runtime container created on driver and each executor
-- Components -
-    | Component        | Responsibility           |
-    | ---------------- | ------------------------ |
-    | RpcEnv           | RPC communication        |
-    | BlockManager     | Cache/shuffle storage    |
-    | ShuffleManager   | Shuffle handling         |
-    | MapOutputTracker | Shuffle metadata         |
-    | BroadcastManager | Broadcast variables      |
-    | MemoryManager    | Execution/storage memory |
+
+### SparkEnv Components
+
+- __SerializerManager__ -
+    - Wraps raw serializers like Java/Kryo
+    - Applies compression/encryption rules per block type
+        ```python
+        spark.shuffle.compress=true             # shuffle data is compressed
+        spark.broadcast.compress=true           # broadcast data is compressed
+        spark.rdd.compress=true                 # RDD partitions are compressed
+        spark.shuffle.spill.compress=true       # spill data is compressed
+        ```
+
+- __RpcEnv__ -
+    - Netty-based RPC layer
+    - Used for Driver ↔ Executor communication
+    - Executors communicate with Driver-side endpoints using references (`RpcEndpointRef`)
+    - `RpcEndpoint` - actor-like object that handles messages
+
+- __BlockManager__ -
+    - Manages Spark blocks on each executor - every block has a `BlockId`
+    - Blocks include -
+        - cached RDD/DataFrame partitions
+        - shuffle blocks
+        - broadcast chunks
+
+    | Driver                          | Executor                        |
+    | ------------------------------- | ------------------------------- |
+    | Maintains global block registry | Stores/serves actual blocks     |
+    | Knows block locations           | Reads/writes memory/disk blocks |
+
+- __MapOutputTracker__ -
+    - Tracks where shuffle map outputs are located
+    - Map tasks register shuffle output metadata
+    - Reduce tasks use this metadata to fetch shuffle blocks
+
+    > [!TIP]
+    > Without `MapOutputTracker`, reduce tasks would not know where to fetch shuffle data from.
+
+- __ShuffleManager__ -
+    - Handles shuffle write/read logic
+    - Default is `SortShuffleManager` - sorts records in memory, spills if needed, then merges final shuffle files
+
+- __MemoryManager__ -
+    - Manages executor memory used by -
+        - Execution - shuffle, sort, aggregation
+        - Storage - cache, persisted data, broadcast
+    - Default is `UnifiedMemoryManager` -
+        - Execution and storage share one memory pool
+        - Execution memory can evict storage memory
+        - Storage cannot evict execution memory
+
+    > [!TIP]
+    > Spills happen when execution memory is insufficient 
+    >
+    > Cache eviction happens when execution needs more memory
+
+- __OutputCommitCoordinator__ -
+    - Prevents duplicate output commits
+    - Important when -
+        - Task retries happen
+        - Speculative execution is enabled
+
 
 ### Accessing SparkEnv
 
@@ -217,77 +271,6 @@
     val shuffleManager = env.shuffleManager
     val memoryManager = env.memoryManager
     ```
-
-## SparkEnv Components
-
-### SerializerManager
-
-- Sits above the raw serializer (`KryoSerializer` / `JavaSerializer`) and adds compression, encryption, and per-block decisions about whether to compress
-- Decides whether to compress a block based on its type -
-    ```python
-    spark.shuffle.compress=true             # shuffle data is compressed
-    spark.broadcast.compress=true           # broadcast data is compressed
-    spark.rdd.compress=true                 # RDD partitions are compressed
-    spark.shuffle.spill.compress=true       # spill data is compressed
-    ```
-
-### RpcEnv
-
-- Netty-based message-passing layer - every Driver ↔ Executor interaction is an RPC call through this
-- `RpcEndpoint` - 
-    - Named actor-like object that handles messages
-    - `DAGScheduler`, `BlockManagerMaster`, `MapOutputTrackerMaster` are all `RpcEndpoint`s registered in the Driver's `RpcEnv`
-- `RpcEndpointRef` - 
-    - Serializable reference to an endpoint
-    - Executors hold refs to Driver endpoints
-
-### BlockManager
-
-- Every block of data in Spark - RDD partition, shuffle file chunk, broadcast piece - has a `BlockId` and is managed by `BlockManager`
-- On each executor, `BlockManager` decides whether a block lives in memory (`MemoryStore`) or on disk (`DiskStore`)
-- `BlockManagerMaster` on the Driver maintains a registry of all blocks across all executors - knows which executor holds which block
-
-### MapOutputTracker
-
-- After a shuffle map stage completes, each map task registers its output location with `MapOutputTrackerMaster` on the Driver
-- Reduce tasks query `MapOutputTrackerWorker` to fetch locations from Master if not cached locally
-- This is how reduce tasks know which executor to fetch each shuffle partition from
-
-### ShuffleManager
-
-- ShuffleManager handles shuffle write/read operations - default implementation is `SortShuffleManager`
-- `SortShuffleWriter` sorts records in memory, spills if needed, then merges final shuffle files
-
-### MemoryManager
-
-- Controls the split between execution memory (shuffle, sort, aggregation) and storage memory (cached RDDs, broadcast)
-- `UnifiedMemoryManager` (default since Spark 1.6) - single pool, execution and storage share memory and can borrow from each other
-- `StaticMemoryManager` (legacy) - fixed split, no borrowing
-
-```scala
-val mm = SparkEnv.get.memoryManager
-
-// Acquire execution memory for a task
-val granted = mm.acquireExecutionMemory(numBytes, taskAttemptId, MemoryMode.ON_HEAP)
-
-// Acquire storage memory for a block
-val success = mm.acquireStorageMemory(blockId, numBytes, MemoryMode.ON_HEAP)
-
-// Release
-mm.releaseExecutionMemory(numBytes, taskAttemptId, MemoryMode.ON_HEAP)
-mm.releaseStorageMemory(numBytes, MemoryMode.ON_HEAP)
-
-// Inspect
-mm.executionMemoryUsed    // bytes currently used for execution
-mm.storageMemoryUsed      // bytes currently used for storage
-mm.maxOnHeapStorageMemory // total available for storage
-```
-
-### OutputCommitCoordinator
-
-- Solves the duplicate output problem - if a task is retried (speculative execution or failure), two task attempts could both try to commit output for the same partition
-- `OutputCommitCoordinator` on the Driver grants commit permission to exactly one task attempt per partition; the other is aborted
-- Without this, speculative execution would produce duplicate output files
 
 ## Deploy Modes
 
