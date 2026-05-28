@@ -4,6 +4,23 @@
 
 - __Partition__ - the atomic unit of parallelism in Spark; a contiguous slice of data processed by exactly one task on one executor
 - Partitioning decisions affect - parallelism, data locality, shuffle volume, task skew, output file layout, and query pruning at read time
+- Every RDD/DataFrame is divided into partitions
+- One task processes one partition - partition count directly determines parallelism
+- Input partitions are determined by source - 
+    - HDFS file splits (default $128 MB$ blocks)
+    - JDBC ranges (`numPartitions`)
+    - Kafka topic partition count
+- Shuffle output partitions - 
+    - Controlled by `spark.sql.shuffle.partitions`, default $200$
+    - Default $200$ is almost always wrong
+- Too few partitions → tasks too large, executor OOM, stragglers, no parallelism
+- Too many partitions → scheduler overhead dominates, tiny tasks, excessive small shuffle files, high metadata load on Driver
+
+> [!TIP]
+> Target $~128 MB$ per partition
+>
+> Partition count should be a multiple of total executor cores to avoid wasted slots in the last wave
+
 - Three distinct partitioning contexts -
     - __Input partitioning__ - how source data is split into partitions at read time
     - __Shuffle partitioning__ - how data is redistributed across partitions between stages
