@@ -251,14 +251,13 @@
 - Python API -
     - Python tasks run in a separate Python process (not the Executor JVM where `SparkEnv` resides)
     - `py4j` bridge only works on the Driver side
-    
-    ```python
-    # Not recommended in production - internal API, can break across versions
-    jvm_env = spark.sparkContext._jvm.org.apache.spark.SparkEnv.get()
-    block_manager = jvm_env.blockManager()
-    shuffle_manager = jvm_env.shuffleManager()
-    memory_manager = jvm_env.memoryManager()
-    ```
+        ```python
+        # Not recommended in production - internal API, can break across versions
+        jvm_env = spark.sparkContext._jvm.org.apache.spark.SparkEnv.get()
+        block_manager = jvm_env.blockManager()
+        shuffle_manager = jvm_env.shuffleManager()
+        memory_manager = jvm_env.memoryManager()
+        ```
 
 - Scala -
     ```scala
