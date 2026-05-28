@@ -419,7 +419,7 @@
     - Loses partitioner metadata
 
 > [!NOTE]
-> The partitioner loss is the most dangerous `UnionRDD` gotcha in production. Pattern -
+> The partitioner loss is the most dangerous `UnionRDD` gotcha in production -
 >   ```python
 >   rdd1 = large_rdd.partitionBy(100)   # HashPartitioner(100)
 >   rdd2 = other_rdd.partitionBy(100)   # HashPartitioner(100)
@@ -446,7 +446,7 @@
     - Preferred locations come from block replica locations - enables data-local scheduling
 - __Execution Model__ -
     - Each task -
-        - Opens one RecordReader
+        - Opens one `RecordReader`
         - Streams records lazily
         - Closes reader on task completion/failure
         - Does not load the full split into memory
