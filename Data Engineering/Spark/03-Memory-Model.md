@@ -20,7 +20,7 @@
     - Reserved = $300MB$
     - Usable = $4096 - 300 = 3796MB$
     - Unified = $3796 * 0.6  = 2278MB$ (`spark.memory.fraction=0.6`)
-        - Initial storage = $1139MB$ (1 - `spark.memory.fraction`)
+        - Initial storage = $1139MB$ ($0.5$ * `spark.memory.fraction`)
         - Initial execution = $1139MB$
     - User = $3796 * 0.4  = 1518MB$
 
