@@ -40,7 +40,7 @@
     - Cache-heavy jobs wasted execution memory
     - Required manual tuning of multiple fractions
 - How `UnifiedMemoryManager` fixed this -
-    - - Single pool + dynamic borrowing
+    - Single pool + dynamic borrowing
     - Both sides can use the full pool when the other side is idle
     - Only one primary knob (`spark.memory.fraction`) instead of multiple interacting fractions
 
@@ -57,7 +57,7 @@
     - Active tasks share execution memory
     - If `N` = active tasks on executor then each task gets roughly -
         - $Max ≈ 1/N$
-        - $Guaranteed minimum ≈ 1/(2N)$
+        - $Guaranteed Minimum ≈ 1/(2N)$
 - Allocation flow -
     ```
     Task
@@ -113,7 +113,7 @@
 > [!NOTE]
 > `persist()` is opportunistic -
 >   - Cached blocks may disappear anytime under execution pressure
->   - Never assume cached data will remain memory-resident.
+>   - Never assume cached data will remain memory-resident
 
 ## TaskMemoryManager
 
@@ -143,8 +143,8 @@
 
 - Memory is allocated in pages (`long[]` arrays)
 - Each page has -
-    - Page number - upper $13 bits$ of $64-bit$ pointer
-    - Offset inside the page - lower $15 bits$
+    - Page number - upper $13$ bits of $64$-bit pointer
+    - Offset inside the page - lower $15$ bits
 - `spark.buffer.pageSize` -
     - Tungsten page size
     - Default $64MB$
@@ -242,9 +242,9 @@
     - __Null bitmap__ - 
         - One bit per field
         - Indicates whether each field is null
-        - Padded to $8-byte$ alignment
+        - Padded to $8$-byte alignment
     - __Fixed-length values area__ - 
-        - $8 bytes$ per field
+        - $8$ bytes per field
         - Stores fixed-length types (`int`, `long`, `double`, `float`, `boolean`, `date`, `timestamp`) directly
         - Stores $offset + length$ for variable-length types
     - __Variable-length data area__ - 
@@ -259,7 +259,7 @@
     - Shuffle/sort can copy binary bytes directly
 - Practical Mental Model -
     - A filter like `id > 10` becomes -
-        - Read $8 bytes$ at fixed offset
+        - Read $8$ bytes at fixed offset
         - Compare
     - Instead of -
         - Deserialize object
@@ -273,7 +273,7 @@
 - Used throughout the physical execution layer in DataFrame/SQL operations
 - Holds a reference to a memory region (on-heap `Object` + offset, or off-heap address) and interprets it as a row
 - Core fields -
-    - `baseObject` - backing object for on-heap memory, or null for off-heap
+    - `baseObject` - backing object for on-heap memory, or `null` for off-heap
     - `baseOffset` - start offset/address of the row, or absolute address for off-heap
     - `sizeInBytes` - total byte size of this row
     - `numFields` - number of fields in the schema
@@ -304,22 +304,22 @@
 ## Spill Mechanics
 
 - Writing in-memory execution state to local disk when memory is insufficient
-- It prevents task OOM at the cost of disk I/O and later merge cost
+- Prevents task OOM at the cost of disk I/O and later merge cost
 - Spill files are written under `spark.local.dir`
 - When spill happens -
     ```
     MemoryConsumer requests memory
     -> TaskMemoryManager asks UnifiedMemoryManager
-    -> memory unavailable
-    -> existing consumers are asked to spill
-    -> memory is freed
-    -> task continues
+    -> Memory unavailable
+    -> Existing consumers are asked to spill
+    -> Memory is freed
+    -> Task continues
     ```
 
 ### Spillable Structures
 
 - `ExternalSorter` - 
-    - Used for sort and shuffle sort paths
+    - Used for sort and shuffle sort operations
     - Spill process -
         - Sorts in-memory records `(partitionId, key)` using TimSort
         - Writes sorted run to spill file in batches
