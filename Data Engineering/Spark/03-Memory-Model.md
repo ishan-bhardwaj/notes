@@ -203,7 +203,7 @@
 - Memory allocated outside JVM heap using `sun.misc.Unsafe`
 - Managed by Spark but not scanned by JVM GC
 - Enabled with -
-    ```python
+    ```properties
     spark.memory.offHeap.enabled=true
     spark.memory.offHeap.size=<bytes>
     ```
@@ -280,7 +280,7 @@
 - Fast access -
     - Direct offset reads against binary memory
     - Eg -
-        ```
+        ```python
         row.getLong(0)
         row.getDouble(1)
         row.isNullAt(2)

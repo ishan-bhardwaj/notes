@@ -188,7 +188,7 @@
 - __SerializerManager__ -
     - Wraps raw serializers like Java/Kryo
     - Applies compression/encryption rules per block type
-        ```python
+        ```properties
         spark.shuffle.compress=true             # shuffle data is compressed
         spark.broadcast.compress=true           # broadcast data is compressed
         spark.rdd.compress=true                 # RDD partitions are compressed

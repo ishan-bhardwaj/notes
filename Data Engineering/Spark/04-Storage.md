@@ -148,8 +148,10 @@
 ### Performance Notes
 
 - Compression controlled by
-    - `spark.shuffle.compress`
-    - `spark.rdd.compress`
+    ```properties
+    spark.shuffle.compress
+    spark.rdd.compress
+    ```
 
 - No `fsync()`
     - Relies on OS write-back cache
