@@ -1,50 +1,20 @@
 # Java
 
--  _Strongly typed language_ - every variable must have a declared type.
-
-```
-javac --version         
-// javac 25.0.1
-
-java --version
-// java 25.0.1 2025-10-21 LTS
-// Java(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)
-// Java HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)
-```
-
-- Compile and Launch -
-
+- __Strongly typed__ - every variable must have a declared type
+- __Compile and run__ -
   ```
-  javac HelloWorld.java          // compiles and generates bytecode - HelloWorld.class in same directory
-  java HelloWorld                // executes main method in HelloWorld.class (bytecode)
-
-  java HelloWorld                // compiles and executes in single command
+  javac HelloWorld.java    // generates HelloWorld.class (bytecode)
+  java HelloWorld          // executes bytecode
   ```
 
 ## JShell
-  
-- Provides a _read-evaluate-print loop_ or _REPL_.
-- Supports tab completion.
-  ```
-  > jshell              // starts JShell
-  > /exit               // exits JShell
-  ```
 
-- Example -
-  ```
-  jshell> "Hello World".length()
-  $1 ==> 11
-
-  jshell> $1 + 5
-  $2 ==> 16
-
-  jshell> var result = 10 + 5
-  result ==> 15
-  ```
+- REPL environment - `jshell` to start, `/exit` to quit
+- Supports tab completion and variable reuse via `$n` references
 
 ## Hello World
 
-```
+```java
 public class MyApp {
   void main() {
     IO.println("Hello, World!");
@@ -53,181 +23,119 @@ public class MyApp {
 ```
 
 ## Comments
-  
-- Single-line comment - `//`
-- Multi-lne comment - `/* ... */`
-- Multi-line comment - `/** ... */`
-  - Used for generating documentation automatically.
+
+- `//` - single-line
+- `/* ... */` - multi-line
+- `/** ... */` - Javadoc
 
 ## Variables and Constants
 
-- Variables -
-  ```
-  double salary;
-  int vacationDays;
-  long earthPopulation;
-  boolean done;
+```java
+int i;
+double d;
+long l;
+boolean b;
 
-  int i, j;                     // declaring multiple variables in same line
-  ```
-
-- Constants -
-  ```
-  final double PI = 3.14;
-  ```
-
-## Type inference
-  
-- Types can be inferred from the value -
-```
-var x = 5;                // x is an int
-var greet = "Hello";      // greet is a String
+int i, j;                   // multiple declarations
+var x = 5;                  // type inferred as int
+final double PI = 3.14;     // constants
 ```
 
 ## Input and Output
 
-- `IO.readln()` reads one line of input and returns it as a `String`.
-- Display prompt -
-  ```
-  String name = IO.readln("What is your name? ");
-  ```
+```java
+String name = IO.readln("Prompt: ");                              // always returns String
 
-- Read an integer or double -
-  ```
-  int age = Integer.parseInt(IO.readln("How old are you? "));
-  double rate = Double.parseDouble(IO.readln("Interest rate: "));
-  ```
+int age = Integer.parseInt(IO.readln("Age: "));                   // casting to int
+double rate = Double.parseDouble(IO.readln("Interest rate: "));   // casting to double
 
-- Read passwords -
-  ```
-  char[] passwd = System.console().readPassword("Password: ");
-  Arrays.fill(passwd, '*');                     // overwrite with *'s immediately after use
-  ```
+char[] passwd = System.console().readPassword("Password: ");      // reading passwords
+Arrays.fill(passwd, '*');                                         // overwrite immediately after use
 
-- Formatting output -
-  ```
-  IO.print("%8.2f".formatted(x));                                             // 3333.33
-  IO.print("Hello, %s. Next year, you'll be %d.".formatted(name, age + 1));   // multiple arguments
-  ```
-
-- Specify flags - 
-  - The comma flag adds group separators, eg - 
-    ```
-    IO.println("%,.2f".formatted(10000.0 / 3.0));           // prints 3,333.33
-    ```
-
-  - Use multiple flags - `"%,(.2f"` uses group separators and enclose negative numbers in parentheses.
+IO.print("%8.2f".formatted(10000.0 / 3.0));                       // 3333.33
+IO.println("%,.2f".formatted(10000.0 / 3.0));                     // 3,333.33
+IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));       // multiple arguments
+```
 
 > [!TIP]
-> Use `%s` conversion to format any object. 
-> 
-> If it implements `Formattable` interface, its `formatTo` method is used, otherwise `toString()` is used.
+> Use `%s` for any object - invokes `Formattable.formatTo()` if implemented, else `toString()`
 
 > [!TIP]
-> Formatting depends on the system locale (e.g., Germany uses `,` instead of `.`). 
-> 
-> Specifying a fixed locale -
-> ```
-> IO.print(String.format(Locale.US, "%8.2f", x));
-> ```
+> Formatting is locale-sensitive - use `String.format(Locale.US, "%8.2f", x)` for fixed locale
 
-# Data Types
+## Data Types
 
-## Integer Type
+### Integer Types
 
-- Integers are represented using _signed two's completement scheme_.
+- Signed two's complement representation
 
-| Type    | Storage Requirement | Range (Inclusive)              | Default | Min Value           | Max Value           |
-|---------|---------------------|--------------------------------|---------|---------------------|---------------------|
-| `byte`  | 1 byte              | $–2^7 \text{ to } 2^7−1$       | 0       | `Byte.MIN_VALUE`    | `Byte.MAX_VALUE`    |
-| `short` | 2 bytes             | $–2^{15} \text{ to } 2^{15}−1$ | 0       | `Short.MIN_VALUE`   | `Short.MAX_VALUE`   |
-| `int`   | 4 bytes             | $–2^{31} \text{ to } 2^{31}−1$ | 0       | `Integer.MIN_VALUE` | `Integer.MAX_VALUE` |
-| `long`  | 8 bytes             | $–2^{63} \text{ to } 2^{63}−1$ | 0       | `Long.MIN_VALUE`    | `Long.MAX_VALUE`    |
-
+| Type    | Size   | Range                          | Constants                          |
+|---------|--------|--------------------------------|------------------------------------|
+| `byte`  | 1 byte | $-2^7$ to $2^7-1$              | `Byte.MIN_VALUE`, `Byte.MAX_VALUE` |
+| `short` | 2 bytes| $-2^{15}$ to $2^{15}-1$        | `Short.MIN_VALUE/MAX_VALUE`        |
+| `int`   | 4 bytes| $-2^{31}$ to $2^{31}-1$        | `Integer.MIN_VALUE/MAX_VALUE`      |
+| `long`  | 8 bytes| $-2^{63}$ to $2^{63}-1$        | `Long.MIN_VALUE/MAX_VALUE`         |
 
 > [!TIP]
-> Use underscores in long numbers for readability, eg - `1_000_000` - Java compiler simply ignores the underscores.
+> `1_000_000` - underscores allowed in numeric literals, ignored by compiler
 
-## Floating-Point Type
+### Floating-Point Types
 
-| Type     | Storage Requirement | Range                          | Default | Precision            |
-| -------- | ------------------- | ------------------------------ | ------- | -------------------- |
-| `float`  | 4 bytes             | $±3.4 × 10^{38}$ (7 digits)    | `0.0f`  | 6-7 decimal digits   |
-| `double` | 8 bytes             | $±1.8 × 10^{308}$ (15 digits)  | `0.0d`  | 15-16 decimal digits |
+| Type     | Size   | Precision      | Default  |
+|----------|--------|----------------|----------|
+| `float`  | 4 bytes| 6–7 digits     | `0.0f`   |
+| `double` | 8 bytes| 15–16 digits   | `0.0d`   |
 
-- Floating-point numbers are not suitable for financial calculations because they can produce roundoff errors -    
-  - Eg - `2.0 - 1.1` returns `0.8999999999999999`
-  - Use `BigDecimal` for exact precision.
+- `2.0 - 1.1` → `0.8999...` - use `BigDecimal` for financial calculations
+- IEEE 754 special values - `+Inf`, `-Inf`, `NaN` (`0.0/0`)
+- `x == Double.NaN` always `false` - use `Double.isNaN(x)`
+- `0.0 == -0.0` is `true` - use `Double.compare(x, -0.0) == 0` to distinguish
 
-- Exponentials - `1.729E3 = 1729`
-- Hex floating literals - `0x1.0p-3 = 0.125`, where `p` = exponent (base `2`), mantissa = hex, exponent = decimal.
+### `char` Type
 
-- IEEE 754 special values -
-  - Positive infinity, eg - `Positive number / 0` → `Positive infinity`
-  - Negative infinity, eg - `Negative number / 0` → `Negative infinity`
-  - `NaN` (Not a Number), eg - `0.0 / 0` → `NaN`, `sqrt(negative number)` → `NaN`
+- 16-bit unsigned integer, single quotes - `'A'` = 65
 
-- `x == Double.NaN` will always return `false` - all `NaN` values are distinct.
-  - Use `Doulbe.isNaN(x)` instead.
-
-- `0.0 == -0.0` will always return `true`.
-  - Check whether it is negative - `Double.compare(x, -0.0) == 0`
-
-## `char` type
-
-- 16-bits unsigned integer
-- Use single quotes - `'A' = 65`
-- `char` literals use _single quotes_, e.g., `'A'` = 65.
-
-> [!TIP]
-> Each primitive wrapper has two constants -
->   - `<Type>.SIZE` - size in bits
->   - `<Type>.BYTES` - size in bytes
->
-> Example -
->   - `Integer.SIZE` - 32
->   - `Integer.BYTES` - 4
-
-## `boolean` type
+### `boolean` Type
 
 - `true` / `false`
-- Used for evaluating logical conditions.
+
+> [!TIP]
+> Each primitive wrapper exposes `<Type>.SIZE` (bits) and `<Type>.BYTES`
+>
+> For eg - `Integer.SIZE` = 32, and `Integer.BYTES` = 4
 
 ## Enum Type
 
-- Used when a variable should hold only a _fixed set of values_.
-- Example -
+```java
+enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
+Size s = Size.MEDIUM;
+Size.valueOf("MEDIUM");                           // Size.MEDIUM
+Size.valueOf("Medium");                           // Error - case-sensitive
+Size.values();                                    // all values as array
+```
 
-  ```
-  enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
-
-  Size s = Size.MEDIUM;           // declare variables of the enum type
-  Size.valueOf("MEDIUM");         // returns Size.MEDIUM
-  Size.valueOf("Medium");         // Error!
-  Size.values();                  // returns all Size values in an array
-  ```
-
-- Enum type variable (e.g., `Size`) -
-  - can only hold one of its defined values, or
-  - `null` if not set.
+- Variable holds one defined value or `null`
 
 ## Arithmetic Operators
 
-- `+`, `-`, `*`, `/`
-- Division -
-  - `int / int` returns `int`.
-  - If anything is `float`/`double`, the result is `float`/`double`.
-- Division by `0` -
-  - `int / 0` throws an exception.
-  - `float or double / 0` returns `Infinity`.
-- Modulus `n % 2` -
-  - `0` for even `n`.
-  - `1` for odd positive `n`.
-  - `-1` for odd negative `n`.
-- `Math.floodMod` -
-  - `Math.floorMod(-5, 2)` returns `1`.
-  - `Math.floorMod(5, -2)` returns `-1`.
+- `int / int` → `int`; `int / 0` → exception; `double / 0` → `Infinity`
+- `n % 2` → `0` even, `1` odd positive, `-1` odd negative
+- `Math.floorMod(-5, 2)` → `1`; `Math.floorMod(5, -2)` → `-1`
+- __Numeric promotion rules (binary ops)__ -
+  - Either `double` → both `double`
+  - Else either `float` → both `float`
+  - Else either `long` → both `long`
+  - Else both → `int`
 
+## Casts
+
+```java
+double x = 9.997;
+int nx = (int) x;    // 9 - truncates
+(byte) 300           // 44 - wraps on overflow
+```
+
+- Java 25 preview - safe casts via `instanceof` pattern: `if (n instanceof byte b)`
 - __Legal conversions between numeric types__ -
 
   ![Legal conversions between numeric types](assets/numeric_types_conversions.png)
@@ -238,190 +146,169 @@ var greet = "Hello";      // greet is a String
     int n = 123456789;
     float f = n;            // 1.23456792E8 - magnitude correct, precision lost
     ```
-    
-  - Binary operators convert operands to a common type before computing -
-    - If either operand is `double`, convert the other to `double`.
-    - Else if either operand is `float`, convert the other to `float`.
-    - Else if either operand is `long`, convert the other to `long`.
-    - Else convert both operands to `int`.
-
-- __Casts__ -
-  - Conversions in which loss of information is possible are done by means of _casts_ -
-    ```
-    double x = 9.997;
-    int nx = (int) x;           // 9
-    ```
-
-  - Java 25 preview adds safe casts using `instanceof` pattern matching.
-    - Example - `if (n instanceof byte b)`
-    - If `n` fits in a `byte` without loss, `b` is automatically set to `(byte) n`.
-
-> [!NOTE]
-> Casting to a smaller numeric type can truncate the value if it’s out of range, eg - `(byte) 300` becomes `44`.
 
 ## Assignment Operators
 
-- Compound assignment operators - `+=`, `-=`. `*=`, `/=`, `%=`
-- Compound assignment operators perform an implicit cast to the type of the left-hand side - even if the conversion is narrowing.
-- Example -
-  ```
-  int x = 0;
-  x += 3.5;                 // returns 3 - fractional part is discarded
+- Compound assignment (`+=`, `-=`, etc.) performs implicit narrowing cast
+- `x += 3.5` on `int x` → `3` (equivalent to `x = (int)(x + 3.5)`)
+- `x = x + 3.5` on `int x` → compiler error
+- Assignment is an expression - `int y = x += 4` is valid
 
-  // equivalent to -
-  x = (int)(x + 3.5); 
+> [!TIP]
+> Enable lossy conversion warnings - `javac -Xlint:lossy-conversions MyApp.java`
 
-  // but
-  x = x + 3.5;              // compiler error!
-  ```
+## Increment / Decrement
 
-- Java 20+ can warn about such lossy conversions when linting is enabled. To enable such warnings -
-  ```
-  javac -Xlint:lossy-conversions MyApp.java
-  ```
+- Prefix `++x` - increment before use; postfix `x++` - use then increment
 
-- In Java, an assignment is an _expression_ and returns the assigned value, eg -
-  ```
-  int x = 1;
-  int y = x += 4;           // y = 5
-  ```
+## Relational and Logical Operators
 
-## Increment & Decrement Operators
-
-- `++`, `--`
-- Works on variables, not on literals (e.g., `4++` is illegal).
-- Two forms - 
-  - Prefix (`++x` / `--x`) - value is changed before being used in an expression.
-  - Postfix - (`x++` / `x--`) - value is used first, then changed.
-
-- Example -
-  ```
-  int m = 7;
-  int n = 7;
-
-  int a = 2 * ++m;              // a = 16, m = 8
-  int b = 2 * n++;              // b = 14, n = 8
-  ```
-
-## Relational Operators
-
-- Equality (`==`) and inequality (`!=`).
-- Comparisons - `<`, `>`, `<=`, `>=`
-- Logical operators -
-  - Logical AND - `&&`
-  - Logical OR - `||`
-  - Logical NOT - `!`
-- __Short-circuit Evaluation__ -
-  - `&&` stops evaluating if the first operand is `false`.
-  - `||` stops evaluating if the first operand is `true`.
-
-- __Conditional Operator (`?:`)__ -
-  - Syntax - `condition ? expression1 : expression2`
-  - Returns `expression1` if condition is `true`, otherwise returns `expression2`.
+- `==`, `!=`, `<`, `>`, `<=`, `>=`
+- `&&`, `||` - short-circuit; `&`, `|` on booleans - no short-circuit
+- `condition ? expr1 : expr2`
 
 ## Bitwise Operators
 
-- Work on bit patterns - `&` ("and"), `|` ("or"), `^` ("xor"), `~` ("not").
-- `&` and `|` work on boolean values also and return `boolean` - similar to `&&` and `||` - but they do not provide short-circuiting.
-
-- __Bit Shift operators__ -
-  - `<<` - left shift
-  - `>>` - right shift (sign-extends the leftmost bit)
-  - `>>>` - unsigned right shift (fills leftmost bits with 0)
-  - No `<<<` operator exists
-
-- __Integer Bit-level Methods__ -
-  - `Integer.bitCount(n)` - number of 1 bits in binary form of `n`.
-  - `Integer.reverse(n)` - reverses bits of `n`.
+- `&`, `|`, `^`, `~`
+- `>>` - sign-extends; `>>>` - zero-fills; no `<<<`
+- `Integer.bitCount(n)`, `Integer.reverse(n)`
 
 ## Big Numbers
 
-- `java.math.BigInteger` -
-  - Used for very large integer arithmetic.
-  - From a normal number - `BigInteger.valueOf(100)`
-  - From a long number (string) - `new BigInteger("123456")`
-  - Constants - `BigInteger.ZERO`, `BigInteger.ONE`, `BigInteger.TWO`, `BigInteger.TEN`
+```java
+BigInteger.valueOf(100)
+new BigInteger("123456789012345678901234567890")
+BigDecimal.valueOf(0.1)      // safe
+new BigDecimal("0.1")        // safe
+new BigDecimal(0.1)          // avoid - imprecise
+```
 
-- `java.math.BigDecimal` -
-  - Used for very precise decimal numbers (money, financial calculations, etc.)
-  - Always construct from integers or string.
-    ```
-    new BigDecimal(0.1);      // avoid - returns 1000000000000000055511151231257827021181583404541015625
-    BigDecimal.valueOf(0.1);  // returns 0.1
-    new BigDecimal("0.1");    // returns 0.1
-    ```
-
-- Arithmatic ethods -
-  ```
-  BigInteger c = a.add(b);                                      // c = a + b
-  BigInteger d = c.multiply(b.add(BigInteger.valueOf(2)));      // d = c * (b + 2)
-  ```
-
-> [!NOTE]
-> Only `+` operator is overloaded for string concatenation.
+- Arithmetic via methods - `a.add(b)`, `a.multiply(b)`
+- `divide(other)` - throws if result is repeating; `divide(other, RoundingMode.HALF_UP)` - rounds
 
 > [!TIP]
-> Java 19 feature - `parallelMultiply()` - works like `multiply()` but may be faster using multiple CPU cores.
-
-> [!NOTE]
-> Division -
->   - `divide(other)` - throws exception if result is not finite (repeating decimal).
->   - `divide(other, mode)` - allows rounding when the result is repeating.
->
-> Example - `RoundingMode.HALF_UP`
->   - Round down - 0–4
->   - Round up - 5–9
+> `BigInteger.parallelMultiply()` (Java 19+) - uses multiple CPU cores
 
 ## Strings
 
-- Java strings are sequences of `char` values.
-- The JVM may store strings as byte sequences for single-byte characters and as char sequences for others, rather than always using `char[]`.
-
-- __Strings are immutable__ - 
-  - You cannot change a character inside an existing string.
-  - Immutable strings allow sharing, so the compiler can store strings in a common pool and multiple variables can reference the same characters without copying.
-
-- __Concatenation__ -
-  - Use `+` operator to concatenate two strings.
-  - When you concatenate a string with a non-string value, Java converts the non-string value to a string.
-  - Example -
-    ```
-    int age = 15;
-    String rating = "PG" + age;           // "PG15"
-    ```
+- Sequence of `char` values; JVM may store as bytes (single-byte) or chars internally
+- __Immutable__ - enables string pool sharing
+- `+` concatenates; non-string operands are converted via `toString()`
 
 > [!WARNING]
-> String concatenation uses + and is evaluated left to right.
-> ```
-> int age = 42;
-> String output = "Next year, you'll be " + age + 1 + ".";
-> ```
-> Result - `"Next year, you'll be 421."`
->
-> Fix - use parentheses - 
-> ```
-> String output = "Next year, you'll be " + (age + 1) + ".";
-> ```
+> `"value: " + 1 + 2` → `"value: 12"` - left-to-right; use parentheses to force arithmetic
 
 > [!WARNING]
-> String concatenation only works with strings, not char literals — `':' + 8000` produces the integer `8058`, not a string (The colon character has Unicode value `58`).
+> `':' + 8000` → `8058` - char arithmetic, not string concatenation
 
 > [!WARNING]
-> Do not use the `==` operator to test whether two strings are equal - it only determines whether or not the strings are stored in the same location. 
->
-> Only string literals are shared, not strings that are computed at runtime. Therefore, never use `==` to compare strings. 
->
-> Always use `equals` instead.
+> Never use `==` to compare strings - compares references; use `.equals()`
 
 > [!TIP]
-> `CharSequence` is the interface type to which all strings belong. 
+> `CharSequence` - the common interface for all string types
 
 ## `StringBuilder`
 
-- String concatenation is inefficient because each concatenation creates a new String object.
-- `StringBuilder` avoids this by building a string in a _mutable buffer_.
+- Mutable buffer - avoids creating intermediate `String` objects per concatenation
+- Only way to reverse Unicode characters of a string -
+  ```java
+    new StringBuilder(original).reverse().toString()
+  ``` 
 
-- Also, `String` class doesn’t have a method to reverse the Unicode characters of a string, but `StringBuilder` does - 
-  ```
-  String reversed = new StringBuilder(original).reverse().toString();
-  ```
+## Control Flow
+
+### Loops
+
+```java
+while (condition) { }
+
+do { } while (condition);
+
+for (int i = 0, j = 10; i < 10; i++, j--) { }       // multiple vars must be of same type
+```
+
+### Labeled `break` / `continue`
+
+```java
+outer:
+  while (...) {
+    for (...) {
+        if (n < 0) break outer;     // exits outer loop
+    }
+  }
+```
+
+- `continue` - jumps to loop header (`while`) or update (`for`)
+- Labeled `continue` - jumps to matching label's header
+
+### Switch Expression
+
+```java
+String s = switch (code) {
+    case 0 -> "Spring";
+    case 3, 4, 5 -> "Winter";
+    case null -> "null";        // explicit - default does NOT match null
+    default -> "???";
+};
+```
+
+- Case label must be a compile-time constant matching selector type
+- Enum labels omit the type name - `case SMALL ->` not `case Size.SMALL ->`
+- All enum values covered → `default` optional; String/numeric → `default` required
+- Multi-line case - use `yield` to return value; `return`/`break`/`continue` not allowed
+
+> [!TIP]
+> Java 23 preview - `switch` selector supports `float`, `double`, `long`, `boolean`
+
+### Switch Statement
+
+```java
+switch (choice) {
+    case 1: ...; break;
+    default: ...;
+}
+```
+
+- Without `break` - falls through to next case
+- Detect unintentional fallthrough - `javac -Xlint:fallthrough`
+- Suppress intentional fallthrough - `@SuppressWarnings("fallthrough")`
+
+## Arrays
+
+```java
+int[] a = new int[100];                        // all zeros
+int[] primes = { 2, 3, 5, 7, 11, 13 };        // inferred size
+var a = new int[n];                            // runtime-sized
+```
+
+- Fixed size after creation - use `ArrayList` for resizable collections
+- `a.length`, `a[i]`, `Arrays.sort(a)`, `Arrays.toString(a)`
+
+### Copying
+
+```java
+int[] copy = Arrays.copyOf(src, src.length);
+int[] grown = Arrays.copyOf(src, src.length * 2);    // extra elements → 0/false/null
+```
+
+- Assignment copies reference, not values - `b = a` means both point to same array
+- Arrays are heap-allocated
+
+### Multi-dimensional Arrays
+
+```java
+double[][] grid = new double[ROWS][COLS];
+int[][] magic = {{16,3},{5,10}};
+Arrays.deepToString(grid);
+```
+
+- Java models as arrays-of-arrays - each row is an independent heap object
+- Ragged arrays are valid - rows can have different lengths
+
+## For-Each Loop
+
+```java
+for (int element : a) IO.println(element);
+```
+
+- Works on arrays and any `Iterable` (e.g., `ArrayList`)
