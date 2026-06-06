@@ -119,7 +119,7 @@ public void method1() {
     - shared mutable references
   - Publishing confined object = synchronization bug
 
-- Example -
+- Eg -
   ```
   public class PersonSet {
 
@@ -169,15 +169,14 @@ public void method1() {
 
 ## Delegating Thread Safety
 
-- Composite object may be thread-safe if underlying components are thread-safe
 - Delegation = relying on underlying thread-safe components for synchronization correctness
 - Delegation works if -
   - state variables are independent
   - no cross-variable invariants exist
   - no prohibited state transitions exist
   - no compound atomic operations required
-- Immutability makes delegation dramatically simpler.
-- Example - `AtomicLong`, `ConcurrentHashMap`, `CopyOnWriteArrayList`
+- Immutability makes delegation dramatically simpler
+- Eg - `AtomicLong`, `ConcurrentHashMap`, `CopyOnWriteArrayList`
 - Publishing underlying state is safe only if variable -
   - is thread-safe
   - does not participate in invariants
