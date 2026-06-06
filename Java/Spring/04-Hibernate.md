@@ -251,3 +251,20 @@ public void delete(Student theStudent) {
 | `validate`     | Validate the database tables schema                                                      |
 | `update`       | Update the database tables schema                                                        |
 
+## Spring Data JPA
+
+- Provides the interface - `JpaRepository`
+- Exposes CRUD methods such as `findAll`, `findById`, `save`, `deleteById` etc
+- Provides `@Transactional` functionality out-of-the-box
+- Example -
+    ```
+    public interface EmployeeRepository extends JpaRepository<Employee, Integer> {} 
+    ```
+
+    - `Employee` is the entity type
+    - `Integer` is primary key type
+
+- Advanced features include -
+    - Extending and adding custom queries with JPQL
+    - Query Domain Specific Language (Query DSL)
+    - Defining custom methods (low-level coding)

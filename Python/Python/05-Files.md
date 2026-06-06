@@ -109,6 +109,8 @@
     from utils.common.file_operations import save_to_file         # correct - absolute path
     from .common.file_operations import save_to_file              # correct - relative path
     from common.file_operations import save_to_file               # incorrect - python assumes absolute path by default
+
+    from ..find import NotFoundError                              # relative parent dir import - imports from utils package
     ```
 
 > [!WARNING]
@@ -117,5 +119,3 @@
 > `__name__` on the executing script returns `__main__`, and the imported modules like `utils.common.finder` returns `utils.common.finder`
 >
 > So, when running the file with the relative path directly, it's `__name__` return `__main__.common.finder` which doesn't exist - throws an error - `No module named __main__.common`
-
-

@@ -227,6 +227,11 @@ else:
     <...>
 ```
 
+- If-else -
+    ```
+    'YES' if True else "NO"
+    ```
+
 ## Loops
 
 ### While loops

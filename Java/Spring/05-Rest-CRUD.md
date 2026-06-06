@@ -137,5 +137,106 @@ public class EmployeeServiceImpl extends EmployeeService {
   - Inject the helper class - JsonMapper - a helper class in the Jackson library for JSON processing.
   
   ```
+  @PatchMapping("/employees/{employeeId}")
+  public Employee patchEmployee(@PathVariable int employeeId, @RequestBody Map<String, Object> patchPayload) {
+    Employee tempEmployee = employeeService.findById(employeeId);
 
+    if (tempEmployee == null) {
+      throw new RuntimeException("Employee id not found: " + employeeId);
+    }
+
+    // Apply the partial updates to the existing employee object
+    Employee patchedEmployee = jsonMapper.updateValue(tempEmployee, patchPayload);
+
+    return employeeService.save(patchedEmployee);
+  }
   ```
+
+- Delete request -
+  ```
+  @DeleteMapping("/employees/{employeeId}")
+  public String deleteEmployee(@PathVariable String employeeId) {
+    ...
+  }
+  ```
+
+## Spring Data REST
+
+- Provides REST CRUD implementations out-of-the-box - just by adding Spring Data REST to the pom file
+  ```
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-rest</artifactId>
+  </dependency>
+  ```
+
+- Spring Data REST will scan your project for `JpaRepository`
+- Expose REST APIs for each entity type for your `JpaRepository`
+- By default, it will create endpoints based on the entity type -
+  - Simple pluralized form -
+    - First character of entity type is lowercase
+    - Then just adds an "s" to the entity
+  - Eg -
+    - Entity type = `Employee`
+    - Rest endpoints - `/employees`
+
+- Customize endpoint base path in `application.properties` -
+  ```
+  spring.data.rest.base-path=/api
+  ```
+
+> [!NOTE]
+> Spring Data REST only uses ID on the url, eg - `PUT /employees/{employeeId}`
+
+- Specifying custom path - 
+  ```
+  @RepositoryRestResource(path="members")                                           // Rest api - /members
+  public interface EmployeeRepository extends JpaRepository<Employee, Integer> {}
+  ```
+
+## Pagination
+
+- By default, Spring Data REST uses page size = $20$
+- Navigating using query param -
+  ```
+  /employees?page=0           // pages are 0-based
+  /employees?page=1
+  ```
+
+- Configs -
+  - `spring.data.rest.default-page-size` - page size
+  - `spring.data.rest.max-page-size` - max page size
+
+## Sorting
+
+- Sort by last name (ascending by default) - `/employees?sort=lastName`
+- Sort by first name descending - `/employees?sort=firstName,desc`
+- Sort by last name, then first name, ascending - `/employees?sort=lastName,firstName,asc`
+
+## HATEOAS
+
+- HATEOAS = Hypermedia As The Engine Of Application State
+- Uses Hypertext Application Language (HAL) data format
+- Spring Data REST endpoints are HATEOAS compliant
+- Hypermedia-driven sites provide information to access REST interfaces
+- Eg - 
+  ```
+  GET /employees/3
+
+  // Response
+  {
+    "firstName": "John",
+    "lastName": "Doe",
+    "age": 25,
+    "_links": {
+      "self": {
+        "href": "http://localhost:8080/employees/3"
+      },
+      "employee": {
+        "href": "http://localhost:8080/employees/3"
+      }
+    }
+  }
+  ```
+
+- For a collection, metadata includes page size, total elements, pages etc
