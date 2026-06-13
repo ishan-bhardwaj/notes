@@ -152,10 +152,9 @@ int nx = (int) x;    // 9 - truncates
 (byte) 300           // 44 - wraps on overflow
 ```
 
-- Java 25 preview - safe casts via `instanceof` pattern: `if (n instanceof byte b)`
 - __Legal conversions between numeric types__ -
 
-  ![Legal conversions between numeric types](assets/numeric_types_conversions.png)
+  ![Legal conversions between numeric types](../assets/numeric_types_conversions.png)
 
   - Solid arrows - conversions without information loss. 
   - Dotted arrows - conversions that may lose precision, eg -
