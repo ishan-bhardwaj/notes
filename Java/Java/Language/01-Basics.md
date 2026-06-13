@@ -100,7 +100,7 @@ IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));         // multiple ar
 - `2.0 - 1.1` → `0.8999...` - 
   - Use `BigDecimal` for financial calculations
 - `0.0 == 0` returns `NaN`
-- `x == Double.NaN` always return `false`
+- `x == Double.NaN` always return `false` -
   - Use `Double.isNaN`
 - `0.0 == -0.0` is `true` -
   - Use `Double.compare(x, -0.0) == 0` to distinguish
