@@ -134,8 +134,10 @@ Size.values();                                    // all values as array
   - `int / int` returns `int`
   - `int / 0` throws exception
   - `double / 0` returns `NaN`
-- `Math.floorMod(-5, 2)` returns `1`
-- `Math.floorMod(5, -2)` returns `-1`
+- `Math.floorMod` -
+  - `Math.floorMod(-5, 2)` returns `1`
+  - `Math.floorMod(5, -2)` returns `-1`
+  - `Math.floorMod(-5, -2)` returns `-1`
 - __Numeric promotion rules__ -
   - Either `double` → both `double`
   - Else either `float` → both `float`
