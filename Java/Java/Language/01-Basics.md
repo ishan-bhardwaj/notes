@@ -128,14 +128,15 @@ Size.valueOf("Medium");                           // Error - case-sensitive
 Size.values();                                    // all values as array
 ```
 
-- Variable holds one defined value or `null`
-
 ## Arithmetic Operators
 
-- `int / int` → `int`; `int / 0` → exception; `double / 0` → `Infinity`
-- `n % 2` → `0` even, `1` odd positive, `-1` odd negative
-- `Math.floorMod(-5, 2)` → `1`; `Math.floorMod(5, -2)` → `-1`
-- __Numeric promotion rules (binary ops)__ -
+- Division -
+  - `int / int` returns `int`
+  - `int / 0` throws exception
+  - `double / 0` returns `NaN`
+- `Math.floorMod(-5, 2)` returns `1`
+- `Math.floorMod(5, -2)` returns `-1`
+- __Numeric promotion rules__ -
   - Either `double` → both `double`
   - Else either `float` → both `float`
   - Else either `long` → both `long`
