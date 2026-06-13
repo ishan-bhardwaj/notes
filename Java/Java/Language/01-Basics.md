@@ -2,7 +2,7 @@
 
 - __Strongly typed__ - every variable must have a declared type
 - __Compile and run__ -
-  ```
+  ```bash
   javac HelloWorld.java    // generates HelloWorld.class (bytecode)
   java HelloWorld          // executes bytecode
   ```
@@ -40,6 +40,17 @@ int i, j;                   // multiple declarations
 var x = 5;                  // type inferred as int
 final double PI = 3.14;     // constants
 ```
+
+- `var` is only allowed for local variables, not for fields (instance variables), method parameters, or return types -
+  ```java
+  public class A {
+    var a = 5;                      // ❌ Compile error
+
+    public void doSomething() {
+        var b = 5;                  // ✅ OK
+    }
+  }
+  ```
 
 ## Input and Output
 
