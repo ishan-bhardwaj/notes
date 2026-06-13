@@ -1,306 +1,318 @@
-# Collection Framework
+# Collections
 
-## `Iterable` Interface
+## The Java Collections Framework
 
-- The “for each” loop works with any object that implements the `Iterable` interface.
-```
-public interface Iterable<E> {
-  Iterator<E> iterator();
-}
-```
+### Design Principles
 
-## `Collection` Interface
+- Separates interfaces from implementations — program to the interface, construct via the concrete class
+- Eg - `Queue<Customer> q = new ArrayDeque<>(100)` — swap implementation by changing only the constructor
+- Using the interface type prevents accidental use of implementation-specific methods
+- `ArrayDeque` generally outperforms `LinkedList` (less GC pressure)
 
-- The `Collection` interface extends the `Iterable` interface.
-- `java.util.Collection<E>` interface -
+### `Collection` Interface
 
-| Method                                                      | Description                                                                                          |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `Iterator<E> iterator()`                                    | Returns an iterator to traverse the elements in the collection.                                      |
-| `int size()`                                                | Returns the number of elements currently stored in the collection.                                   |
-| `boolean isEmpty()`                                         | Returns `true` if the collection contains no elements.                                               |
-| `boolean contains(Object obj)`                              | Returns `true` if the collection contains an element equal to `obj`.                                 |
-| `boolean containsAll(Collection<?> other)`                  | Returns `true` if the collection contains all elements of the specified collection.                  |
-| `boolean add(E element)`                                    | Attempts to add an element; returns `true` if the collection changed as a result.                    |
-| `boolean addAll(Collection<? extends E> other)`             | Adds all elements from another collection; returns `true` if the collection changed.                 |
-| `boolean remove(Object obj)`                                | Removes an element equal to `obj`; returns `true` if removal occurred.                               |
-| `boolean removeAll(Collection<?> other)`                    | Removes all elements present in the specified collection; returns `true` if the collection changed.  |
-| `boolean removeIf(Predicate<? super E> filter)` *(Java 8+)* | Removes elements matching the predicate; returns `true` if the collection changed.                   |
-| `void clear()`                                              | Removes all elements from the collection.                                                            |
-| `boolean retainAll(Collection<?> other)`                    | Retains only elements present in the specified collection; returns `true` if the collection changed. |
-| `Object[] toArray()`                                        | Returns an array containing all elements of the collection.                                          |
-| `<T> T[] toArray(IntFunction<T[]> generator)` *(Java 11+)*  | Returns an array of elements using the provided array constructor (e.g., `String[]::new`).           |
-
-
-> [!WARNING]
-> The Java Collections Framework was designed before generic types were added to Java. For backwards compatibility, the `contains` and `remove` methods have a parameter of type `Object` and not `E`. The `containsAll`, `removeAll`, and `retainAll` methods have a parameter of type `Collection<?>` and not `Collection<? extends E>`.
->
-> This means that type errors may not be detected at compile time.
-> Example - accidentally a `String` is removed from a collection of `Path` objects -
-> ```
-> Collection<Path> paths = . . .;
-> paths.remove("/tmp");           // Compiles, but can have no effect
-> ```
-
-- To make life easier of the implementors, the framework supplies a class `AbstractCollection` that leaves the fundamental methods `size` and `iterator` abstract but implements the routine methods.
-
-> [!TIP]
-> A concrete collection class can now extend the `AbstractCollection` class.
-> 
-> Mutable collections also need an `add` method.  The other methods have been taken care of by the `AbstractCollection` superclass. 
-
-## Iterators
-
-- `java.util.Iterator<E>` -
-
-| Method                                                          | Description                                                                                                                                                     |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `boolean hasNext()`                                             | Returns `true` if there is another element to iterate over.                                                                                                     |
-| `E next()`                                                      | Returns the next element in the iteration; throws `NoSuchElementException` if no elements remain.                                                               |
-| `void remove()`                                                 | Removes the last element returned by `next()`. Must be called immediately after `next()`. May throw `IllegalStateException` or `UnsupportedOperationException`. |
-| `void forEachRemaining(Consumer<? super E> action)` *(Java 8+)* | Performs the given action for each remaining element until all are processed or an exception occurs.                                                            |
-
-- Traverse all the elements -
-  ```
-  Collection<String> coll = . . .;
-  Iterator<String> iter = coll.iterator();
-  while (iter.hasNext()) {
-    String element = iter.next();
-    // do something with element
-  }
-  ```
-
-  - More concise way - the compiler simply translates the “for each” loop into a loop with an iterator -
-  ```
-  for (String element : coll) {
-    // do something with element
-  }
-  ```
-
-- Using `Collection#forEach` or `Iterator#forEachRemaining` for traversing with lambda expression -
-```
-coll.forEach(element -> do something with element);
-iter.forEachRemaining(element -> do something with element);
-```
+- Two fundamental methods: `boolean add(E element)`, `Iterator<E> iterator()`
+- `add` returns `true` if the collection changed (Eg - sets return `false` on duplicate)
+- Extends `Iterable<E>` — enables for-each loops on all collections
+- Key utility methods: `size()`, `isEmpty()`, `contains(Object)`, `containsAll`, `remove(Object)`, `removeAll`, `retainAll`, `addAll`, `clear()`, `toArray()`
+- Default method: `removeIf(Predicate<? super E> filter)` — removes elements matching predicate
+- `AbstractCollection` provides default implementations of most methods in terms of `size()` and `iterator()`
 
 > [!NOTE]
-> The order in which the elements are visited depends on the collection type, eg - `ArrayList` will visit the elements from index `0` to the last index, but for `HashSet`, the order can be random.
+> `contains`, `remove`, `containsAll`, `removeAll`, `retainAll` use `Object` / `Collection<?>` parameters (not `E`) for backwards compatibility — type errors may not be caught at compile time.
 
-- It is illegal to call `remove` if it wasn’t preceded by a call to `next` - throws `IllegalStateException`, eg -
+### Iterators
+
+- `Iterator<E>` methods: `boolean hasNext()`, `E next()`, `default void remove()`, `default void forEachRemaining(Consumer)`
+- `next()` both advances and returns — think of iterator as sitting between elements
+- Calling `next()` past the end throws `NoSuchElementException`
+- `remove()` removes the last element returned by `next()` — must be called after `next()`, never twice in a row without an intervening `next()`
+- `forEach` / `forEachRemaining` accept lambda expressions:
+
+```java
+coll.forEach(element -> ...);
+iter.forEachRemaining(element -> ...);
 ```
-Iterator<String> iter = coll.iterator();
-iter.next();          // skip over the first element
-iter.remove();        // now remove it
-```
 
-## Interfaces in the Collections Framework
+---
 
-![Interfaces in the Collections Framework](assets/collection_interfaces.png)
+## Interface Hierarchy
 
-- __Maps__ -
-  - Hold key-value pairs -
-  - `V put(K key, V value)` - inserts key-value pairs.
-  - `V get(Object key)` - returns value for the key.
+- `Collection` → `List`, `Set`, `Queue`, `Deque`
+- `Map` — separate hierarchy (key/value pairs)
+- `SortedSet` / `SortedMap` — expose comparator, provide subrange views
+- `NavigableSet` / `NavigableMap` — add methods for finding adjacent elements; implemented by `TreeSet`/`TreeMap`
+- `SequencedCollection<E>` (Java 21) — uniform `getFirst()`, `getLast()`, `addFirst()`, `addLast()`, `removeFirst()`, `removeLast()`, `reversed()` for lists, sets, deques
+- `RandomAccess` — tagging interface; signals efficient random access; used to choose between random and sequential traversal
 
-- __`List`__ -
-  - Ordered collection.
-  - Elements are added into a particular position in the container.
-  - Elements are accessed in two ways -
-    - By an iterator - Linked list implementation - elements are visited _sequentially_.
-    - By an integer index - Array implementation - called _random access_ because elements can be visited in any order.
-    - Array implementation -
-      - Has fast random access.
-      - 
-  - The `List` interface defines several methods for random access -
-    ```
-    void add(int index, E element)
-    E remove(int index)
-    E get(int index)
-    E set(int index, E element)
-    ```
+### `List` vs. `Set`
 
-  - `equals` method returns `true` if both the lists have the same elements in the same order.
+- `List` — ordered, positional, allows duplicates; `equals` requires same elements in same order
+- `Set` — unordered, no duplicates; `equals` requires same elements in any order
 
-> [!WARNING]
-> `List<Integer` has two `remove` methods -
->   - `boolean remove(int index)` - removes the element with the given index
->   - `boolean remove(Integer o)` - removes the element equal to o
-
-> [!NOTE]
-> `RandomAccess` is a tagging interface used to test whether a particular collection supports efficient random access.
-
-- __`Set`__ -
-  - `add` method reject duplicates. 
-  - `equals` method returns `true` if both the sets have the same elements, irrespective of the ordering of their elements.
-  - `hashCode` method is defined such that two sets with the same elements always yield the same hash code.
-
-- The `SortedSet` and `SortedMap` interfaces expose the comparator object used for sorting, and they define methods to obtain views of subsets of the collections.
-
-- The interfaces `NavigableSet` and `NavigableMap` contain additional methods for finding the next or previous element in sorted sets and maps -
-  - The `TreeSet` and `TreeMap` classes implement these interfaces.
-  - The navigation operations can be efficiently implemented in tree-based data structures.
-
-- __`SequencedCollection<E>`__ (Java 21+) -
-  - Provides uniform access to the first and last elements of a collection and reverse traversal.
-  ```
-  E getFirst()
-  E getLast()
-  void addFirst(E e)
-  void addLast(E e)
-  E removeFirst()
-  E removeLast()
-  SequencedCollection<E> reversed()
-  ```
-
-  - The `SequencedSet` subinterface sharpens the return type of the `reversed` method to `SequencedSet`. 
-  - The `SequencedMap` interface has analogous methods for maps.
+---
 
 ## Concrete Collections
 
-- All classes in the below table implement the `Collection` interface, with the exception of the classes with names ending in Map. Those classes implement the `Map` interface instead.
+### `LinkedList<E>`
 
-| Collection Type     | Description                                                                     |
-| ------------------- | ------------------------------------------------------------------------------- |
-| __ArrayList__       | An indexed sequence that grows and shrinks dynamically                          |
-| __LinkedList__      | An ordered sequence that allows efficient insertion and removal at any location |
-| __ArrayDeque__      | A double-ended queue implemented as a circular array                            |
-| __HashSet__         | An unordered collection that rejects duplicates                                 |
-| __TreeSet__         | A sorted set                                                                    |
-| __EnumSet__         | A set of enumerated type values                                                 |
-| __LinkedHashSet__   | A set that remembers insertion order                                            |
-| __PriorityQueue__   | A collection that allows efficient removal of the smallest element              |
-| __HashMap__         | Stores key–value associations                                                   |
-| __TreeMap__         | A map with sorted keys                                                          |
-| __EnumMap__         | A map whose keys are from an enum type                                          |
-| __LinkedHashMap__   | A map that remembers insertion order of entries                                 |
-| __WeakHashMap__     | A map whose entries can be garbage-collected when keys are no longer referenced |
-| __IdentityHashMap__ | A map that compares keys using `==` instead of `equals()`                       |
+- Doubly linked — O(1) insert/remove at any position using iterator
+- `ListIterator<E>` (extends `Iterator`) — adds:
+    - `void add(E element)` — inserts before current position; always modifies list (no boolean return)
+    - `void set(E element)` — replaces last visited element
+    - `boolean hasPrevious()`, `E previous()`
+    - `int nextIndex()`, `int previousIndex()`
+- `add` position: immediately before the next element the iterator would return
+- `remove` direction depends on last traversal direction (`next` → removes left; `previous` → removes right)
+- __Concurrent modification detection__ — collection tracks mutation count; iterator compares on each call; throws `ConcurrentModificationException` if mismatched
+    - `set` on iterator does NOT count as structural modification
+    - Rule: multiple read-only iterators OR one read-write iterator
+- `get(n)` exists but is O(n) — never use in loops; use `ArrayList` for random access
 
-- Relationships between these classes -
-![Collection Classes](assets/collection_classes.png)
+### `ArrayList<E>`
 
-## Linked Lists
+- Dynamic array — O(1) random access; O(n) insert/remove in middle
+- Prefer over `Vector` (all `Vector` methods are synchronized — wasteful for single-thread use)
 
-- A linked list stores each object in a separate link - each link also stores a reference to the next link in the sequence.
-- All linked lists are actually doubly linked lists.
-- Removing an element from the middle of a linked list is an inexpensive operation—only the links around the element to be removed need to be updated.
-- Important difference between linked lists and generic collections -
-  - LinkedList is ordered, so element position matters.
-  - `LinkedList.add(x) only` appends to the end.
-  - Inserting in the middle requires knowing the current position.
-  - Iterators represent positions between elements, so position-based insertion belongs to them.
-  - Therefore, the Java Collections Framework supplies a subinterface `ListIterator` that contains an `add` method -
-  ```
-  interface ListIterator<E> extends Iterator<E> {
-    void add(E element);
-    ...
-  }
-  ```
+### `HashSet<E>`
 
-  - Unlike `Collection.add`, this method does not return a `boolean` — it is assumed that the add operation always modifies the list.
+- Hash table backed — buckets of linked lists; converts to balanced binary tree when bucket exceeds threshold
+- O(1) average `add`, `contains`, `remove`
+- Iteration order is essentially random and scrambled per JVM startup
+- Load factor default 0.75 — rehashes (doubles bucket count) when exceeded
+- Bucket count is always a power of 2 (default 16)
+- `HashSet.newHashSet(expectedCount)` — convenience factory that pre-sizes
+- Keys should implement `Comparable` if possible — avoids poor performance from hash collisions
+- Do not mutate elements after insertion — hash code change breaks the set
 
-- In addition, the `ListIterator` interface has two methods that you can use for traversing a list backwards -
-  - `boolean hasPrevious()`
-  - `E previous()`
+### `TreeSet<E>`
 
-- The `listIterator` method of the `LinkedList` class returns an `iterator` object that implements the `ListIterator` interface - `ListIterator<String> iter = staff.listIterator()`
+- Red-black tree — O(log n) add/contains/remove; always in sorted order
+- Elements must implement `Comparable` or a `Comparator` must be supplied
+- Implements `NavigableSet` — `higher(v)`, `lower(v)`, `ceiling(v)`, `floor(v)`, `pollFirst()`, `pollLast()`
+- Comparator must be compatible with `equals` — otherwise `equals` gives inconsistent results between `TreeSet` and other sets
+- Use `TreeSet` only when sorted order is needed; `HashSet` is faster
 
-- The `add` method adds the new element before the iterator position -
-  - Example -  the following code skips over the first element in the linked list and adds "Juliet" before the second element -
-  ```
-  var staff = new LinkedList<String>();
-  staff.add("Amy");
-  staff.add("Bob");
-  staff.add("Carl");
-  ListIterator<String> iter = staff.listIterator();
-  iter.next();                                          // skip past first element
-  iter.add("Juliet");
-  ```
+### `ArrayDeque<E>`
 
-- If you call the `add` method multiple times, the elements are simply added in the order in which you supplied them.
-- When you use the add operation with an iterator that was freshly returned from the `listIterator` method and that points to the first element of the list, the newly added element becomes the first element. 
-- When the iterator has passed the last element of the list (that is, when `hasNext` returns `false`), the added element becomes the new tail of the list.
+- Double-ended queue backed by circular array — O(1) add/remove at both ends
+- Implements `Deque<E>` and `SequencedCollection<E>`
+- Preferred over `Stack` (which extends `Vector`)
 
-> [!NOTE]
-> `remove()` depends on the last movement i.e. it deletes the element that was last returned by `next()` or `previous()`.
->
-> This also means that you cannot call `remove()` twice because after `remove()`, there is no “last returned element”. You must move again (`next()` or `previous()`) before removing again.
+### `PriorityQueue<E>`
 
-- A `set` method replaces the last element, returned by a call to `next` or `previous`, with a new element.
+- Heap-backed — O(log n) `add`, O(log n) `remove` (always removes smallest)
+- Iteration does NOT visit in sorted order — only `remove()` guarantees smallest first
+- Elements must implement `Comparable` or provide `Comparator`
 
-- If an iterator finds that its collection has been modified by another iterator or by a method of the collection itself, it throws a `ConcurrentModificationException`. For example, consider the following code -
-```
-List<String> list = . . .;
-ListIterator<String> iter1 = list.listIterator();
-ListIterator<String> iter2 = list.listIterator();
-iter1.next();
-iter1.remove();
-iter2.next();                      // throws ConcurrentModificationException
-```
+---
 
-- Concurrent modification detection - 
-  - The collection keeps track of the number of mutating operations (such as adding and removing elements). 
-  - Each iterator keeps a separate count of the number of mutating operations that it was responsible for.
-  - At the beginning of each iterator method, the iterator simply checks whether its own mutation count equals that of the collection. 
-  - If not, it throws a `ConcurrentModificationException`.
+## Maps
+
+### Basic Operations
+
+- `HashMap<K,V>` — hash-based; `TreeMap<K,V>` — sorted by key
+- `put(K key, V value)` — returns previous value or `null`
+- `get(Object key)` — returns `null` if absent (parameter is `Object` for legacy reasons — type errors may not be caught)
+- `getOrDefault(key, defaultValue)` — avoids null checks
+- `containsKey`, `containsValue`, `remove(key)`, `size()`
+- `forEach((k, v) -> ...)` — iterates all entries
+
+### Updating Entries
+
+- Naive: `counts.put(word, counts.get(word) + 1)` — NPE if first occurrence
+- Safe: `counts.put(word, counts.getOrDefault(word, 0) + 1)`
+- `putIfAbsent(key, value)` — only puts if key absent or null-mapped
+- `merge(key, value, BiFunction)` — associate `value` if absent; combine with existing if present:
+    - `counts.merge(word, 1, Integer::sum)`
+- `computeIfAbsent(key, Function)` — compute and put only if absent; returns new value (chainable):
+    - `index.computeIfAbsent(term, _ -> new TreeSet<>()).add(pageNumber)`
+- `compute(key, BiFunction)`, `computeIfPresent(key, BiFunction)`, `replaceAll(BiFunction)`
 
 > [!NOTE]
-> The linked list only keeps track of structural modifications to the list, such as adding and removing links. The `set` method does not count as a structural modification. You can attach multiple iterators to a linked list, all of which call `set` to change the contents of existing links.
+> `getOrDefault` treats `null` as a valid value; `putIfAbsent` and `computeIfAbsent` treat `null` as absent — inconsistent behaviour to be aware of.
 
-- The LinkedList class has `get` method that lets you access element at specified index.
-  - But it is very inefficient as LinkedList does not support fast random access.
-  - Each time you look up another element, the search starts again from the beginning of the list. 
-  - The LinkedList object makes no effort to cache the position information.
+### Map Views
 
-> [!TIP]
-> The `get` method has one slight optimization - If the index is at least $size() / 2$, the search for the element starts at the end of the list.
+- `keySet()` — `Set<K>` view; removing a key removes the entry
+- `values()` — `Collection<V>` view; not a set
+- `entrySet()` — `Set<Map.Entry<K,V>>` view; supports `getKey()`, `getValue()`, `setValue()`
+- Views are live — changes to map reflect in view and vice versa
+- Cannot `add` to `keySet()` or `entrySet()` views
+- Disassociate entries with `Map.Entry.copyOf(entry)` or create standalone with `Map.entry(k, v)`
 
-- The list iterator interface also has a method to tell you the index of the current position -
-  - `nextIndex`/`previousIndex ` method returns the integer index of the element that would be returned by the next call to `next`/`previous`.
-  - If you have an integer index `n`, then `list.listIterator(n)` returns an iterator that points just before the element with index `n`.
+### Specialised Maps
 
-- `java.util.List<E>` -
+- `WeakHashMap<K,V>` — keys held via `WeakReference`; GC can reclaim entries when key is only weakly reachable
+- `LinkedHashMap<K,V>` — insertion order (default) or access order (pass `true` to 3-arg constructor)
+    - Override `removeEldestEntry(Map.Entry)` to implement LRU cache
+- `LinkedHashSet<E>` — remembers insertion order
+- `EnumSet<E extends Enum<E>>` — bit vector backed; no public constructors; use `allOf`, `noneOf`, `range`, `of`
+- `EnumMap<K extends Enum<K>, V>` — array-backed; must pass key type to constructor
+- `IdentityHashMap<K,V>` — uses `System.identityHashCode` and `==` instead of `hashCode`/`equals`; for object traversal algorithms
 
-| Method                                     | Description                                                  |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| `listIterator()`                           | Returns a list iterator starting before the first element    |
-| `listIterator(int index)`                  | Returns a list iterator positioned before element at `index` |
-| `add(int i, E e)`                          | Inserts element at position `i`                              |
-| `addAll(int i, Collection<? extends E> c)` | Inserts all elements of a collection starting at `i`         |
-| `remove(int i)`                            | Removes and returns element at position `i`                  |
-| `get(int i)`                               | Returns element at position `i`                              |
-| `set(int i, E e)`                          | Replaces element at position `i`, returns old value          |
-| `indexOf(Object o)`                        | Index of first matching element, or `-1`                     |
-| `lastIndexOf(Object o)`                    | Index of last matching element, or `-1`                      |
+---
 
-- `java.util.ListIterator<E>` -
+## Copies and Views
 
-| Method            | Description                                                |
-| ----------------- | ---------------------------------------------------------- |
-| `add(E e)`        | Inserts element at iterator’s current position             |
-| `set(E e)`        | Replaces last element returned by `next()` or `previous()` |
-| `hasPrevious()`   | Checks if backward traversal is possible                   |
-| `previous()`      | Returns previous element                                   |
-| `nextIndex()`     | Index of element that `next()` would return                |
-| `previousIndex()` | Index of element that `previous()` would return            |
+### Small Unmodifiable Collections (Java 9+)
 
-- `java.util.LinkedList<E>` -
+```java
+List<String> names = List.of("Peter", "Paul", "Mary");
+Set<Integer> nums  = Set.of(2, 3, 5);
+Map<String,Integer> scores = Map.of("Peter", 2, "Paul", 3);
+Map<String,Integer> scores = Map.ofEntries(entry("Peter", 2), entry("Paul", 3));
+```
 
-| Method                                  | Description                                      |
-| --------------------------------------- | ------------------------------------------------ |
-| `LinkedList()`                          | Creates an empty linked list                     |
-| `LinkedList(Collection<? extends E> c)` | Creates list containing elements of a collection |
-| `addFirst(E e)`                         | Inserts element at the beginning                 |
-| `addLast(E e)`                          | Inserts element at the end                       |
-| `getFirst()`                            | Returns first element                            |
-| `getLast()`                             | Returns last element                             |
-| `removeFirst()`                         | Removes and returns first element                |
-| `removeLast()`                          | Removes and returns last element                 |
+- Elements, keys, values cannot be `null`; duplicate keys/set elements throw at construction
+- Iteration order of `Set` and `Map` is deliberately scrambled per JVM startup — do not rely on it
+- Resulting objects are unmodifiable — `UnsupportedOperationException` on mutation
 
-## ArrayLists
+### Unmodifiable Copies (Java 10+)
 
-- `ArrayList` class also implements the `List` interface.
-- An ArrayList encapsulates a dynamically reallocated array of objects.
+```java
+Set<String> nameSet = Set.copyOf(names);
+List<String> nameList = List.copyOf(names);
+Map<String,Integer> mapCopy = Map.copyOf(map);
+```
 
-## Hash Sets
+- Makes an actual copy — original modification does not affect copy
+- If original is already unmodifiable and correct type, `copyOf` returns the same object
+- Rejects `null` elements
 
+### Unmodifiable Views (`Collections.unmodifiable*`)
+
+- `Collections.unmodifiableList(list)`, `unmodifiableSet`, `unmodifiableMap`, etc.
+- View reflects subsequent changes to the original collection
+- Mutator methods throw `UnsupportedOperationException`
+- `unmodifiableCollection` inherits `Object.equals` (identity) — use `unmodifiableSet`/`unmodifiableList` for proper equality
+- `nCopies(n, obj)` — immutable list of n identical elements; O(1) storage
+
+### Subrange Views
+
+- `list.subList(from, to)` — inclusive/exclusive; mutations propagate to backing list
+- `SortedSet`: `subSet(from, to)`, `headSet(to)`, `tailSet(from)`
+- `NavigableSet`: same with boolean `inclusive` flags
+- `SortedMap`/`NavigableMap`: `subMap`, `headMap`, `tailMap` analogues
+
+### Set from Map
+
+```java
+Set<String> cache = Collections.newSetFromMap(new LinkedHashMap<>() {
+    protected boolean removeEldestEntry(Map.Entry<String,Boolean> e) {
+        return size() > 100;
+    }
+});
+```
+
+### Reversed Views
+
+```java
+for (String e : collection.reversed()) { ... }
+```
+
+- `SequencedCollection.reversed()`, `SequencedSet.reversed()`, `SequencedMap.reversed()`
+
+### Checked Views
+
+```java
+List<String> safeList = Collections.checkedList(strings, String.class);
+```
+
+- Throws `ClassCastException` immediately on wrong-type insertion — helps debug generic type smuggling
+
+### Synchronized Views
+
+```java
+Map<String,Employee> map = Collections.synchronizedMap(new HashMap<>());
+```
+
+- All methods are synchronized — safe for multi-threaded access
+- Better alternatives exist in `java.util.concurrent` (Chapter 10)
+
+---
+
+## Algorithms (`Collections` and `Arrays`)
+
+### Sorting
+
+```java
+Collections.sort(staff);
+Collections.sort(staff, Comparator.comparingDouble(Employee::getSalary));
+list.sort(comparator);
+Arrays.sort(array);
+```
+
+- Uses modified merge sort — O(n log n) guaranteed, __stable__ (equal elements preserve relative order)
+- `Collections.sort` dumps to array internally, sorts, copies back — works for `LinkedList` too
+- `Comparator.reverseOrder()` — reverses natural order; `.reversed()` — reverses any comparator
+
+### Shuffling
+
+```java
+Collections.shuffle(cards, RandomGenerator.getDefault());
+```
+
+- For non-`RandomAccess` lists: copies to array, shuffles, copies back
+
+### Binary Search
+
+```java
+int i = Collections.binarySearch(sortedList, target);
+int i = Collections.binarySearch(sortedList, target, comparator);
+```
+
+- List must already be sorted
+- Returns index if found (≥0); returns `-(insertionPoint) - 1` if not found
+- Insertion point: `insertionPoint = -i - 1`
+- Degrades to linear search for non-`RandomAccess` lists
+
+### Simple Algorithms
+
+- `Collections.min(coll)` / `max(coll)` — with optional comparator
+- `Collections.copy(dest, src)` — dest must be at least as long as src
+- `Collections.fill(list, value)` — fills all positions
+- `Collections.replaceAll(list, oldValue, newValue)`
+- `Collections.reverse(list)` — O(n)
+- `Collections.rotate(list, d)` — element at index i moves to `(i + d) % size`
+- `Collections.swap(list, i, j)`
+- `Collections.frequency(coll, obj)` — count of elements equal to obj
+- `Collections.disjoint(c1, c2)` — true if no common elements
+- `Collections.addAll(coll, values...)` — adds varargs to collection
+
+### Bulk Operations
+
+- `coll1.removeAll(coll2)` — removes elements present in coll2
+- `coll1.retainAll(coll2)` — keeps only elements present in coll2 (intersection)
+- Works on views: `staffMap.keySet().removeAll(terminatedIDs)`
+- Works on subranges: `staff.subList(0, 10).clear()`
+
+### Collection ↔ Array
+
+```java
+List<String> list = List.of(array);       // array to list
+String[] arr = list.toArray(String[]::new); // list to typed array
+```
+
+- `toArray()` with no args returns `Object[]` — cannot cast
+- Pre-Java 11: `list.toArray(new String[0])`
+
+### Writing Generic Algorithms
+
+- Accept `Collection<Item>` (or `Iterable<Item>`) rather than `ArrayList<Item>` — accept the most general interface that does the job
+- Return `List<Item>` rather than `ArrayList<Item>` — leave room for future improvements
+
+---
+
+## Legacy Collections
+
+- `Hashtable` — synchronized `HashMap`; use `HashMap` or `ConcurrentHashMap` instead
+- `Vector` — synchronized `ArrayList`; no reason to use
+- `Stack` — extends `Vector`; use `ArrayDeque` instead
+- `Enumeration` — predecessor to `Iterator`; convert with `Collections.list(enum)` or `.asIterator()`
+- `Properties` — string-key/string-value map with file I/O and default chain
+    - `getProperty(key)`, `getProperty(key, default)`, `setProperty(key, value)`
+    - `load(Reader)`, `store(Writer, comment)` — use readers/writers for UTF-8 (ISO 8859-1 with streams)
+    - Chain defaults: `new Properties(defaultSettings)`
+- `BitSet` — packed bit array; `get(i)`, `set(i)`, `clear(i)`, `and`, `or`, `xor`, `andNot`, `cardinality()`, `stream()`
+    - Use for sets of non-negative integers with an upper bound — far more efficient than `Set<Integer>`
