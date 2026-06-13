@@ -65,11 +65,11 @@ Arrays.fill(passwd, '*');                                         // overwrite i
 
 IO.print("%8.2f".formatted(10000.0 / 3.0));                       // 3333.33
 IO.println("%,.2f".formatted(10000.0 / 3.0));                     // 3,333.33
-IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));       // multiple arguments
+IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));         // multiple arguments
 ```
 
 > [!TIP]
-> Use `%s` for any object - invokes `Formattable.formatTo()` if implemented, else `toString()`
+> Using `%s` for any object invokes `Formattable.formatTo()` if implemented, otherwise `toString()`
 
 > [!TIP]
 > Formatting is locale-sensitive - use `String.format(Locale.US, "%8.2f", x)` for fixed locale
@@ -97,10 +97,13 @@ IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));       // multiple argu
 | `float`  | 4 bytes| 6–7 digits     | `0.0f`   |
 | `double` | 8 bytes| 15–16 digits   | `0.0d`   |
 
-- `2.0 - 1.1` → `0.8999...` - use `BigDecimal` for financial calculations
-- IEEE 754 special values - `+Inf`, `-Inf`, `NaN` (`0.0/0`)
-- `x == Double.NaN` always `false` - use `Double.isNaN(x)`
-- `0.0 == -0.0` is `true` - use `Double.compare(x, -0.0) == 0` to distinguish
+- `2.0 - 1.1` → `0.8999...` - 
+  - Use `BigDecimal` for financial calculations
+- `0.0 == 0` returns `NaN`
+- `x == Double.NaN` always return `false`
+  - Use `Double.isNaN`
+- `0.0 == -0.0` is `true` -
+  - Use `Double.compare(x, -0.0) == 0` to distinguish
 
 ### `char` Type
 
