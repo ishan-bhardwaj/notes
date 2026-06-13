@@ -158,24 +158,37 @@ int nx = (int) x;    // 9 - truncates
 
   - Solid arrows - conversions without information loss. 
   - Dotted arrows - conversions that may lose precision, eg -
-    ```
+    ```java
     int n = 123456789;
-    float f = n;            // 1.23456792E8 - magnitude correct, precision lost
+    float f = n;                // 1.23456792E8 - magnitude correct, precision lost
     ```
-
-## Assignment Operators
-
-- Compound assignment (`+=`, `-=`, etc.) performs implicit narrowing cast
-- `x += 3.5` on `int x` → `3` (equivalent to `x = (int)(x + 3.5)`)
-- `x = x + 3.5` on `int x` → compiler error
-- Assignment is an expression - `int y = x += 4` is valid
 
 > [!TIP]
 > Enable lossy conversion warnings - `javac -Xlint:lossy-conversions MyApp.java`
 
+## Assignment Operators
+
+- Compound assignment (`+=`, `-=`, etc.) performs implicit narrowing cast -
+  ```java
+  int x = 1;
+  x += 2.5;             // return 3 - implicit narrow cast
+
+  // equivalent to
+  x = (int)(x + 3.5)
+
+  x = x + 2.5;          // compiler error
+  ```
+
+- Assignment is an expression -
+  ```java
+  int x = 1;
+  int y = x += 1;       // both x & y are 2
+  ```
+
 ## Increment / Decrement
 
-- Prefix `++x` - increment before use; postfix `x++` - use then increment
+- Prefix `++x` - increment before use
+- Postfix `x++` - use then increment
 
 ## Relational and Logical Operators
 
@@ -200,25 +213,29 @@ new BigDecimal(0.1)          // avoid - imprecise
 ```
 
 - Arithmetic via methods - `a.add(b)`, `a.multiply(b)`
-- `divide(other)` - throws if result is repeating; `divide(other, RoundingMode.HALF_UP)` - rounds
+- `divide(other)` - throws if result is repeating
+- `divide(other, RoundingMode.HALF_UP)` - rounds
 
 > [!TIP]
 > `BigInteger.parallelMultiply()` (Java 19+) - uses multiple CPU cores
 
 ## Strings
 
-- Sequence of `char` values; JVM may store as bytes (single-byte) or chars internally
+- Sequence of `char` values - JVM may store as bytes (single-byte) or chars internally
 - __Immutable__ - enables string pool sharing
-- `+` concatenates; non-string operands are converted via `toString()`
+- `+` concatenates - 
+  - Non-string operands are converted via `toString()`
 
 > [!WARNING]
-> `"value: " + 1 + 2` → `"value: 12"` - left-to-right; use parentheses to force arithmetic
+> `"value: " + 1 + 2` returns `"value: 12"` - left-to-right associativity- use parentheses to force arithmetic
 
 > [!WARNING]
-> `':' + 8000` → `8058` - char arithmetic, not string concatenation
+> `':' + 8000` returns `8058` - char arithmetic, not string concatenation
 
 > [!WARNING]
-> Never use `==` to compare strings - compares references; use `.equals()`
+> Never use `==` to compare strings - compares references
+>
+> Use `.equals()`
 
 > [!TIP]
 > `CharSequence` - the common interface for all string types
@@ -272,9 +289,6 @@ String s = switch (code) {
 - Enum labels omit the type name - `case SMALL ->` not `case Size.SMALL ->`
 - All enum values covered → `default` optional; String/numeric → `default` required
 - Multi-line case - use `yield` to return value; `return`/`break`/`continue` not allowed
-
-> [!TIP]
-> Java 23 preview - `switch` selector supports `float`, `double`, `long`, `boolean`
 
 ### Switch Statement
 
