@@ -1,9 +1,9 @@
 # Object-oriented Programming
 
 - Object properties -
-    - __Identity__ — unique reference distinguishing it from other objects
-    - __State__ — data it holds (instance variables)
-    - __Behavior__ — what it can do (methods)
+    - __Identity__ - unique reference distinguishing it from other objects
+    - __State__ - data it holds (instance variables)
+    - __Behavior__ - what it can do (methods)
 
 - Example -
   ```java
@@ -35,9 +35,9 @@
 
 ## Class Relationships
 
-- __Dependence (uses-a)__ — class depends on another, no part-of relationship — Eg - `OrderService` uses `PaymentGateway`
-- __Aggregation (has-a)__ — object contains other objects — Eg - `Order` has `List<Item>`
-- __Inheritance (is-a)__ — subclass inherits from superclass — Eg - `RushOrder extends Order`
+- __Dependence (uses-a)__ - class depends on another, no part-of relationship - Eg - `OrderService` uses `PaymentGateway`
+- __Aggregation (has-a)__ - object contains other objects - Eg - `Order` has `List<Item>`
+- __Inheritance (is-a)__ - subclass inherits from superclass - Eg - `RushOrder extends Order`
 
 ## Constructor
   
@@ -60,7 +60,7 @@
   public class MyClass {
     public    MyClass() {}          // can be instantiated anywhere
     protected MyClass() {}          // same package + subclasses
-              MyClass() {}          // package-private — omit modifier
+              MyClass() {}          // package-private - omit modifier
     private   MyClass() {}          // only instantiated within this class
   }
   ```
@@ -111,7 +111,7 @@
   - Ensures the same code runs regardless of which constructor is called
 
 > [!TIP]
-> Rarely used — place after field declarations
+> Rarely used - place after field declarations
 
 ## Static Initialization
 
@@ -126,40 +126,40 @@
 
 ## Handling Null Fields in Classes
   
-- __Permissive__ — `Objects.requireNonNullElse(n, "unknown")`
-- __Tough love__ — `Objects.requireNonNull(n, "name cannot be null")` — throws exception
+- __Permissive__ - `Objects.requireNonNullElse(n, "unknown")`
+- __Tough love__ - `Objects.requireNonNull(n, "name cannot be null")` - throws exception
 
 ## Method parameters
 
-- Java always uses __call by value__ — method gets a copy of all arguments
-- For object references — copy of reference is passed, so object state can still be mutated
+- Java always uses __call by value__ - method gets a copy of all arguments
+- For object references - copy of reference is passed, so object state can still be mutated
 
 > [!TIP]
-> Local variables must be explicitly initialized — no defaults
+> Local variables must be explicitly initialized - no defaults
 > Instance variables auto-initialize to `0`, `false`, `null` etc
 
 ## `LocalDate` Class
 
 - Immutable, uses static factory methods -
   ```java
-    LocalDate.now();
-    LocalDate.of(1994, 11, 1);
-    d.getYear(); d.getMonthValue(); d.getDayOfMonth();
-    d.plusDays(1000);                                     // returns new object, original unchanged
+  LocalDate.now();
+  LocalDate.of(1994, 11, 1);
+  d.getYear(); d.getMonthValue(); d.getDayOfMonth();
+  d.plusDays(1000);                                     // returns new object, original unchanged
   ```
 
 # Packages
 
 - Import styles -
   ```java
-    import java.time.*;               // all classes
-    import java.time.LocalDate;       // specific
-    import module java.base;          // all packages in module (Java 25+)
-    import static java.lang.System.*; // static members
+  import java.time.*;               // all classes
+  import java.time.LocalDate;       // specific
+  import module java.base;          // all packages in module (Java 25+)
+  import static java.lang.System.*; // static members
   ```
 
 > [!TIP]
-> `import` is for convenience only — bytecode always uses fully qualified names
+> `import` is for convenience only - bytecode always uses fully qualified names
 
 > [!TIP]
 > `java.lang` is auto-imported
@@ -173,9 +173,9 @@
 
 - A method can access `private` fields of any object of the same class -
   ```java
-    public boolean equals(Employee other) {
-        return id == other.id;        // valid
-    }
+  public boolean equals(Employee other) {
+    return id == other.id;        // valid
+  }
   ```
 
 > [!TIP]
@@ -183,52 +183,52 @@
 
 ## Static Members
 
-- No implicit `this` — can access static fields only, not instance fields
-- Prefer static factory methods over constructors when —
+- No implicit `this` - can access static fields only, not instance fields
+- Prefer static factory methods over constructors when -
     - Descriptive names are needed
     - Return type needs to vary
-    - Instances should be shared — Eg - `Set.of()`
+    - Instances should be shared - Eg - `Set.of()`
 
 ### `main` Method
 
-- Java 25+ — no longer needs to be `static`, `public`, or take `String[]`
-- If both static and instance `main` exist — static is preferred
+- Java 25+ - no longer needs to be `static`, `public`, or take `String[]`
+- If both static and instance `main` exist - static is preferred
 - `String[]` variant preferred over no-parameter variant
-- Can be declared outside a class in a compact compilation unit — class name derived from file name
+- Can be declared outside a class in a compact compilation unit - class name derived from file name
 
 ## Final Instance Fields
 
 - Must be initialized in every constructor, cannot be reassigned after
-- `final` applies to the reference, not the object — object itself can still be mutated
+- `final` applies to the reference, not the object - object itself can still be mutated
 
 ## Records
 
-- Immutable data carrier — state fixed at construction, publicly readable
+- Immutable data carrier - state fixed at construction, publicly readable
   ```java
-    record Point(double x, double y) { }
+  record Point(double x, double y) { }
   ```
 
-- Auto-provided —
+- Auto-provided -
     - `private final` fields for each component
     - Canonical constructor
-    - Accessors — `p.x()`, `p.y()` (not `getX()`/`getY()`)
+    - Accessors - `p.x()`, `p.y()` (not `getX()`/`getY()`)
     - `toString`, `equals`, `hashCode`
 
 - No additional instance fields allowed
-- Components are `final` but referenced objects can be mutable — be careful
+- Components are `final` but referenced objects can be mutable - be careful
 - Can have static fields and methods
-- Declared inside a class — enclosing class can access as `p.x` instead of `p.x()`
+- Declared inside a class - enclosing class can access as `p.x` instead of `p.x()`
 
-- __Compact constructor__ — validate/normalize only, cannot read/assign fields directly -
+- __Compact constructor__ - validate/normalize only, cannot read/assign fields directly -
   ```java
-    record Range(int from, int to) {
-        Range { if (from > to) throw new IllegalArgumentException(); }
-    }
+  record Range(int from, int to) {
+    Range { if (from > to) throw new IllegalArgumentException(); }
+  }
   ```
 
-- __Custom constructor__ — must delegate to canonical constructor -
+- __Custom constructor__ - must delegate to canonical constructor -
   ```java
-    record Point(double x, double y) {
-        Point() { this(0, 0); }
-    }
+  record Point(double x, double y) {
+    Point() { this(0, 0); }
+  }
   ```
