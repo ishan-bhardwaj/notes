@@ -2,7 +2,7 @@
 
 - __Strongly typed__ - every variable must have a declared type
 - __Compile and run__ -
-  ```
+  ```bash
   javac HelloWorld.java    // generates HelloWorld.class (bytecode)
   java HelloWorld          // executes bytecode
   ```
@@ -41,6 +41,17 @@ var x = 5;                  // type inferred as int
 final double PI = 3.14;     // constants
 ```
 
+- `var` is only allowed for local variables, not for fields (instance variables), method parameters, or return types -
+  ```java
+  public class A {
+    var a = 5;                      // ❌ Compile error
+
+    public void doSomething() {
+        var b = 5;                  // ✅ OK
+    }
+  }
+  ```
+
 ## Input and Output
 
 ```java
@@ -54,11 +65,11 @@ Arrays.fill(passwd, '*');                                         // overwrite i
 
 IO.print("%8.2f".formatted(10000.0 / 3.0));                       // 3333.33
 IO.println("%,.2f".formatted(10000.0 / 3.0));                     // 3,333.33
-IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));       // multiple arguments
+IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));         // multiple arguments
 ```
 
 > [!TIP]
-> Use `%s` for any object - invokes `Formattable.formatTo()` if implemented, else `toString()`
+> Using `%s` for any object invokes `Formattable.formatTo()` if implemented, otherwise `toString()`
 
 > [!TIP]
 > Formatting is locale-sensitive - use `String.format(Locale.US, "%8.2f", x)` for fixed locale
@@ -86,10 +97,13 @@ IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));       // multiple argu
 | `float`  | 4 bytes| 6–7 digits     | `0.0f`   |
 | `double` | 8 bytes| 15–16 digits   | `0.0d`   |
 
-- `2.0 - 1.1` → `0.8999...` - use `BigDecimal` for financial calculations
-- IEEE 754 special values - `+Inf`, `-Inf`, `NaN` (`0.0/0`)
-- `x == Double.NaN` always `false` - use `Double.isNaN(x)`
-- `0.0 == -0.0` is `true` - use `Double.compare(x, -0.0) == 0` to distinguish
+- `2.0 - 1.1` → `0.8999...` - 
+  - Use `BigDecimal` for financial calculations
+- `0.0 == 0` returns `NaN`
+- `x == Double.NaN` always return `false` -
+  - Use `Double.isNaN`
+- `0.0 == -0.0` is `true` -
+  - Use `Double.compare(x, -0.0) == 0` to distinguish
 
 ### `char` Type
 
@@ -114,14 +128,17 @@ Size.valueOf("Medium");                           // Error - case-sensitive
 Size.values();                                    // all values as array
 ```
 
-- Variable holds one defined value or `null`
-
 ## Arithmetic Operators
 
-- `int / int` → `int`; `int / 0` → exception; `double / 0` → `Infinity`
-- `n % 2` → `0` even, `1` odd positive, `-1` odd negative
-- `Math.floorMod(-5, 2)` → `1`; `Math.floorMod(5, -2)` → `-1`
-- __Numeric promotion rules (binary ops)__ -
+- Division -
+  - `int / int` returns `int`
+  - `int / 0` throws exception
+  - `double / 0` returns `NaN`
+- `Math.floorMod` -
+  - `Math.floorMod(-5, 2)` returns `1`
+  - `Math.floorMod(5, -2)` returns `-1`
+  - `Math.floorMod(-5, -2)` returns `-1`
+- __Numeric promotion rules__ -
   - Either `double` → both `double`
   - Else either `float` → both `float`
   - Else either `long` → both `long`
@@ -135,31 +152,43 @@ int nx = (int) x;    // 9 - truncates
 (byte) 300           // 44 - wraps on overflow
 ```
 
-- Java 25 preview - safe casts via `instanceof` pattern: `if (n instanceof byte b)`
 - __Legal conversions between numeric types__ -
 
-  ![Legal conversions between numeric types](assets/numeric_types_conversions.png)
+  ![Legal conversions between numeric types](../assets/numeric_types_conversions.png)
 
   - Solid arrows - conversions without information loss. 
   - Dotted arrows - conversions that may lose precision, eg -
-    ```
+    ```java
     int n = 123456789;
-    float f = n;            // 1.23456792E8 - magnitude correct, precision lost
+    float f = n;                // 1.23456792E8 - magnitude correct, precision lost
     ```
-
-## Assignment Operators
-
-- Compound assignment (`+=`, `-=`, etc.) performs implicit narrowing cast
-- `x += 3.5` on `int x` → `3` (equivalent to `x = (int)(x + 3.5)`)
-- `x = x + 3.5` on `int x` → compiler error
-- Assignment is an expression - `int y = x += 4` is valid
 
 > [!TIP]
 > Enable lossy conversion warnings - `javac -Xlint:lossy-conversions MyApp.java`
 
+## Assignment Operators
+
+- Compound assignment (`+=`, `-=`, etc.) performs implicit narrowing cast -
+  ```java
+  int x = 1;
+  x += 2.5;             // return 3 - implicit narrow cast
+
+  // equivalent to
+  x = (int)(x + 3.5)
+
+  x = x + 2.5;          // compiler error
+  ```
+
+- Assignment is an expression -
+  ```java
+  int x = 1;
+  int y = x += 1;       // both x & y are 2
+  ```
+
 ## Increment / Decrement
 
-- Prefix `++x` - increment before use; postfix `x++` - use then increment
+- Prefix `++x` - increment before use
+- Postfix `x++` - use then increment
 
 ## Relational and Logical Operators
 
@@ -184,25 +213,29 @@ new BigDecimal(0.1)          // avoid - imprecise
 ```
 
 - Arithmetic via methods - `a.add(b)`, `a.multiply(b)`
-- `divide(other)` - throws if result is repeating; `divide(other, RoundingMode.HALF_UP)` - rounds
+- `divide(other)` - throws if result is repeating
+- `divide(other, RoundingMode.HALF_UP)` - rounds
 
 > [!TIP]
 > `BigInteger.parallelMultiply()` (Java 19+) - uses multiple CPU cores
 
 ## Strings
 
-- Sequence of `char` values; JVM may store as bytes (single-byte) or chars internally
+- Sequence of `char` values - JVM may store as bytes (single-byte) or chars internally
 - __Immutable__ - enables string pool sharing
-- `+` concatenates; non-string operands are converted via `toString()`
+- `+` concatenates - 
+  - Non-string operands are converted via `toString()`
 
 > [!WARNING]
-> `"value: " + 1 + 2` → `"value: 12"` - left-to-right; use parentheses to force arithmetic
+> `"value: " + 1 + 2` returns `"value: 12"` - left-to-right associativity- use parentheses to force arithmetic
 
 > [!WARNING]
-> `':' + 8000` → `8058` - char arithmetic, not string concatenation
+> `':' + 8000` returns `8058` - char arithmetic, not string concatenation
 
 > [!WARNING]
-> Never use `==` to compare strings - compares references; use `.equals()`
+> Never use `==` to compare strings - compares references
+>
+> Use `.equals()`
 
 > [!TIP]
 > `CharSequence` - the common interface for all string types
@@ -256,9 +289,6 @@ String s = switch (code) {
 - Enum labels omit the type name - `case SMALL ->` not `case Size.SMALL ->`
 - All enum values covered → `default` optional; String/numeric → `default` required
 - Multi-line case - use `yield` to return value; `return`/`break`/`continue` not allowed
-
-> [!TIP]
-> Java 23 preview - `switch` selector supports `float`, `double`, `long`, `boolean`
 
 ### Switch Statement
 
