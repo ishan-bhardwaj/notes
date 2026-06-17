@@ -118,16 +118,6 @@ IO.print("Hello, %s. Age: %d.".formatted(name, age + 1));         // multiple ar
 >
 > For eg - `Integer.SIZE` = 32, and `Integer.BYTES` = 4
 
-## Enum Type
-
-```java
-enum Size { SMALL, MEDIUM, LARGE, EXTRA_LARGE }
-Size s = Size.MEDIUM;
-Size.valueOf("MEDIUM");                           // Size.MEDIUM
-Size.valueOf("Medium");                           // Error - case-sensitive
-Size.values();                                    // all values as array
-```
-
 ## Arithmetic Operators
 
 - Division -

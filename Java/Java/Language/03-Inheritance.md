@@ -116,9 +116,6 @@
   if (c instanceof Circle(Point(var a, var b), var r)) { ... }
   ```
 
-> [!TIP] 
-> Every class extends `Object` automatically
-
 ### `equals` Method
 
 - Default `Object.equals` checks reference identity (`==`)
@@ -268,16 +265,13 @@
   }
   ```
 
-> [!NOTE]
-> When enum has fields or methods, terminate constant list with a semicolon
-
 - Simple name usable without qualification in -
   - Methods inside the enum
   - `switch` cases where selector is that enum type
   - After `import static`
 
 > [!WARNING]
-> Cannot statically import constants from an enum in the default package
+> Cannot statically import constants from an enum in the default package (no `package` declaration)
 
 - Enum with no instances - useful as a utility class -
   ```java
@@ -310,7 +304,7 @@
   };
   ```
 
-- Sealed interfaces work the same way - records and enums can implement them but cannot extend classes
+- Records and enums can implement a sealed interface, but cannot extend them
 
 ## Pattern Matching
 
