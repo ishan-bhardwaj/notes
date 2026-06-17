@@ -1,9 +1,9 @@
 # Object-oriented Programming
 
 - Object properties -
-  - Identity - its unique reference that distinguishes it from other objects
-  - State - the data it holds (instance variables)
-  - Behavior - what the object can do (its methods)
+    - __Identity__ — unique reference distinguishing it from other objects
+    - __State__ — data it holds (instance variables)
+    - __Behavior__ — what it can do (methods)
 
 - Example -
   ```java
@@ -27,113 +27,28 @@
 
 - Constructing objects -
   ```java
-  Employee john;                                // declare reference to object
-  john = new Employee("John Doe", 30);          // allocate an Employee object
-
-  // or
-  var john = new Employee("John", 30);          
+  Employee john = new Employee("John Doe", 30);
+  var john = new Employee("John", 30);                  // shorthand      
   ```
 
-- A source file can only contain one public class, and the names of the file & the public class must match
+- A source file can only contain one `public` class, and the file name must match the class name
 
 ## Class Relationships
 
-- Classes can interact with each other in _three_ common ways -
-  - __Dependence (uses-a)__ -
-    - A class depends on another class but does not model a part-of relationship
-    - Example -
-      ```java
-      class PaymentGateway {
-        public boolean charge(double amount) {
-          IO.println("Charged: " + amount);
-          return true;
-        }
-      }
-
-      class OrderService {
-
-        private var gateway = new PaymentGateway();             // dependency uses-a
-
-        public void placeOrder(double amount) {
-          if (gateway.charge(amount)) {
-            IO.println("Order placed successfully");
-          }
-        }
-      }
-      ```
-
-  - __Aggregation (has-a)__ -
-    - Object _contains_ other objects (long-term relationship)
-    - Example -
-      ```java
-      record Item(String name, double price) {}
-
-      import java.util.List;
-
-      class Order {
-
-        private List<Item> items;                        // aggregation (has-a)
-
-        public Order(List<Item> items) {
-          this.items = items;
-        }
-
-        public double totalPrice() {
-          return items.stream()
-                 .mapToDouble(Item::price)
-                 .sum();
-        }
-      }
-      ```
-
-  - __Inheritance (is-a)__ -
-    - Inheritance expresses a relationship between a general class and a more specialized class
-    - A subclass inherits methods and behavior from its superclass
-    - Example -
-      ```java
-      class Order {
-        public int deliveryDays() {
-          return 5;
-        }
-      }
-
-      class RushOrder extends Order {                  // is-a relationship
-        @Override
-        public int deliveryDays() {
-          return 1;
-        }
-      }
-      ```
+- __Dependence (uses-a)__ — class depends on another, no part-of relationship — Eg - `OrderService` uses `PaymentGateway`
+- __Aggregation (has-a)__ — object contains other objects — Eg - `Order` has `List<Item>`
+- __Inheritance (is-a)__ — subclass inherits from superclass — Eg - `RushOrder extends Order`
 
 ## Constructor
   
-- Special method whose purpose is to construct and initialize objects
+- Same name as class, no return type, called with `new`
+- Can be overloaded, can delegate with `this(...)` -
   ```java
-  class Order {
-    int id;
-    String name;
-
-    Order(int id, String name) {
-      this.id = id;
-      this.name = name;
-    }
-
-    Order() {                           // can have more than one constructor.
-      this(0, "unknown");
-    }
-  }
+  Order(int id, String name) { this.id = id; this.name = name; }
+  Order() { this(0, "unknown"); }
   ```
 
-- A constructor -
-  - Always have the same name as the class name
-  - Has no return value
-  - Always called with the `new` operator -
-    ```java
-    var order1 = new Order();                // return value is a reference
-    var order2 = null;                       // refers to no object
-    ```
-
-- Constructors can be - 
+- Access modifiers - 
   | Modifier        | Access                       |
   | --------------- | ---------------------------- |
   | `public`        | Anywhere                     |
@@ -150,29 +65,13 @@
   }
   ```
 
-- Final fields must be initialized in the constructor -
-  ```java
-  class Order {
-    final int id;
-
-    Order(int id) {
-        this.id = id;           // mandatory, otherwise compiler error
-    }
-  }
-  ```
-
-> [!NOTE] 
-> Compiler automatically adds a no-argument constructor, iff no constructor is provided explicitly
+- `final` fields must be initialized in the constructor, else compiler error
 
 > [!NOTE]
-> Every method has an implicit parameter `this` referring to the object -
->
-> ```java
-> void raiseSalary(double byPercent) {
->   double raise = this.salary * byPercent / 100;
->   this.salary += raise;
-> }
-> ```
+> Compiler auto-adds a no-arg constructor iff no constructor is explicitly defined
+
+> [!NOTE]
+> Every method has an implicit `this` parameter referring to the object
 
 > [!TIP]
 > `jdeprscan` (Java Deprecated API Scanner) - Java tool for detecting deprecated API usage in your code
@@ -190,14 +89,13 @@
 
 ## Initialization Blocks
 
-- A code block inside a class (not inside a method)
-- Executed every time an object is constructed, before the constructor
+- Code block inside class, outside method
+- Runs before every constructor
 
 - Example -
   ```java
   class Employee {
     private static int nextId;
-
     private int id;
 
     // object initialization block
@@ -213,337 +111,124 @@
   - Ensures the same code runs regardless of which constructor is called
 
 > [!TIP]
-> Initialization blocks are rarely used and is good practise to place them after field declarations
+> Rarely used — place after field declarations
 
 ## Static Initialization
 
-- Runs once, when the class is first loaded
-- Static fields can be initialized in two ways -
-  - Inline Initialization - 
-    - `private static int nextId = 1`
-
-  - Static Initialization Block -
-    - Example -
-    ```java
-    static {
-      nextId = generator.nextInt(10000);
-    }
-    ```
+- Runs once when class is first loaded
+- Inline Initialization - `private static int nextId = 1`
+- Static Initialization Block -
+  ```java
+  static {
+    nextId = generator.nextInt(10000);
+  }
+  ```
 
 ## Handling Null Fields in Classes
   
-- __Permissive Approach__ - 
-  - Replace `null` with a default value -
-    ```java
-    if (n == null) 
-      name = "unknown"; 
-    else 
-      name = n;
-    ```
-
-  - Using `Objects` utility class -
-    ```java
-    Employee(String n, double s) {
-      name = Objects.requireNonNullElse(n, "unknown");
-      // ... other initializations
-    }
-    ```
-
-- “Tough Love” Approach -
-  - Reject `null` arguments with an exception -
-    ```java
-    Employee(String n, double s) {
-      name = Objects.requireNonNull(n, "The name cannot be null");
-      // ... other initializations
-    }
-    ```
+- __Permissive__ — `Objects.requireNonNullElse(n, "unknown")`
+- __Tough love__ — `Objects.requireNonNull(n, "name cannot be null")` — throws exception
 
 ## Method parameters
 
-- __Call by value__ - 
-  - Always used in Java
-  - Method gets a _copy_ of all arguments
-- __Call by reference__ - 
-  - Method gets the location of the variable that the caller provides
-  - Thus, a method can modify the value stored in a variable passed by reference
+- Java always uses __call by value__ — method gets a copy of all arguments
+- For object references — copy of reference is passed, so object state can still be mutated
 
 > [!TIP]
-> Method gets a copy of the object reference, so it is still using call by value.
-> 
-> But because both the original and the copy refer to the same object - method can update the states of the object.
+> Local variables must be explicitly initialized — no defaults
+> Instance variables auto-initialize to `0`, `false`, `null` etc
 
-> [!TIP]
-> Local variables are not initialized with their default values - you must explicitly initialise them
->
-> Instance variables are automatically initialised to their default value (`0`, `false`, `null` etc), if not initialised explicitly
+## `LocalDate` Class
 
-## `LocalDate` class
-
-- Represents a date in calendar notation (year, month, day)
-- Objects are immutable
-- Construction - _static factory methods_ are used instead of constructors -
+- Immutable, uses static factory methods -
   ```java
-  LocalDate today = LocalDate.now();                    // current date
-  LocalDate newYearsEve = LocalDate.of(1994, 11, 1);    // specific date
-
-  // accessor methods
-  newYearsEve.getYear();                                // 1994
-  newYearsEve.getMonthValue();                          // NOVEMBER
-  newYearsEve.getDayOfMonth();                          // 1
+    LocalDate.now();
+    LocalDate.of(1994, 11, 1);
+    d.getYear(); d.getMonthValue(); d.getDayOfMonth();
+    d.plusDays(1000);                                     // returns new object, original unchanged
   ```
-
-- Date Arithmetic -
-  - `plusDays` -
-    - Immutable method - original object remains unchanged - 
-      ```java
-      LocalDate aThousandDaysLater = newYearsEve.plusDays(1000)
-      ```
-
-    - Mutator example - `GregorianCalendar.add` - changes the state of the object -
-      ```java
-      GregorianCalendar someDay = new GregorianCalendar(1999, 11, 31); // month 0-11
-      someDay.add(Calendar.DAY_OF_MONTH, 1000);
-      ```
 
 # Packages
 
-- A class can use -
-  - All classes in its own package
-  - All public classes from other packages
-  
-- Importing classes -
-  - Using fully qualified names -
-    - `java.time.LocalDate today = java.time.LocalDate.now()`
-    - Always works, but tedious
-  - Using `import` -
-    ```java
-    import java.time.*;                   // imports all classes in java.time package
-    import java.time.LocalDate;           // specific class import
-
-    LocalDate today = LocalDate.now();
-    ```
+- Import styles -
+  ```java
+    import java.time.*;               // all classes
+    import java.time.LocalDate;       // specific
+    import module java.base;          // all packages in module (Java 25+)
+    import static java.lang.System.*; // static members
+  ```
 
 > [!TIP]
-> `import` is purely for convenience. The bytecode always uses fully qualified names
+> `import` is for convenience only — bytecode always uses fully qualified names
 
 > [!TIP]
-> `java.lang`is imported automatically
+> `java.lang` is auto-imported
 
-- __Module Imports__ (Java 25+) -
-  - Java packages can be organized into modules
-  - Import all packages in a module -
-    - Example - `import module java.xml`
-    - Important module - 
-      - `import module java.base`
-      - Automatically imported in compact source files
-      - Includes `java.lang`, `java.util`, `java.time`, `java.io` etc
-
-- __Static Imports__ -
-  - Allows importing static methods and fields -
-    ```java
-    import static java.lang.System.*;
-    err.println("Error");
-    exit(0);
-    ```
-
-  - Enum Constants -
-    ```java
-    import static java.time.DayOfWeek.*;
-
-    var day = FRIDAY;
-    ```
-
-- If you don’t put a package statement in the source file - the classes will belong to the unnamed package
-
-> [!TIP]
-> The implicitly declared class of a compact compilation unit (with methods declared outside a class) is always in the unnamed package
-
-- Package structure is important for JVM, not for compiler -
+- No `package` statement → class belongs to unnamed package
+- Package directory structure matters to JVM, not compiler -
   - A class with `package com.mycompany` can compile even if it is not contained in a subdirectory `com/mycompany`
   - But, the JVM won't be able to execute it
 
-## Class Based Access Privileges
+## Class-Based Access Privileges
 
-- A method can access the `private` fields of the object it is invoked on.
-- A method of a class can access `private` fields of any other object of the same class -
-    ```java
-    class Employee {
-      private int id;
-      // other fields
-
-      public boolean equals(Employee other) {
-          return id == other.id;                // accesses private field of 'other'
-      }
+- A method can access `private` fields of any object of the same class -
+  ```java
+    public boolean equals(Employee other) {
+        return id == other.id;        // valid
     }
-
-    if (harry.equals(boss)) { ... }               // valid
-    ```
-
-  - This enables methods like `equals`, `compareTo`, or `copy` constructors to work
+  ```
 
 > [!TIP]
-> Variables with no access modifiers defaults to package access
-
-## Private Methods
-
-- Instance fields are made `private` to protect data
-- Reasons to make methods private -
-  - They are implementation details
-  - May require a special protocol or calling order
-  - Not meant to be used outside the class
+> No modifier → defaults to package access
 
 ## Static Members
 
-- Methods that do not operate on objects, eg - `Math.pow`.
-  - Has no implicit (`this`) parameter
-  - A static method can access static field, but not an instance field
-  - It is legal to call static methods on the objects, but is not recommended
+- No implicit `this` — can access static fields only, not instance fields
+- Prefer static factory methods over constructors when —
+    - Descriptive names are needed
+    - Return type needs to vary
+    - Instances should be shared — Eg - `Set.of()`
 
-- Classes such as `LocalDate` and `NumberFormat` use static factory methods that construct objects
-- Reasons to prefer a factory method over constructor -
-  - Can’t give names to constructors
-  - Can’t vary the return type of the constructed object
-  - Share instances, eg - the call `Set.of()` yields the same instance of an empty set when you call it twice
+### `main` Method
 
-### __`main` method__
-  
-- Traditionally, `main` was a static method -
-  - When a program starts, there aren’t any objects yet
-
-- Java 25+ - the `main` method no longer needs to be `static` and `public`, and it need not have a parameter of type `String[]`
-
-- Rules of `main` method -
-  - If there is more than one `main` method - static `main` methods are preferred
-  - Methods with a `String[]` parameter are preferred over those with no parameters
-  - If `main` is not static, the class must have a non-private no-argument constructor - 
-    - constructs an instance of the class and invokes the `main` method on it
-
-- Java 25+ - `main` method no longer needs to be declared inside a class.
-  - A source file with method declarations outside a class is called _compact compilation unit_ 
-  - Implicitly declares a class whose name is derived from the source file
-  - Eg - if file name is `Application.java` then class name is likely to be `Application`.
+- Java 25+ — no longer needs to be `static`, `public`, or take `String[]`
+- If both static and instance `main` exist — static is preferred
+- `String[]` variant preferred over no-parameter variant
+- Can be declared outside a class in a compact compilation unit — class name derived from file name
 
 ## Final Instance Fields
 
-- Rules for `final` instance fields -
-  - Must be initialized during object construction (in every constructor)
-  - Cannot be reassigned after the constructor completes
+- Must be initialized in every constructor, cannot be reassigned after
+- `final` applies to the reference, not the object — object itself can still be mutated
 
-- Example -
+## Records
+
+- Immutable data carrier — state fixed at construction, publicly readable
   ```java
-  class Employee {
-    private final String name; 
-  }
+    record Point(double x, double y) { }
   ```
 
-- Benefits -
-  - Guarantees immutability of the reference
-  - Improves clarity and safety of your class design
+- Auto-provided —
+    - `private final` fields for each component
+    - Canonical constructor
+    - Accessors — `p.x()`, `p.y()` (not `getX()`/`getY()`)
+    - `toString`, `equals`, `hashCode`
 
-- `final` applies to the reference, not the object itself -
+- No additional instance fields allowed
+- Components are `final` but referenced objects can be mutable — be careful
+- Can have static fields and methods
+- Declared inside a class — enclosing class can access as `p.x` instead of `p.x()`
+
+- __Compact constructor__ — validate/normalize only, cannot read/assign fields directly -
   ```java
-  private final StringBuilder evaluations;
-
-  evaluations = new StringBuilder();          // initialized in constructor
-
-  // cannot reassign evaluations to a new object, but the object itself can be mutated
-  void giveGoldStar() {
-    evaluations.append(LocalDate.now() + ": Gold star!\n");
-  }
-  ```
-
-# Records
-
-- A record is a special form of a class designed to model immutable data
-- Its state -
-  - is fixed at construction time
-  - is publicly readable
-- Records are ideal for data carriers whose entire state is represented by a fixed set of fields
-
-- Declaring a Record - 
-  - `record Point(double x, double y) { }`
-  - This declaration automatically creates -
-    - Instance Fields (called Components) -
-      ```java
-      private final double x;
-      private final double y;
-      ```
-
-- Automatically Provided Members -
-  - Canonical Constructor -
-    - automatically defined constructor that sets all instance fields
-    - `Point(double x, double y)`
-
-  - Accessor Methods -
-    ```java
-    double x()
-    double y()
-    ```
-
-    - Accessors use the component name, not `getX()` or `getY()` -
-      ```java
-      var p = new Point(3, 4);
-      IO.println(p.x() + " " + p.y());
-      ``` 
-
-  - Automatically Generated Methods - `toString`, `equals`, `hashCode`
-
-- Adding Methods to Records -
-  ```java
-  record Point(double x, double y) {
-    
-  }
-  ```
-
-- Can override generated methods if the signature matches (but strongly discouraged as it violates the principle of records as transparent data holders) -
-  ```java
-  record Point(double x, double y) {
-    public double x() { return 2 * x; }     // Legal but misleading
-  }
-  ```
-
-- No Additional Instance Fields -
-  ```java
-  record Point(double x, double y) {
-    private double z;                       // ERROR
-  }
-  ```
-
-- All components are implicitly `final`, but references may point to mutable objects -
-  ```java
-  record PointInTime(double x, double y, Date when) { }
-
-  var pt = new PointInTime(0, 0, new Date());
-  pt.when().setTime(0);                           // Mutates record state
-  ```
-
-- A record can be declared inside another class.
-  - The enclosing class may access record fields directly
-  - `p.x` instead of `p.x()`
-  - This also applies to records in a compact compilation unit
-
-- Records can have declare static fields and methods
-
-- Compact Constructor -
-  - Used to validate or normalize parameters
-  - Cannot read or modify the instance fields in the body of the compact constructor
-  - Example -
-  ```java
-  record Range(int from, int to) {
-    Range {
-        if (from > to) throw new IllegalArgumentException();
+    record Range(int from, int to) {
+        Range { if (from > to) throw new IllegalArgumentException(); }
     }
-  }
   ```
 
-- Custom Constructors
-  - Must delegate to another constructor
-  - Ultimately must invoke the canonical constructor
-  - Example - this record has two constructors: the canonical constructor and a no-argument constructor yielding the origin -
+- __Custom constructor__ — must delegate to canonical constructor -
   ```java
-  record Point(double x, double y) {
-    Point() {
-        this(0, 0);
+    record Point(double x, double y) {
+        Point() { this(0, 0); }
     }
-  }
   ```
